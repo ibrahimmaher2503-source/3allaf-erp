@@ -89,7 +89,7 @@ final class UpdateStockTransferDraftAction
                 throw new InvalidArgumentException(__('Invalid transfer quantity.'));
             }
             $quantity = bcadd($quantity, '0', 6);
-            if (bccomp($quantity, '0', 6) <= 0 || bccomp(bcmod($quantity, '1', 6), '0', 6) !== 0) {
+            if (bccomp($quantity, '0', 6) <= 0 || (! $product->fractional_quantity && bccomp(bcmod($quantity, '1', 6), '0', 6) !== 0)) {
                 throw new InvalidArgumentException(__('Transfer quantity is invalid for this product.'));
             }
             if (isset($normalized[$product->id])) {
@@ -97,12 +97,14 @@ final class UpdateStockTransferDraftAction
             }
             $normalized[$product->id] = ['product_id' => $product->id, 'quantity_requested' => $quantity, 'unit_cost' => bcadd((string) ($product->average_cost ?? '0'), '0', 4)];
         }
+
         return array_values($normalized);
     }
 
     private function nullableTrimmed(?string $value): ?string
     {
         $value = trim((string) $value);
+
         return $value === '' ? null : $value;
     }
 }
