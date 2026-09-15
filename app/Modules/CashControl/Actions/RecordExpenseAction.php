@@ -26,7 +26,9 @@ final class RecordExpenseAction
         $description = trim($description);
         $idempotencyKey = trim($idempotencyKey);
         $date = $this->date($date ?? now()->toDateString());
-        if ($description === '' || $idempotencyKey === '') throw new InvalidArgumentException(__('Expense description and idempotency key are required.'));
+        if ($description === '' || $idempotencyKey === '') {
+            throw new InvalidArgumentException(__('Expense description and idempotency key are required.'));
+        }
 
         $payload = ['company_id' => (int) $company->id, 'category_id' => (int) $category->id, 'amount' => $amount, 'description' => $description, 'date' => $date, 'payment_method_id' => $paymentMethod?->id, 'cash_account_id' => $cashAccount?->id, 'reference' => trim((string) $reference)];
         $payloadHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -39,10 +41,21 @@ final class RecordExpenseAction
                     ->lockForUpdate()
                     ->findOrFail($company->id);
                 $existing = Expense::query()->where('idempotency_key', $idempotencyKey)->lockForUpdate()->first();
-                if ($existing !== null) return $this->replay($existing, $payloadHash);
+                if ($existing !== null) {
+                    return $this->replay($existing, $payloadHash);
+                }
                 $category = ExpenseCategory::query()->where('company_id', $company->id)->where('active', true)->lockForUpdate()->findOrFail($category->id);
                 $cashAccount = $cashAccount === null ? null : CashAccount::query()->where('company_id', $company->id)->where('status', 'active')->lockForUpdate()->findOrFail($cashAccount->id);
                 $paymentMethod = $paymentMethod === null ? null : PaymentMethod::query()->where('status', 'active')->findOrFail($paymentMethod->id);
+                if ($paymentMethod?->isCash() && $cashAccount === null) {
+                    throw new InvalidArgumentException(__('Cash expenses require a cash account.'));
+                }
+                if (! $paymentMethod?->isCash() && $cashAccount !== null) {
+                    throw new InvalidArgumentException(__('Non-cash expenses cannot use a cash account.'));
+                }
+                if ($cashAccount !== null && (strtoupper((string) $cashAccount->currency_code) !== strtoupper((string) $company->currency_code) || $cashAccount->type !== 'cash')) {
+                    throw new InvalidArgumentException(__('Cash expense account must match the company currency and be a cash account.'));
+                }
 
                 $expense = Expense::query()->create([
                     'company_id' => $company->id, 'expense_category_id' => $category->id, 'cash_account_id' => $cashAccount?->id,
@@ -60,14 +73,19 @@ final class RecordExpenseAction
             }, 5);
         } catch (UniqueConstraintViolationException $exception) {
             $existing = Expense::query()->where('idempotency_key', $idempotencyKey)->first();
-            if ($existing !== null) return $this->replay($existing, $payloadHash);
+            if ($existing !== null) {
+                return $this->replay($existing, $payloadHash);
+            }
             throw $exception;
         }
     }
 
     private function replay(Expense $expense, string $payloadHash): Expense
     {
-        if (! hash_equals((string) $expense->payload_hash, $payloadHash)) throw new InvalidArgumentException(__('This expense idempotency key was already used with different data.'));
+        if (! hash_equals((string) $expense->payload_hash, $payloadHash)) {
+            throw new InvalidArgumentException(__('This expense idempotency key was already used with different data.'));
+        }
+
         return $expense->loadMissing(['category', 'cashAccount', 'paymentMethod']);
     }
 
@@ -75,14 +93,20 @@ final class RecordExpenseAction
     private function money(string $value): string
     {
         $value = trim($value);
-        if (! preg_match('/^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/', $value) || bccomp($value, '0', 4) <= 0) throw new InvalidArgumentException(__('Expense amount must be a positive decimal.'));
+        if (! preg_match('/^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/', $value) || bccomp($value, '0', 4) <= 0) {
+            throw new InvalidArgumentException(__('Expense amount must be a positive decimal.'));
+        }
+
         return bcadd($value, '0', 4);
     }
 
     private function date(string $value): string
     {
         $valid = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts) && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]);
-        if (! $valid) throw new InvalidArgumentException(__('Expense date is invalid.'));
+        if (! $valid) {
+            throw new InvalidArgumentException(__('Expense date is invalid.'));
+        }
+
         return $value;
     }
 }
