@@ -49,7 +49,9 @@ final class FeedStoreOperationsController extends Controller
 
         $sales = $canCustomerReceipts ? Sale::query()
             ->visibleTo($actor)
+            ->whereNotNull('customer_id')
             ->where('status', 'approved')
+            ->with(['customer', 'store'])
             ->withSum('payments as direct_payments_total', 'amount')
             ->withSum(['receiptAllocations as receipt_allocations_total' => fn ($query) => $query->whereHas('receipt', fn ($receipt) => $receipt->where('status', 'approved'))], 'amount')
             ->withSum(['retailReturns as returns_total' => fn ($query) => $query->where('status', 'completed')], 'settlement_value')
@@ -84,6 +86,7 @@ final class FeedStoreOperationsController extends Controller
 
         return view('feed-store.operations', [
             'customers' => $canCustomerReceipts ? Customer::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect(),
+            'stores' => $canCustomerReceipts ? Store::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->get() : collect(),
             'sales' => $sales,
             'suppliers' => $canSupplierPayments ? Supplier::query()->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect(),
             'invoices' => $invoices,
@@ -103,11 +106,27 @@ final class FeedStoreOperationsController extends Controller
     public function customerReceipt(Request $request, RecordCustomerReceiptAction $action): RedirectResponse
     {
         $actor = $this->actor($request);
-        $data = $request->validate($this->paymentRules('customer_id', 'sale_id'));
+        $data = $request->validate([
+            'customer_id' => 'required|integer',
+            'collection_store_id' => 'required|integer',
+            'currency_code' => 'required|alpha:ascii|size:3',
+            'allocations' => 'nullable|array',
+            'allocations.*' => 'nullable|decimal:0,4|gt:0',
+            'payment_method_id' => 'required|integer',
+            'cash_account_id' => 'nullable|integer',
+            'amount' => 'required|decimal:0,4|gt:0',
+            'date' => 'required|date',
+            'reference' => 'nullable|string|max:190',
+            'evidence_reference' => 'nullable|string|max:190',
+            'notes' => 'nullable|string|max:1000',
+            'idempotency_key' => 'required|uuid',
+        ]);
         try {
             $customer = Customer::query()->visibleTo($actor)->findOrFail($data['customer_id']);
-            $sale = Sale::query()->visibleTo($actor)->findOrFail($data['sale_id']);
-            $action->execute($actor, $customer, PaymentMethod::query()->findOrFail($data['payment_method_id']), $data['amount'], [$sale->id => $data['amount']], $data['idempotency_key'], $data['date'], $data['reference'] ?? null, $data['notes'] ?? null, $data['evidence_reference'] ?? null, $data['cash_account_id'] ?? null);
+            $collectionStore = Store::query()->visibleTo($actor)->where('status', 'active')->findOrFail($data['collection_store_id']);
+            $allocations = collect($data['allocations'] ?? [])->filter(fn ($value): bool => filled($value) && bccomp((string) $value, '0', 4) > 0)->all();
+            $action->execute($actor, $customer, PaymentMethod::query()->findOrFail($data['payment_method_id']), $data['amount'], $allocations, $data['idempotency_key'], $data['date'], $data['reference'] ?? null, $data['notes'] ?? null, $data['evidence_reference'] ?? null, $data['cash_account_id'] ?? null, $collectionStore, strtoupper($data['currency_code']));
+
             return back()->with('success', __('Customer receipt recorded successfully.'));
         } catch (Throwable $exception) {
             return back()->withInput()->withErrors(['operation' => \App\Support\UserSafeError::message($exception)]);

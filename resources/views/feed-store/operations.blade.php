@@ -5,15 +5,27 @@
     <div class="grid gap-4 lg:grid-cols-2">
         @can('customers.edit')
         <flux:card class="space-y-4">
-            <div><flux:heading size="lg">{{ __('Customer receipt') }}</flux:heading><flux:text>{{ __('Allocate one receipt to one approved outstanding sale.') }}</flux:text></div>
-            <form method="POST" action="{{ route('feed-store.customer-receipts.store') }}" class="grid gap-3 sm:grid-cols-2">@csrf
+            <div><flux:heading size="lg">{{ __('Customer receipt') }}</flux:heading><flux:text>{{ __('Apply one receipt to several approved invoices, or leave it as customer credit.') }}</flux:text></div>
+            <form method="POST" action="{{ route('feed-store.customer-receipts.store') }}" class="grid gap-3 sm:grid-cols-2" x-data="{ selectedCustomer: @js(old('customer_id', '')) }">@csrf
                 <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
-                <flux:select name="customer_id" :label="__('Customer')" required><option value="">{{ __('Select customer') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name_ar }} · {{ $customer->customer_type ?: '—' }}</option>@endforeach</flux:select>
-                <flux:select name="sale_id" :label="__('Approved sale')" required><option value="">{{ __('Select sale') }}</option>@foreach($sales as $sale)<option value="{{ $sale->id }}">{{ $sale->document_number }} · {{ $sale->current_outstanding }} EGP</option>@endforeach</flux:select>
+                <flux:select name="customer_id" x-model="selectedCustomer" :label="__('Customer')" required><option value="">{{ __('Select customer') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name_ar }} · {{ $customer->customer_type ?: '—' }}</option>@endforeach</flux:select>
+                <flux:select name="collection_store_id" :label="__('Collection store')" required><option value="">{{ __('Select store') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->name_ar }}</option>@endforeach</flux:select>
+                <flux:input name="currency_code" value="EGP" maxlength="3" :label="__('Currency')" required />
                 <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
                 <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
                 <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}">{{ $method->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('No treasury posting') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash receipts') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
+                <div class="sm:col-span-2 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <div class="border-b border-zinc-200 px-3 py-2 text-sm font-medium dark:border-zinc-700">{{ __('Approved invoices to allocate (optional)') }}</div>
+                    @forelse($sales as $sale)
+                        <label class="flex items-center gap-3 border-b border-zinc-100 px-3 py-2 text-sm last:border-0 dark:border-zinc-800" x-show="selectedCustomer === @js((string) $sale->customer_id)" x-cloak>
+                            <input type="number" name="allocations[{{ $sale->id }}]" min="0" max="{{ $sale->current_outstanding }}" step="0.0001" class="order-2 w-32 rounded-md border-zinc-300 text-sm" :disabled="selectedCustomer !== @js((string) $sale->customer_id)" placeholder="0.0000">
+                            <span class="flex-1">{{ $sale->customer?->name_ar }} · {{ $sale->document_number }} · {{ $sale->current_outstanding }} {{ $sale->currency_code }}</span>
+                        </label>
+                    @empty
+                        <p class="p-3 text-sm text-zinc-500">{{ __('No approved outstanding customer invoices.') }}</p>
+                    @endforelse
+                </div>
                 <flux:input name="reference" :label="__('Reference')" />
                 <flux:input name="evidence_reference" :label="__('Payment evidence reference')" />
                 <flux:input name="notes" :label="__('Notes')" />

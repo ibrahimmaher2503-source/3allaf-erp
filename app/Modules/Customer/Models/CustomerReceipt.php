@@ -7,6 +7,7 @@ namespace App\Modules\Customer\Models;
 use App\Models\User;
 use App\Modules\CashControl\Models\CashAccount;
 use App\Modules\Platform\Models\PaymentMethod;
+use App\Modules\Platform\Models\Store;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,7 @@ use LogicException;
 
 final class CustomerReceipt extends Model
 {
-    protected $fillable = ['public_id', 'customer_id', 'payment_method_id', 'cash_account_id', 'receipt_date', 'amount', 'reference', 'evidence_reference', 'notes', 'status', 'created_by', 'approved_by', 'approved_at', 'idempotency_key', 'payload_hash'];
+    protected $fillable = ['public_id', 'customer_id', 'store_id', 'payment_method_id', 'cash_account_id', 'receipt_date', 'currency_code', 'amount', 'reference', 'evidence_reference', 'notes', 'status', 'created_by', 'approved_by', 'approved_at', 'idempotency_key', 'payload_hash'];
 
     protected $casts = ['receipt_date' => 'date', 'amount' => 'decimal:4', 'approved_at' => 'immutable_datetime'];
 
@@ -36,6 +37,11 @@ final class CustomerReceipt extends Model
         return $this->belongsTo(PaymentMethod::class);
     }
 
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
     public function cashAccount(): BelongsTo
     {
         return $this->belongsTo(CashAccount::class);
@@ -49,5 +55,15 @@ final class CustomerReceipt extends Model
     public function allocations(): HasMany
     {
         return $this->hasMany(CustomerReceiptAllocation::class);
+    }
+
+    /** @return numeric-string */
+    public function unallocatedAmount(): string
+    {
+        $allocated = $this->relationLoaded('allocations')
+            ? $this->allocations->reduce(fn (string $total, CustomerReceiptAllocation $allocation): string => bcadd($total, (string) $allocation->amount, 4), '0.0000')
+            : bcadd((string) $this->allocations()->sum('amount'), '0', 4);
+
+        return bcsub((string) $this->amount, $allocated, 4);
     }
 }
