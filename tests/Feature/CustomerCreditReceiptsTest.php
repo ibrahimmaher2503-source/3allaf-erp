@@ -44,6 +44,7 @@ final class CustomerCreditReceiptsTest extends TestCase
         $companyId = DB::table('companies')->insertGetId(['code' => 'AR-T', 'name_ar' => 'اختبار', 'name_en' => 'AR Test', 'currency_code' => 'EGP', 'created_at' => $now, 'updated_at' => $now]);
         $branchId = DB::table('branches')->insertGetId(['company_id' => $companyId, 'code' => 'AR-B', 'name_ar' => 'فرع', 'name_en' => 'Branch', 'created_at' => $now, 'updated_at' => $now]);
         $storeId = DB::table('stores')->insertGetId(['company_id' => $companyId, 'branch_id' => $branchId, 'code' => 'AR-S', 'type' => 'selling', 'name_ar' => 'مخزن', 'name_en' => 'Store', 'created_at' => $now, 'updated_at' => $now]);
+        $cashAccountId = DB::table('cash_accounts')->insertGetId(['company_id' => $companyId, 'code' => 'AR-CASH', 'name_ar' => 'خزينة', 'name_en' => 'Cash', 'type' => 'cash', 'currency_code' => 'EGP', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         $methodId = DB::table('payment_methods')->insertGetId(['code' => 'AR-CASH', 'name_ar' => 'نقدي', 'name_en' => 'Cash', 'type' => 'cash', 'created_at' => $now, 'updated_at' => $now]);
         $customerId = DB::table('customers')->insertGetId(['public_id' => (string) Str::uuid(), 'phone_normalized' => null, 'phone_display' => null, 'name_ar' => 'عميل آجل', 'name_en' => 'Credit Customer', 'status' => 'active', 'created_by' => $userId, 'created_branch_id' => $branchId, 'created_store_id' => $storeId, 'customer_type' => 'credit', 'credit_limit' => '5000.0000', 'idempotency_key' => (string) Str::uuid(), 'created_at' => $now, 'updated_at' => $now]);
         DB::table('customers')->insert(['public_id' => (string) Str::uuid(), 'phone_normalized' => null, 'phone_display' => null, 'name_ar' => 'عميل نقدي', 'name_en' => 'Cash Customer', 'status' => 'active', 'created_by' => $userId, 'created_branch_id' => $branchId, 'created_store_id' => $storeId, 'customer_type' => 'cash', 'idempotency_key' => (string) Str::uuid(), 'created_at' => $now, 'updated_at' => $now]);
@@ -58,9 +59,9 @@ final class CustomerCreditReceiptsTest extends TestCase
         self::assertSame(['2000.00', '1400.0000', 'partial'], $settlement);
         DB::table('sales')->where('id', $saleId)->update(['status' => 'approved', 'paid_total' => 2000, 'outstanding_amount' => 1400, 'payment_status' => 'partial', 'approved_at' => $now]);
         self::assertSame('1400.0000', app(CustomerBalance::class)->for($customer));
-        $receipt = app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '500', [$saleId => '500'], 'AR-RECEIPT-1');
+        $receipt = app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '500', [$saleId => '500'], 'AR-RECEIPT-1', cashAccountId: $cashAccountId);
         self::assertSame('900.0000', app(CustomerBalance::class)->for($customer));
-        self::assertSame($receipt->id, app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '500', [$saleId => '500'], 'AR-RECEIPT-1')->id);
+        self::assertSame($receipt->id, app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '500', [$saleId => '500'], 'AR-RECEIPT-1', cashAccountId: $cashAccountId)->id);
 
         DB::table('retail_returns')->insert(['branch_id' => $branchId, 'store_id' => $storeId, 'cashier_id' => $userId, 'customer_id' => $customerId, 'source_sale_id' => $saleId, 'status' => 'completed', 'settlement_type' => 'original_tender', 'reason' => 'AR return', 'settlement_value' => 100, 'idempotency_key' => (string) Str::uuid(), 'completed_at' => $now, 'created_at' => $now, 'updated_at' => $now]);
         self::assertSame('800.0000', app(CustomerBalance::class)->for($customer));
@@ -84,5 +85,35 @@ final class CustomerCreditReceiptsTest extends TestCase
 
         self::assertSame('2000.00', $allocation[0]['amount']);
         self::assertSame('2000.00', $allocation[0]['tendered']);
+    }
+
+    public function test_one_receipt_can_allocate_several_sales_and_leave_customer_credit(): void
+    {
+        $now = now();
+        $userId = DB::table('users')->insertGetId(['name' => 'AR Multi', 'email' => 'ar-multi@test.invalid', 'password' => 'x', 'is_super_admin' => true, 'created_at' => $now, 'updated_at' => $now]);
+        $companyId = DB::table('companies')->insertGetId(['code' => 'AR-M', 'name_ar' => 'اختبار', 'name_en' => 'AR Multi', 'currency_code' => 'EGP', 'created_at' => $now, 'updated_at' => $now]);
+        $branchId = DB::table('branches')->insertGetId(['company_id' => $companyId, 'code' => 'AR-MB', 'name_ar' => 'فرع', 'name_en' => 'Branch', 'created_at' => $now, 'updated_at' => $now]);
+        $storeId = DB::table('stores')->insertGetId(['company_id' => $companyId, 'branch_id' => $branchId, 'code' => 'AR-MS', 'type' => 'selling', 'name_ar' => 'مخزن', 'name_en' => 'Store', 'created_at' => $now, 'updated_at' => $now]);
+        $methodId = DB::table('payment_methods')->insertGetId(['code' => 'AR-BANK', 'name_ar' => 'تحويل', 'name_en' => 'Bank', 'type' => 'bank', 'status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
+        $customerId = DB::table('customers')->insertGetId(['public_id' => (string) Str::uuid(), 'name_ar' => 'عميل متعدد', 'name_en' => 'Multi Customer', 'status' => 'active', 'created_by' => $userId, 'created_branch_id' => $branchId, 'created_store_id' => $storeId, 'customer_type' => 'credit', 'idempotency_key' => (string) Str::uuid(), 'created_at' => $now, 'updated_at' => $now]);
+        $saleIds = [];
+        foreach ([1000, 500] as $index => $total) {
+            $saleIds[] = DB::table('sales')->insertGetId(['branch_id' => $branchId, 'store_id' => $storeId, 'cashier_id' => $userId, 'customer_id' => $customerId, 'document_number' => 'AR-M-'.($index + 1), 'status' => 'approved', 'idempotency_key' => (string) Str::uuid(), 'subtotal' => $total, 'total' => $total, 'paid_total' => 0, 'outstanding_amount' => $total, 'payment_status' => 'unpaid', 'payable_total' => $total, 'currency_code' => 'EGP', 'approved_at' => $now, 'created_at' => $now, 'updated_at' => $now]);
+        }
+
+        $user = User::query()->findOrFail($userId);
+        $customer = Customer::query()->findOrFail($customerId);
+        $method = PaymentMethod::query()->findOrFail($methodId);
+        $receipt = app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '1000', [$saleIds[0] => '400', $saleIds[1] => '300'], 'AR-MULTI-1');
+        self::assertSame(2, $receipt->allocations()->count());
+        self::assertSame('300.0000', $receipt->unallocatedAmount());
+        self::assertSame('500.0000', app(CustomerBalance::class)->for($customer));
+
+        app(RecordCustomerReceiptAction::class)->execute($user, $customer, $method, '200', [], 'AR-CREDIT-1');
+        self::assertSame('300.0000', app(CustomerBalance::class)->for($customer));
+
+        $cash = PaymentMethod::query()->create(['code' => 'AR-M-CASH', 'name_ar' => 'نقدي', 'name_en' => 'Cash', 'type' => 'cash', 'status' => 'active']);
+        $this->expectException(InvalidArgumentException::class);
+        app(RecordCustomerReceiptAction::class)->execute($user, $customer, $cash, '10', [], 'AR-CASH-NO-ACCOUNT');
     }
 }
