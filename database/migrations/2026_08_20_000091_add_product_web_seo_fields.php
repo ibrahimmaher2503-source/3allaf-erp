@@ -1,0 +1,5 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration { public function up(): void { Schema::table('products', function (Blueprint $t): void { $t->text('short_description_ar')->nullable(); $t->text('short_description_en')->nullable(); $t->longText('full_description_ar')->nullable(); $t->longText('full_description_en')->nullable(); $t->string('meta_title_ar', 255)->nullable(); $t->string('meta_title_en', 255)->nullable(); $t->text('meta_description_ar')->nullable(); $t->text('meta_description_en')->nullable(); $t->string('seo_slug', 255)->nullable()->unique(); $t->string('publish_visibility', 30)->nullable(); $t->unsignedInteger('sort_order')->nullable(); }); } public function down(): void { Schema::table('products', fn (Blueprint $t) => $t->dropUnique(['seo_slug'])->dropColumn(['short_description_ar','short_description_en','full_description_ar','full_description_en','meta_title_ar','meta_title_en','meta_description_ar','meta_description_en','seo_slug','publish_visibility','sort_order'])); } };

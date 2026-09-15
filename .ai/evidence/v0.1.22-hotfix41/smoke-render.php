@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\User;
+use App\Support\ApplicationVersion;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Cookie\CookieValuePrefix;
+use Illuminate\Http\Request;
+use Illuminate\Session\Store;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
+$root = dirname(__DIR__, 3);
+$assert = static function (bool $condition, string $message): void {
+    if (! $condition) {
+        throw new RuntimeException($message);
+    }
+};
+
+try {
+    require $root.'/vendor/autoload.php';
+    $app = require $root.'/bootstrap/app.php';
+    $app->make(ConsoleKernel::class)->bootstrap();
+    $assert(ApplicationVersion::RELEASE === '0.1.22-hotfix41', 'Version mismatch.');
+    config(['cache.default' => 'array', 'session.driver' => 'array', 'session.lottery' => [0, 100]]);
+    app('cache')->forgetDriver();
+    app('session')->forgetDrivers();
+
+    $user = User::query()->where('status', 'active')->where('is_super_admin', true)->oldest('id')->first();
+    $assert($user instanceof User, 'No active Super Admin.');
+    $kernel = $app->make(HttpKernel::class);
+    $sessions = app('session');
+    $encrypter = app('encrypter');
+    $render = static function (string $locale) use ($app, $kernel, $sessions, $encrypter, $user): array {
+        /** @var Store $session */
+        $session = $sessions->driver();
+        $session->setId(bin2hex(random_bytes(20)));
+        $session->start();
+        $session->put('locale', $locale);
+        $session->save();
+        $cookie = $encrypter->encrypt(CookieValuePrefix::create($session->getName(), $encrypter->getKey()).$session->getId(), false);
+        $request = Request::create('/reports', 'GET', [], [$session->getName() => $cookie, 'locale' => $locale], [], ['HTTP_ACCEPT' => 'text/html']);
+        $request->setUserResolver(fn () => $user);
+        Auth::setUser($user);
+        $app->instance('request', $request);
+        $response = $kernel->handle($request);
+
+        try {
+            return [$response->getStatusCode(), (string) $response->getContent()];
+        } finally {
+            $kernel->terminate($request, $response);
+        }
+    };
+
+    DB::beginTransaction();
+    try {
+        foreach (['ar', 'en', 'ar-EG'] as $locale) {
+            [$status, $html] = $render($locale);
+            $assert($status === 200, "{$locale} /reports HTTP {$status}");
+            $assert(str_contains($html, 'lang="'.$locale.'"'), "{$locale} lang missing");
+            $assert(str_contains($html, 'data-report-dashboard'), "{$locale} report marker missing");
+            echo "HOTFIX41_AUTHENTICATED_REPORTS=PASS locale={$locale}\n";
+        }
+    } finally {
+        DB::rollBack();
+    }
+
+    echo "HOTFIX41_SMOKE_RENDER=PASS path=/reports locales=ar,en,ar-EG database_mutation=rolled_back\n";
+} catch (Throwable $exception) {
+    fwrite(STDERR, 'HOTFIX41_SMOKE_RENDER=FAIL '.$exception->getMessage()."\n");
+    exit(1);
+}

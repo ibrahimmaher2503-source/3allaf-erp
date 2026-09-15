@@ -1,0 +1,42 @@
+{
+  "database": "toyjoy_hotfix9_viewcache_verify",
+  "ar": {
+    "labels": {
+      "dir": "rtl",
+      "workspace": true,
+      "search": true,
+      "alpineReady": true,
+      "overflow": false
+    },
+    "pricing": {
+      "readinessSummaries": 1,
+      "overflow": false
+    },
+    "navigation": {
+      "leaves": 20,
+      "uniqueLeaves": 20,
+      "partyDeferred": true,
+      "overflow": false
+    }
+  },
+  "en": {
+    "labels": {
+      "dir": "ltr",
+      "workspace": true,
+      "search": true,
+      "alpineReady": true,
+      "overflow": false
+    },
+    "pricing": {
+      "readinessSummaries": 1,
+      "overflow": false
+    },
+    "navigation": {
+      "leaves": 20,
+      "uniqueLeaves": 20,
+      "partyDeferred": true,
+      "overflow": false
+    }
+  },
+  "errors": []
+}

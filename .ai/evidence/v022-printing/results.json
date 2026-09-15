@@ -1,0 +1,85 @@
+{
+  "result": "passed",
+  "cases": [
+    {
+      "locale": "ar",
+      "view": "library",
+      "device": "desktop",
+      "screenshot": "ar-library-desktop.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "rtl"
+    },
+    {
+      "locale": "ar",
+      "view": "library",
+      "device": "mobile",
+      "screenshot": "ar-library-mobile.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "rtl"
+    },
+    {
+      "locale": "ar",
+      "view": "printer",
+      "device": "desktop",
+      "screenshot": "ar-printer-desktop.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "rtl"
+    },
+    {
+      "locale": "ar",
+      "view": "printer",
+      "device": "mobile",
+      "screenshot": "ar-printer-mobile.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "rtl"
+    },
+    {
+      "locale": "en",
+      "view": "library",
+      "device": "desktop",
+      "screenshot": "en-library-desktop.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "ltr"
+    },
+    {
+      "locale": "en",
+      "view": "library",
+      "device": "mobile",
+      "screenshot": "en-library-mobile.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "ltr"
+    },
+    {
+      "locale": "en",
+      "view": "printer",
+      "device": "desktop",
+      "screenshot": "en-printer-desktop.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "ltr"
+    },
+    {
+      "locale": "en",
+      "view": "printer",
+      "device": "mobile",
+      "screenshot": "en-printer-mobile.png",
+      "overflow": false,
+      "mixed": false,
+      "minTargets": true,
+      "direction": "ltr"
+    }
+  ]
+}

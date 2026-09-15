@@ -1,0 +1,93 @@
+{
+  "result": "passed",
+  "cases": [
+    {
+      "locale": "ar",
+      "screen": "list",
+      "viewport": 1440,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 1440,
+      "screenshot": "ar-list-desktop.png"
+    },
+    {
+      "locale": "ar",
+      "screen": "list",
+      "viewport": 390,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 390,
+      "screenshot": "ar-list-mobile.png"
+    },
+    {
+      "locale": "ar",
+      "screen": "create",
+      "viewport": 1440,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 1440,
+      "screenshot": "ar-create-desktop.png"
+    },
+    {
+      "locale": "ar",
+      "screen": "create",
+      "viewport": 390,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 390,
+      "screenshot": "ar-create-mobile.png"
+    },
+    {
+      "locale": "en",
+      "screen": "list",
+      "viewport": 1440,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 1440,
+      "screenshot": "en-list-desktop.png"
+    },
+    {
+      "locale": "en",
+      "screen": "list",
+      "viewport": 390,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 390,
+      "screenshot": "en-list-mobile.png"
+    },
+    {
+      "locale": "en",
+      "screen": "create",
+      "viewport": 1440,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 1440,
+      "screenshot": "en-create-desktop.png"
+    },
+    {
+      "locale": "en",
+      "screen": "create",
+      "viewport": 390,
+      "overflow": false,
+      "clipped": 0,
+      "raw": false,
+      "mixed": false,
+      "scrollWidth": 390,
+      "screenshot": "en-create-mobile.png"
+    }
+  ]
+}

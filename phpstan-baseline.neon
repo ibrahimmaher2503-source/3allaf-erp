@@ -1,0 +1,991 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Models\\User\:\:assignedCashDrawers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:branchScopes\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:roles\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:storeScopes\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:uiPreference\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Parameter \#1 \$product of method App\\Modules\\Catalog\\Actions\\AddBarcodeAction\:\:syncProductMode\(\) expects App\\Modules\\Catalog\\Models\\Product, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Catalog/Actions/AddBarcodeAction.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>next_serial" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Catalog/Actions/AddBarcodeAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$row_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Catalog/Actions/DownloadProductImportErrorsAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Catalog/Actions/DownloadProductImportErrorsAction.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Catalog/Actions/DownloadProductImportErrorsAction.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fputcsv expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Modules/Catalog/Actions/DownloadProductImportErrorsAction.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\RevokeAttachment\:\:execute\(\) invoked with 2 parameters, 3 required\.$#'
+			identifier: arguments.count
+			count: 3
+			path: app/Modules/Catalog/Actions/ManageProductMediaAction.php
+
+		-
+			message: '#^Parameter \#1 \$attachment of method App\\Modules\\Platform\\Actions\\RevokeAttachment\:\:execute\(\) expects App\\Modules\\Platform\\Models\\Attachment, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Modules/Catalog/Actions/ManageProductMediaAction.php
+
+		-
+			message: '#^Parameter \#2 \$reason of method App\\Modules\\Platform\\Actions\\RevokeAttachment\:\:execute\(\) expects string, Closure given\.$#'
+			identifier: argument.type
+			count: 3
+			path: app/Modules/Catalog/Actions/ManageProductMediaAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\SaveProductAction\:\:nullableNumeric\(\) never returns int so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Modules/Catalog/Actions/SaveProductAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:formulaErrors\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:mapRow\(\) has parameter \$brandCodes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:mapRow\(\) has parameter \$categoryCodes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:mapRow\(\) has parameter \$initialErrors with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:mapRow\(\) has parameter \$seenCodes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:mapRow\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Actions\\StageProductImportAction\:\:persistRows\(\) has parameter \$headers with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Property App\\Modules\\Catalog\\Models\\ProductImportRow\:\:\$product_import_batch_id \(int\<0, max\>\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Modules/Catalog/Actions/StageProductImportAction.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\Barcode uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Barcode.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Barcode\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Barcode.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Barcode\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Barcode.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Barcode\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Barcode.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\BarcodeSequence uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/BarcodeSequence.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\Brand uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Brand\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Brand\:\:products\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Brand\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Brand\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Brand\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Brand.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\Category uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:children\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:parent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:products\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Category\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Category.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\Product uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:barcodes\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:brand\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:category\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:images\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:preferredProductSupplier\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:productSuppliers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Product\:\:suppliers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Product.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImage\:\:attachment\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImage.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImage\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImage.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImportBatch\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImportBatch.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImportBatch\:\:rows\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImportBatch.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImportRow\:\:batch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImportRow.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductImportRow\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductImportRow.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\ProductSupplier uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductSupplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductSupplier\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductSupplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductSupplier\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductSupplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductSupplier\:\:supplier\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductSupplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\ProductSupplier\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/ProductSupplier.php
+
+		-
+			message: '#^Class App\\Modules\\Catalog\\Models\\Supplier uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:productSuppliers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:products\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:scopeActive\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^Method App\\Modules\\Catalog\\Models\\Supplier\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Catalog/Models/Supplier.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$authorize with type callable is not subtype of native type Closure\|null\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Modules/Platform/Actions/ApprovalRecordTransition.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\AuditLogValueRedactor\:\:redact\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/AuditLogValueRedactor.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$authorize with type \(callable\)\|null is not subtype of native type Closure\|null\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Modules/Platform/Actions/ExpireApprovalRequest.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$authorize with type \(callable\)\|null is not subtype of native type Closure\|null\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Modules/Platform/Actions/ExpireAttachment.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\RecordAuditEvent\:\:changedFields\(\) has parameter \$after with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/RecordAuditEvent.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\RecordAuditEvent\:\:changedFields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/RecordAuditEvent.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\RecordAuditEvent\:\:metadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/RecordAuditEvent.php
+
+		-
+			message: '#^Offset ''after'' on array\{before\?\: array\<mixed\>, after\: array\<mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Platform/Actions/SaveBranchAction.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Platform\\Models\\Branch\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Platform\\Models\\Branch\>\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Platform/Actions/SaveCashDrawerAction.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Platform\\Models\\Branch\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Platform\\Models\\Branch\>\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Platform/Actions/SaveCashDrawerAction.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Platform\\Models\\Store\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Platform\\Models\\Store\>\:\:\$branch_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Platform/Actions/SaveCashDrawerAction.php
+
+		-
+			message: '#^Offset ''after'' on array\{before\?\: array\<mixed\>, after\: array\<mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Platform/Actions/SaveCashDrawerAction.php
+
+		-
+			message: '#^Offset ''after'' on array\{before\?\: array\<mixed\>, after\: array\<mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Platform/Actions/SaveStoreAction.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\SaveUiPreferences\:\:execute\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/SaveUiPreferences.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\SaveUiPreferences\:\:execute\(\) should return App\\Modules\\Platform\\Models\\UserUiPreference but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Modules/Platform/Actions/SaveUiPreferences.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\SaveUserAuthorizationAction\:\:execute\(\) has parameter \$branchIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/SaveUserAuthorizationAction.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\SaveUserAuthorizationAction\:\:execute\(\) has parameter \$storeIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/SaveUserAuthorizationAction.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Actions\\ValidateAttachment\:\:allowedExtensions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Actions/ValidateAttachment.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Data\\PageGuideContext\:\:__construct\(\) has parameter \$allowedActions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Data/PageGuideContext.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Data\\PageGuideContext\:\:__construct\(\) has parameter \$guide with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Data/PageGuideContext.php
+
+		-
+			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, array\<string, mixed\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Platform/Http/Controllers/DashboardAssistantController.php
+
+		-
+			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, array\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Platform/Http/Controllers/DashboardAssistantController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: app/Modules/Platform/Http/Controllers/DashboardAssistantController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: app/Modules/Platform/Http/Controllers/DashboardAssistantController.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\ApprovalRecord\:\:approver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/ApprovalRecord.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\ApprovalRecord\:\:requester\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/ApprovalRecord.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\ApprovalRecord\:\:scopeVisibleTo\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/ApprovalRecord.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\ApprovalRecord\:\:scopeVisibleTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/ApprovalRecord.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Attachment\:\:uploader\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Attachment.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\AuditLog\:\:actor\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/AuditLog.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\AuditLog\:\:scopeVisibleTo\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/AuditLog.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\AuditLog\:\:scopeVisibleTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/AuditLog.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\Branch uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:activeSellingStoreMapping\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:cashDrawers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:scopeVisibleTo\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:scopeVisibleTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:sellingStoreMappings\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Branch\:\:stores\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Branch.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\BranchSellingStore uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/BranchSellingStore.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\BranchSellingStore\:\:branch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/BranchSellingStore.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\BranchSellingStore\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/BranchSellingStore.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\BranchSellingStore\:\:store\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/BranchSellingStore.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\CashDrawer uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:assignedUser\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:branch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:scopeVisibleTo\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:scopeVisibleTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\CashDrawer\:\:store\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/CashDrawer.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Company\:\:branches\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Company.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Company\:\:stores\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Company.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\Permission uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Permission.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Permission\:\:roles\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Permission.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\Role uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Role.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Role\:\:permissions\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Role.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Role\:\:users\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany does not specify its types\: TRelatedModel, TDeclaringModel, TPivotModel, TAccessor \(2\-4 required\)$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Role.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\Store uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:branch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:cashDrawers\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:scopeVisibleTo\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:scopeVisibleTo\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\Store\:\:sellingStoreMappings\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/Store.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\UserBranchScope uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserBranchScope.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserBranchScope\:\:branch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserBranchScope.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserBranchScope\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserBranchScope.php
+
+		-
+			message: '#^Class App\\Modules\\Platform\\Models\\UserStoreScope uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserStoreScope.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserStoreScope\:\:store\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserStoreScope.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserStoreScope\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserStoreScope.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserUiPreference\:\:defaults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Models/UserUiPreference.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Models\\UserUiPreference\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Platform/Models/UserUiPreference.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:find\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) has parameter \$actor with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) has parameter \$permissions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) has parameter \$screens with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) has parameter \$steps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) has parameter \$title with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Method App\\Modules\\Platform\\Support\\UserFlowRegistry\:\:flow\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Platform/Support/UserFlowRegistry.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Purchasing/Actions/SubmitPurchaseOrderAction.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:approver\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:branch\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:canceller\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:closer\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:store\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:submitter\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:supplier\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrder\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrder.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrderLine\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrderLine.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrderLine\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrderLine.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrderLine\:\:purchaseOrder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrderLine.php
+
+		-
+			message: '#^Method App\\Modules\\Purchasing\\Models\\PurchaseOrderLine\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Purchasing/Models/PurchaseOrderLine.php

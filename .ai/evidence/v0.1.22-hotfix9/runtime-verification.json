@@ -1,0 +1,54 @@
+{
+  "database": "toyjoy_hotfix9_verify",
+  "arDesktop": {
+    "dir": "rtl",
+    "overflow": false,
+    "setupLeaves": 20,
+    "uniqueSetupLeaves": 20,
+    "partyStepVisible": false,
+    "partySectionVisible": false,
+    "systemSettingsStandalone": false,
+    "footerProfile": false,
+    "headerProfile": true,
+    "essentials": true,
+    "roles": true
+  },
+  "enDesktop": {
+    "dir": "ltr",
+    "overflow": false,
+    "setupLeaves": 20,
+    "uniqueSetupLeaves": 20,
+    "partyStepVisible": false,
+    "partySectionVisible": false,
+    "systemSettingsStandalone": false,
+    "footerProfile": false,
+    "headerProfile": true,
+    "essentials": true,
+    "roles": true
+  },
+  "arMobile": {
+    "dir": "rtl",
+    "overflow": false,
+    "setupLeaves": 20,
+    "uniqueSetupLeaves": 20,
+    "partyStepVisible": false,
+    "partySectionVisible": false,
+    "systemSettingsStandalone": false,
+    "footerProfile": false,
+    "headerProfile": true,
+    "essentials": true,
+    "roles": true
+  },
+  "setup": {
+    "cards": 20,
+    "partyCard": false,
+    "lastSequence": true,
+    "overflow": false
+  },
+  "pricing": {
+    "readinessSummaries": 1,
+    "topSummaryText": "مركز الإعداد\n/\nالجاهزية التشغيلية\n/\nأسعار البيع المعتمدة\nيتطلب استكمال\nالخطوة 19 من 20\nالجاهزية التشغيلية — الخطوة 9 من 10\nإلزامية\n\nالأسعار الموروثة\n0\nالأسعار الفعلية\n0\nالتجاوزات اليدوية\n0\n\nترث القائمة 0 سعر المستهلك الأساسي من كارت الصنف افتراضيًا. التجاوزات اليدوية استثناءات صريحة فقط، ولا يعني العدد صفر أن القائمة 0 بلا أسعار فعلية.\n\nكروت الأصناف المتأثرة: 0\n\nاستكمل كروت الأصناف المتأثرة قبل أن يصبح التسعير جاهزًا.\n\nالسابق\nالتالي\nالإكمال لاحقًا\nالعودة إلى مركز الإعداد\nمتابعة الإعداد",
+    "overflow": false
+  },
+  "errors": []
+}

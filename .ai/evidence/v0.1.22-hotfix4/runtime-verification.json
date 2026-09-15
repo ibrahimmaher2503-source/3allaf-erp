@@ -1,0 +1,66 @@
+{
+  "database": "rajeh_hotfix4_verify",
+  "checks": [
+    {
+      "name": "dashboard-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "movements-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "balances-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "transfers-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "counts-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "unpriced-ar",
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "name": "pos-ar",
+      "status": 200,
+      "overflow": false
+    }
+  ],
+  "side": {
+    "overflowY": "visible",
+    "sticky": "sticky",
+    "groups": true
+  },
+  "mobile": {
+    "visible": true,
+    "overflow": false
+  },
+  "pdfs": [
+    {
+      "name": "code128",
+      "status": 200,
+      "bytes": 13839,
+      "signature": "%PDF",
+      "barcode": "TESTLOCALH4001"
+    },
+    {
+      "name": "ean13",
+      "status": 200,
+      "bytes": 12718,
+      "signature": "%PDF",
+      "barcode": "4006381333931"
+    }
+  ],
+  "errors": []
+}

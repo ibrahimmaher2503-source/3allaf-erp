@@ -1,0 +1,13 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "app/",
+            "database/factories/",
+            "database/seeders/"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    }
+}

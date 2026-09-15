@@ -1,0 +1,60 @@
+{
+  "database": "toyjoy_hotfix7_verify",
+  "ar": {
+    "balances": {
+      "width": 1440,
+      "overflow": false,
+      "title": "المخزون - Laravel"
+    },
+    "stores": {
+      "width": 1440,
+      "overflow": false,
+      "title": "البيانات الأساسية للمواقع وربط المخزون - Laravel"
+    },
+    "countCreate": {
+      "width": 1440,
+      "overflow": false,
+      "title": "المخزون - Laravel"
+    },
+    "countEntry": {
+      "width": 1440,
+      "overflow": false,
+      "title": "المخزون - Laravel"
+    }
+  },
+  "en": {
+    "balances": {
+      "width": 1440,
+      "overflow": false,
+      "title": "Inventory - Laravel"
+    },
+    "stores": {
+      "width": 1440,
+      "overflow": false,
+      "title": "Store & Inventory Mapping Masters - Laravel"
+    },
+    "countCreate": {
+      "width": 1440,
+      "overflow": false,
+      "title": "Inventory - Laravel"
+    }
+  },
+  "mobile": {
+    "balances": {
+      "width": 390,
+      "overflow": false,
+      "title": "المخزون - Laravel"
+    },
+    "countCreate": {
+      "width": 390,
+      "overflow": false,
+      "title": "المخزون - Laravel"
+    }
+  },
+  "nav": {
+    "count": 2,
+    "active": true
+  },
+  "consoleErrors": [],
+  "horizontalOverflow": false
+}

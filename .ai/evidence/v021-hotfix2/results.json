@@ -1,0 +1,53 @@
+{
+  "result": "passed",
+  "cases": [
+    {
+      "locale": "ar",
+      "mode": "purchase",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "ar-purchase.png"
+    },
+    {
+      "locale": "ar",
+      "mode": "product-create",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "ar-product-create.png"
+    },
+    {
+      "locale": "ar",
+      "mode": "product-edit",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "ar-product-edit.png"
+    },
+    {
+      "locale": "en",
+      "mode": "purchase",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "en-purchase.png"
+    },
+    {
+      "locale": "en",
+      "mode": "product-create",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "en-product-create.png"
+    },
+    {
+      "locale": "en",
+      "mode": "product-edit",
+      "overflow": false,
+      "exposed": false,
+      "mixed": false,
+      "screenshot": "en-product-edit.png"
+    }
+  ]
+}

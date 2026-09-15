@@ -1,0 +1,130 @@
+[
+  {
+    "locale": "ar",
+    "view": "setup",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "setup",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "products",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "products",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "pricing",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "pricing",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "affected",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "ar",
+    "view": "affected",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "setup",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "setup",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "products",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "products",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "pricing",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "pricing",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "affected",
+    "device": "desktop",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  },
+  {
+    "locale": "en",
+    "view": "affected",
+    "device": "mobile",
+    "overflow": false,
+    "mixed": false,
+    "raw": false
+  }
+]

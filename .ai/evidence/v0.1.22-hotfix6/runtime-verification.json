@@ -1,0 +1,51 @@
+{
+  "database": "rajeh_hotfix6_verify",
+  "active": {
+    "parentOpen": true,
+    "essentialsOpen": true,
+    "companyActive": true
+  },
+  "desktop": {
+    "innerWidth": 1440,
+    "count": 21,
+    "unique": 21,
+    "counts": {
+      "basics": 5,
+      "settings": 5,
+      "operations": 11
+    },
+    "linksValid": true,
+    "pageOverflow": false,
+    "navigationOverflowY": "visible",
+    "sidebarPosition": "sticky",
+    "sidebarComputed": {
+      "height": "2164.14px",
+      "minHeight": "1000px",
+      "maxHeight": "none",
+      "top": "0px",
+      "bottom": "auto",
+      "display": "block"
+    },
+    "inlineRulePresent": false,
+    "sidebarTag": "UI-SIDEBAR class=[grid-area:sidebar] z-1 flex flex-col gap-4 [:where(&)]:w-64 p-4 data-flux-sidebar-collapsed-desktop:w-14 data-flux-sidebar-collapsed-desktop:px-2 data-flux-sidebar-collapsed-desktop:cursor-e-resize rtl:data-flux-sidebar-collapsed-desktop:cursor-w-resize max-lg:data-flux-sidebar-cloak:hidden data-flux-sidebar-on-mobile:data-flux-sidebar-collapsed-mobile:-translate-x-full data-flux-sidebar-on-mobile:data-flux-sidebar-collapsed-mobile:rtl:translate-x-full z-20! data-flux-sidebar-on-mobile:start-0! data-flux-sidebar-on-mobile:fixed! data-flux-sidebar-on-mobile:top-0! data-flux-sidebar-on-mobile:min-h-dvh! data-flux-sidebar-on-mobile:max-h-dvh! app-sidebar z-30! min-h-dvh w-[272px] gap-2 overflow-y-auto border-e p-3 lg:h-auto lg:max-h-none lg:overflow-visible x-init=if (window.matchMedia('(min-width: 1024px)').matches) { $el.style.setProperty('display', 'block', 'important'); $el.style.setProperty('height', 'auto', 'important'); $el.style.setProperty('max-height', 'none', 'important'); $el.style.setProperty('overflow', 'visible', 'important'); } collapsible=mobile x-data= data-flux-sidebar= data-flux-sidebar-on-desktop= style=display: block !important; height: auto !important; max-height: none !important; overflow: visible !important;",
+    "sidebarHeight": 2164.140625,
+    "navigationHeight": 1924.75,
+    "navigationScrollHeight": 1925,
+    "footerBottom": 2148.140625,
+    "documentHeight": 2164,
+    "documentScrollable": true
+  },
+  "mobile": {
+    "sidebarVisible": true,
+    "pageOverflow": false,
+    "count": 21,
+    "activeVisible": true
+  },
+  "audit": {
+    "arabic": "localized",
+    "english": "localized",
+    "rawValuesExposed": false
+  },
+  "storeCreate": "verified",
+  "errors": []
+}

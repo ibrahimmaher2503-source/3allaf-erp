@@ -1,0 +1,86 @@
+[
+  {
+    "name": "thermal-code128-three",
+    "status": 200,
+    "contentType": "application/pdf",
+    "disposition": "attachment; filename*=UTF-8''%D9%85%D9%84%D8%B5%D9%82%D8%A7%D8%AA-%D8%A7%D9%84%D8%A8%D8%A7%D8%B1%D9%83%D9%88%D8%AF.pdf",
+    "localizedSafeFilename": true,
+    "bytes": 15072,
+    "signature": "%PDF",
+    "pages": 3,
+    "readableText": [
+      "لعبة اختبار الباركود",
+      "HF3-ITEM-001",
+      "TESTLOCAL0001",
+      "49.95"
+    ],
+    "decoded": [
+      {
+        "image": "thermal-code128-three-page-01.png",
+        "values": [
+          "TESTLOCAL0001"
+        ]
+      },
+      {
+        "image": "thermal-code128-three-page-02.png",
+        "values": [
+          "TESTLOCAL0001"
+        ]
+      },
+      {
+        "image": "thermal-code128-three-page-03.png",
+        "values": [
+          "TESTLOCAL0001"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "thermal-ean13-one",
+    "status": 200,
+    "contentType": "application/pdf",
+    "disposition": "attachment; filename*=UTF-8''%D9%85%D9%84%D8%B5%D9%82%D8%A7%D8%AA-%D8%A7%D9%84%D8%A8%D8%A7%D8%B1%D9%83%D9%88%D8%AF.pdf",
+    "localizedSafeFilename": true,
+    "bytes": 12869,
+    "signature": "%PDF",
+    "pages": 1,
+    "readableText": [
+      "لعبة اختبار الباركود",
+      "HF3-ITEM-001",
+      "4006381333931",
+      "49.95"
+    ],
+    "decoded": [
+      {
+        "image": "thermal-ean13-one-page-01.png",
+        "values": [
+          "4006381333931"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "a4-ean13-one",
+    "status": 200,
+    "contentType": "application/pdf",
+    "disposition": "attachment; filename*=UTF-8''%D9%85%D9%84%D8%B5%D9%82%D8%A7%D8%AA-%D8%A7%D9%84%D8%A8%D8%A7%D8%B1%D9%83%D9%88%D8%AF.pdf",
+    "localizedSafeFilename": true,
+    "bytes": 12889,
+    "signature": "%PDF",
+    "pages": 1,
+    "readableText": [
+      "لعبة اختبار الباركود",
+      "HF3-ITEM-001",
+      "4006381333931",
+      "49.95"
+    ],
+    "decoded": [
+      {
+        "image": "a4-ean13-one-page-01.png",
+        "values": [
+          "4006381333931"
+        ]
+      }
+    ]
+  }
+]

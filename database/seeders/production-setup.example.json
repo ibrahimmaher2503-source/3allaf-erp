@@ -1,0 +1,364 @@
+{
+    "schema_version": 1,
+    "company": {
+        "code": "__REPLACE__",
+        "name_ar": "__REPLACE__",
+        "name_en": "__REPLACE__",
+        "legal_name": "__REPLACE__",
+        "tax_number": "__REPLACE__",
+        "commercial_registration": "__REPLACE__",
+        "currency_code": "EGP",
+        "currency_symbol": "E£",
+        "timezone": "Africa/Cairo",
+        "locale_default": "ar",
+        "phone": "__REPLACE__",
+        "email": "__REPLACE__",
+        "address": "__REPLACE__",
+        "status": "active"
+    },
+    "branches": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "timezone": "Africa/Cairo",
+            "status": "active"
+        }
+    ],
+    "stores": [
+        {
+            "code": "__REPLACE__",
+            "branch_code": "__REPLACE__",
+            "type": "selling",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "allows_negative_stock": false,
+            "selling_store_for_branch": true,
+            "status": "active"
+        }
+    ],
+    "users": [
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "SYSTEM_ADMIN",
+            "roles": ["system-administrator"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "BRANCH_MANAGER",
+            "roles": ["branch-manager"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "CASHIER",
+            "roles": ["cashier"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "PURCHASING_OFFICER",
+            "roles": ["purchasing-officer"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "WAREHOUSE_MANAGER",
+            "roles": ["warehouse-manager"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "PRICING_OFFICER",
+            "roles": ["pricing-officer"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "PARTY_MANAGER",
+            "roles": ["party-manager"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "STOCK_COUNTER",
+            "roles": ["stock-counter"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        },
+        {
+            "name": "__REPLACE__",
+            "username": "__REPLACE__",
+            "email": "__REPLACE__",
+            "password_key": "ACCOUNTANT_REVIEWER",
+            "roles": ["accountant-reviewer"],
+            "branch_scopes": ["__REPLACE__"],
+            "store_scopes": ["__REPLACE__"],
+            "status": "active"
+        }
+    ],
+    "payment_methods": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "type": "cash",
+            "requires_evidence": false,
+            "offline_eligible": true,
+            "status": "active"
+        }
+    ],
+    "tax_settings": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "rate": "0.00",
+            "is_tax_inclusive": false,
+            "tax_number": "__REPLACE__",
+            "status": "active"
+        }
+    ],
+    "document_sequences": [
+        {
+            "document_type": "inventory_adjustment",
+            "prefix": "__REPLACE__",
+            "padding_length": 6,
+            "next_value": 1,
+            "reset_rule": "never",
+            "status": "active"
+        },
+        {
+            "document_type": "party_booking",
+            "prefix": "__REPLACE__",
+            "padding_length": 6,
+            "next_value": 1,
+            "reset_rule": "never",
+            "status": "active"
+        },
+        {
+            "document_type": "party_invoice",
+            "prefix": "__REPLACE__",
+            "padding_length": 6,
+            "next_value": 1,
+            "reset_rule": "never",
+            "status": "active"
+        }
+    ],
+    "printers": [
+        {
+            "name": "__REPLACE__",
+            "printer_type": "thermal",
+            "paper_size": "80mm",
+            "template_name": "default_thermal",
+            "connection_type": "network",
+            "ip_address": "__REPLACE__",
+            "port": 9100,
+            "is_default": true,
+            "status": "active"
+        }
+    ],
+    "customer_policy_settings": [
+        {"key": "customer.phone_normalization", "value": "digits_only", "notes": "__REPLACE__"},
+        {"key": "customer.consent.purpose", "value": "[\"service_delivery\"]", "notes": "__REPLACE__"},
+        {"key": "customer.consent.wording", "value": "{\"version\":\"__REPLACE__\",\"text\":\"__REPLACE__\"}", "notes": "__REPLACE__"},
+        {"key": "customer.consent.retention", "value": "{\"days\":0}", "notes": "__REPLACE__"}
+    ],
+    "option_groups": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "status": "active",
+            "sort_order": 1,
+            "values": [
+                {
+                    "code": "__REPLACE__",
+                    "name_ar": "__REPLACE__",
+                    "name_en": "__REPLACE__",
+                    "colour_swatch": "#000000",
+                    "status": "active",
+                    "sort_order": 1
+                }
+            ]
+        }
+    ],
+    "categories": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "parent_code": null,
+            "sort_order": 1,
+            "status": "active"
+        }
+    ],
+    "brands": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "status": "active"
+        }
+    ],
+    "products": [
+        {
+            "item_code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "category_code": "__REPLACE__",
+            "brand_code": "__REPLACE__",
+            "product_type": "standard",
+            "unit_of_measure": "piece",
+            "reorder_threshold": "0",
+            "fractional_quantity": false,
+            "status": "active",
+            "barcode": "__REPLACE__"
+        },
+        {
+            "item_code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "category_code": "__REPLACE__",
+            "brand_code": "__REPLACE__",
+            "product_type": "standard",
+            "status": "active",
+            "variation_groups": {
+                "__REPLACE__": ["__REPLACE__"]
+            },
+            "variants": [
+                {
+                    "sku": "__REPLACE__",
+                    "barcode": "__REPLACE__",
+                    "status": "active",
+                    "reorder_threshold": "0",
+                    "options": {"__REPLACE__": "__REPLACE__"}
+                }
+            ]
+        }
+    ],
+    "suppliers": [
+        {
+            "code": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "contact_name": "__REPLACE__",
+            "email": "__REPLACE__",
+            "phone": "__REPLACE__",
+            "tax_number": "__REPLACE__",
+            "payment_terms": "__REPLACE__",
+            "address": "__REPLACE__",
+            "status": "active"
+        }
+    ],
+    "supplier_skus": [
+        {
+            "product_code": "__REPLACE__",
+            "supplier_code": "__REPLACE__",
+            "supplier_item_code": "__REPLACE__",
+            "is_preferred": true,
+            "notes": "__REPLACE__"
+        }
+    ],
+    "approved_prices": [
+        {
+            "product_code": "__REPLACE__",
+            "store_code": "__REPLACE__",
+            "price_list_code": "__REPLACE__",
+            "price_list_name_ar": "__REPLACE__",
+            "price_list_name_en": "__REPLACE__",
+            "amount": "0.0000",
+            "source_type": "import",
+            "source_reference": "__REPLACE__",
+            "reason_text": "__REPLACE__",
+            "maker_username": "__REPLACE__",
+            "approver_username": "__REPLACE__"
+        }
+    ],
+    "opening_inventory": [
+        {
+            "idempotency_key": "__REPLACE__",
+            "store_code": "__REPLACE__",
+            "maker_username": "__REPLACE__",
+            "approver_username": "__REPLACE__",
+            "reason_notes": "__REPLACE__",
+            "lines": [
+                {
+                    "product_code": "__REPLACE__",
+                    "quantity_delta": "0.000000",
+                    "unit_cost": "0.0000"
+                }
+            ]
+        }
+    ],
+    "customers": [
+        {
+            "phone": "__REPLACE__",
+            "name_ar": "__REPLACE__",
+            "name_en": "__REPLACE__",
+            "email": "__REPLACE__",
+            "store_code": "__REPLACE__",
+            "actor_username": "__REPLACE__",
+            "idempotency_key": "__REPLACE__",
+            "consents": [
+                {"purpose": "service_delivery", "status": "granted", "source": "production_import"}
+            ],
+            "children": []
+        }
+    ],
+    "party_bookings": [
+        {
+            "idempotency_key": "__REPLACE__",
+            "customer_phone": "__REPLACE__",
+            "store_code": "__REPLACE__",
+            "actor_username": "__REPLACE__",
+            "party_date": "__REPLACE__",
+            "start_time": "__REPLACE__",
+            "end_time": "__REPLACE__",
+            "timezone": "Africa/Cairo",
+            "location": "__REPLACE__",
+            "primary_contact": "__REPLACE__",
+            "lines": [
+                {
+                    "line_type": "service",
+                    "description_ar": "__REPLACE__",
+                    "description_en": "__REPLACE__",
+                    "quantity": "1.000000",
+                    "unit_price": "0.0000"
+                }
+            ]
+        }
+    ]
+}

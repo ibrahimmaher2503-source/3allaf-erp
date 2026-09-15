@@ -1,0 +1,99 @@
+# v0.1.14 Table and Action Inventory
+
+Mechanical scan: **79** table/list-bearing Blade views. **69** management/operational views inherit or can adopt the shared table/action contract; **10** specialized document views are excluded.
+
+## Reviewed paths
+
+- `resources/views/catalog/brands.blade.php`
+- `resources/views/catalog/categories.blade.php`
+- `resources/views/catalog/product-import.blade.php`
+- `resources/views/catalog/products.blade.php`
+- `resources/views/catalog/product-variations.blade.php`
+- `resources/views/catalog/suppliers.blade.php`
+- `resources/views/components/data-table.blade.php`
+- `resources/views/components/reports/visual.blade.php`
+- `resources/views/components/tables/data-panel.blade.php`
+- `resources/views/components/tables/filter-bar.blade.php`
+- `resources/views/components/tables/resource-toolbar.blade.php`
+- `resources/views/components/tables/table-shell.blade.php`
+- `resources/views/inventory/index.blade.php`
+- `resources/views/pages/alerts/index.blade.php`
+- `resources/views/pages/customers/groups.blade.php`
+- `resources/views/pages/customers/import.blade.php`
+- `resources/views/pages/customers/index.blade.php`
+- `resources/views/pages/customers/loyalty.blade.php`
+- `resources/views/pages/customers/show.blade.php`
+- `resources/views/pages/exports/index.blade.php`
+- `resources/views/pages/exports/report-pdf.blade.php`
+- `resources/views/pages/gift-instruments/cards.blade.php`
+- `resources/views/pages/gift-instruments/index.blade.php`
+- `resources/views/pages/gift-instruments/show.blade.php`
+- `resources/views/pages/party/asset-print.blade.php`
+- `resources/views/pages/party/assets.blade.php`
+- `resources/views/pages/party/bookings/index.blade.php`
+- `resources/views/pages/party/bookings/show.blade.php`
+- `resources/views/pages/party/calendar.blade.php`
+- `resources/views/pages/party/invoices/index.blade.php`
+- `resources/views/pages/party/invoices/show.blade.php`
+- `resources/views/pages/party/orders/index.blade.php`
+- `resources/views/pages/party/orders/show.blade.php`
+- `resources/views/pages/party/payments/index.blade.php`
+- `resources/views/pages/party/print-invoice.blade.php`
+- `resources/views/pages/payments/evidence.blade.php`
+- `resources/views/pages/payments/index.blade.php`
+- `resources/views/pages/pos/offline-conflicts.blade.php`
+- `resources/views/pages/pos/offline-queue.blade.php`
+- `resources/views/pages/pos/shift.blade.php`
+- `resources/views/pages/pos/shift-print-a4.blade.php`
+- `resources/views/pages/pos/shift-variance.blade.php`
+- `resources/views/pages/pos/suspended.blade.php`
+- `resources/views/pages/quotations/index.blade.php`
+- `resources/views/pages/quotations/print.blade.php`
+- `resources/views/pages/reports/index.blade.php`
+- `resources/views/pages/returns/index.blade.php`
+- `resources/views/pages/returns/print.blade.php`
+- `resources/views/pages/returns/show.blade.php`
+- `resources/views/pages/sales/index.blade.php`
+- `resources/views/pages/sales/invoices.blade.php`
+- `resources/views/pages/sales/print.blade.php`
+- `resources/views/pages/sales/show.blade.php`
+- `resources/views/pages/wallets/ledger.blade.php`
+- `resources/views/platform/admin/authorization-baseline.blade.php`
+- `resources/views/platform/admin/branches.blade.php`
+- `resources/views/platform/admin/drawers.blade.php`
+- `resources/views/platform/admin/role-permissions.blade.php`
+- `resources/views/platform/admin/roles.blade.php`
+- `resources/views/platform/admin/settings.blade.php`
+- `resources/views/platform/admin/stores.blade.php`
+- `resources/views/platform/admin/translation-editor.blade.php`
+- `resources/views/platform/system/approval-inbox.blade.php`
+- `resources/views/platform/system/audit-log.blade.php`
+- `resources/views/platform/system/backups.blade.php`
+- `resources/views/platform/system/health.blade.php`
+- `resources/views/platform/system/ui-showcase.blade.php`
+- `resources/views/pricing/index.blade.php`
+- `resources/views/pricing/labels.blade.php`
+- `resources/views/purchasing/history.blade.php`
+- `resources/views/purchasing/invoice-import.blade.php`
+- `resources/views/purchasing/invoice-print.blade.php`
+- `resources/views/purchasing/invoices.blade.php`
+- `resources/views/purchasing/orders.blade.php`
+- `resources/views/purchasing/print.blade.php`
+- `resources/views/purchasing/return-detail.blade.php`
+- `resources/views/purchasing/return-print.blade.php`
+- `resources/views/purchasing/returns.blade.php`
+- `resources/views/purchasing/return-settings.blade.php`
+
+## Intentional exclusions
+
+- `resources/views/pages/exports/report-pdf.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/party/asset-print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/party/print-invoice.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/pos/shift-print-a4.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/quotations/print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/returns/print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/pages/sales/print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/purchasing/invoice-print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/purchasing/print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/purchasing/return-print.blade.php` — print/PDF/export document layout; management-table behavior is inappropriate.
+- `resources/views/livewire/pos/cart.blade.php` and the active POS selling workspace — barcode-first operational layout, not a management table.
