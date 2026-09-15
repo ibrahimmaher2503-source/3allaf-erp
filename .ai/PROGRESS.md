@@ -365,6 +365,13 @@ M53.1 completes the primary Setup context with permission-filtered adjacent navi
 - Focused locale integrity, PHP/JavaScript syntax, full Blade compilation, fallback, switch/persistence, RTL/lang, audit-count, build-manifest, unchanged-source-locale, and diff checks passed. One Vite build completed successfully after one earlier invocation stopped before asset generation because the isolated worktree lacked a local `vendor` path.
 - No automated test suite, browser, database, migration, deployment, packaging, activation, production access, push, tag, sudo, package installation, or business-rule change occurred.
 
+# 2026-09-16 — Supervised P0 Phase 4 customer receipts
+
+- Merged `628d2e0` after Safety and Lead review. Customer receipts now support one receipt allocated across multiple approved invoices, partial allocation, and fully or partially unapplied customer credit. New receipts snapshot a visible active collection store and company currency; cash methods require one active same-company cash account and non-cash methods reject cash accounts.
+- Added forward migration `000125` with nullable store/currency fields, historical EGP backfill, unambiguous store attribution, and scoped index. Rollback ordering was corrected so the foreign key is removed before its supporting index.
+- Dedicated MariaDB `toyjoy_p0_customer_receipts_20260915` passed fresh migration, rollback of `000125`, and re-migration. Focused receipts/financial/UI checks passed 9 tests and 44 assertions. Full suite had 40 passing tests and one pre-existing purchase-order numbering fixture failure; no new receipt failure was observed. PHP syntax, Pint, Blade cache, schema/FK/index and orphan checks passed.
+- P0 Phase 5 remains unopened. P1 remains blocked until the full-day MariaDB E2E gate passes. No browser, production, release, push, or tag action occurred.
+
 # v0.1.22-hotfix33 Egyptian Arabic integration — 2026-09-12
 
 - Integrated localization commit `be300bfb039316a3f89b29f2cd2c29bd73bd0add` onto exact Hotfix32 commit `2636d8dc1d345fa050e4e20c729a4cab9ac4a35a` in a separate `rajeh_ahmed` worktree and preserved both tracking histories.

@@ -8,7 +8,7 @@
 
 **Supervisor execution gate — 2026-09-15:** Execute one P0 phase at a time. A read-only Safety Agent must review every database migration before a writable agent begins. Each writable agent uses an isolated Git worktree and a strict file scope. The Lead reviews the diff, focused MariaDB tests, and business rules before merge. Inventory, Cash, AR, AP, Landed Cost, and Refund work requires explicit manual Lead review. P1 remains blocked until the P0 full-day MariaDB end-to-end gate passes.
 
-**Active phase:** P0 Phase 3 is merged as `62eb64d`: inventory transfers support decimal quantities, repeated partial receipts, final receipts, explicit differences, and idempotent receipt events. No other P0 slice is authorized until the Supervisor explicitly opens it.
+**Active phase:** P0 Phase 4 is merged as `628d2e0`: customer receipts support multiple invoice allocations, partial allocation, unapplied customer credit, collection-store/currency snapshots, and cash-account enforcement. P0 Phase 5 remains unopened.
 
 **POS credit checkout follow-up:** The owner-authorized D3 local fix adds pure credit checkout and partial collection through the existing payment and AR actions. Focused tests cover unpaid, partial, full, cash-customer denial, and credit limit. Authenticated browser UAT remains open.
 
