@@ -156,7 +156,7 @@ final class SavePurchaseInvoiceAction
             $totals = app(PurchaseInvoiceCalculator::class)->calculateDocument($normalizedLines);
             $chargeInputs = array_key_exists('charges', $data)
                 ? $data['charges']
-                : ($invoice?->charges->map->only(['charge_type', 'amount', 'notes'])->all() ?? []);
+                : ($invoice?->charges->map->only(['charge_type', 'amount', 'accounting_treatment', 'notes'])->all() ?? []);
             if (! is_array($chargeInputs)) {
                 throw new InvalidArgumentException(__('Purchase charges must be a list.'));
             }

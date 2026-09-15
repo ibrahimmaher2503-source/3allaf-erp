@@ -6,6 +6,7 @@ namespace App\Modules\Purchasing\Actions;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Inventory\Actions\PostInventoryMovement;
 use App\Modules\Inventory\Models\StockTransfer;
 use App\Modules\Platform\Actions\AllocateDocumentNumber;
@@ -21,6 +22,7 @@ use App\Modules\Purchasing\Models\PurchaseOrderLine;
 use App\Modules\Purchasing\Models\StockBalance;
 use App\Modules\Purchasing\Models\StockMovement;
 use App\Modules\Purchasing\Services\PurchaseInvoiceCalculator;
+use App\Modules\Purchasing\Support\SupplierBalance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -65,6 +67,9 @@ final class ApprovePurchaseInvoiceAction
                 ->lockForUpdate()
                 ->firstOrFail();
             $this->snapshotLandedCost($invoice);
+            $supplier = Supplier::query()->lockForUpdate()->findOrFail($invoice->supplier_id);
+            $this->validateSupplierCreditLimit($invoice, $supplier);
+            $this->snapshotSupplierTerms($invoice, $supplier);
             $invoice->load('lines.distributions');
             $this->validateBusinessRules($invoice);
 
@@ -232,7 +237,9 @@ final class ApprovePurchaseInvoiceAction
     private function snapshotLandedCost(PurchaseInvoice $invoice): void
     {
         $charges = $invoice->charges->reduce(
-            fn (string $total, $charge): string => $this->add($total, $charge->amount, 4),
+            fn (string $total, $charge): string => $charge->accounting_treatment === 'landed_cost'
+                ? $this->add($total, $charge->amount, 4)
+                : $total,
             '0.0000',
         );
         $allocations = app(PurchaseInvoiceCalculator::class)->allocateLandedCost(
@@ -250,6 +257,35 @@ final class ApprovePurchaseInvoiceAction
                 'inventory_unit_cost' => $allocation['inventory_unit_cost'],
             ]);
         }
+    }
+
+    private function validateSupplierCreditLimit(PurchaseInvoice $invoice, Supplier $supplier): void
+    {
+        if ($supplier->credit_limit === null) {
+            return;
+        }
+
+        $outstanding = app(SupplierBalance::class)->for($supplier, (string) ($invoice->currency_code ?: 'EGP'));
+        $projected = $this->add($outstanding, $invoice->total_amount, 4);
+        if ($this->compare($projected, $supplier->credit_limit) > 0) {
+            throw new InvalidArgumentException(__('Supplier credit limit would be exceeded by this invoice.'));
+        }
+    }
+
+    private function snapshotSupplierTerms(PurchaseInvoice $invoice, Supplier $supplier): void
+    {
+        $creditDays = $supplier->credit_days;
+        $invoiceDate = $invoice->invoice_date?->copy() ?? now()->startOfDay();
+        $dueDate = $invoiceDate->copy()->addDays((int) ($creditDays ?? 0));
+
+        $invoice->update([
+            'payment_terms_snapshot' => $supplier->payment_terms,
+            'payment_policy_snapshot' => $supplier->payment_policy,
+            'credit_days_snapshot' => $creditDays,
+            'credit_limit_snapshot' => $supplier->credit_limit,
+            'due_date' => $dueDate->toDateString(),
+            'terms_snapshot_at' => now(),
+        ]);
     }
 
     private function updatePurchaseOrderState(PurchaseInvoice $invoice): void

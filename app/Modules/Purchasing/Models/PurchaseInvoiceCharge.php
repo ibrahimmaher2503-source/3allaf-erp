@@ -12,7 +12,7 @@ final class PurchaseInvoiceCharge extends Model
 {
     use GuardsApprovedParent;
 
-    protected $fillable = ['purchase_invoice_id', 'charge_type', 'amount', 'notes'];
+    protected $fillable = ['purchase_invoice_id', 'charge_type', 'amount', 'accounting_treatment', 'notes'];
 
     protected $casts = ['amount' => 'decimal:4'];
 
