@@ -114,7 +114,7 @@ $renderInventory = static function (?int $productId = null, ?string $focus = nul
         })->count(),
         'pending_transfers' => StockTransfer::query()->where(function ($query) use ($visibleStoreIds): void {
             $query->whereIn('source_store_id', $visibleStoreIds)->orWhereIn('destination_store_id', $visibleStoreIds);
-        })->whereIn('status', ['draft', 'submitted', 'approved', 'in_transit', 'difference'])->count(),
+        })->whereIn('status', ['draft', 'submitted', 'approved', 'in_transit', 'difference_review'])->count(),
         'active_counts' => StockCount::query()->whereIn('store_id', $visibleStoreIds)->whereIn('status', ['draft', 'in_progress', 'submitted'])->count(),
         'pending_adjustments' => InventoryAdjustment::query()->whereIn('store_id', $visibleStoreIds)->whereIn('status', ['draft', 'submitted'])->count(),
         'stock_distribution' => StockBalance::query()->join('stores', 'stores.id', '=', 'stock_balances.store_id')->whereIn('stock_balances.store_id', $visibleStoreIds)->select(['stores.id', 'stores.code', 'stores.name_ar', 'stores.name_en'])->selectRaw('SUM(stock_balances.on_hand) as on_hand')->groupBy('stores.id', 'stores.code', 'stores.name_ar', 'stores.name_en')->orderByDesc('on_hand')->limit(6)->get(),
@@ -249,7 +249,7 @@ $router->middleware(['auth', 'verified'])->group(function () use ($router, $rend
     })->middleware('can:stock_counts.reconcile')->name('inventory.counts.reconcile-page');
 
     $router->post('inventory/transfers', function (CreateStockTransferDraftAction $action) {
-        $validated = request()->validate(['source_store_id' => ['required', 'integer', 'exists:stores,id'], 'destination_store_id' => ['required', 'integer', 'different:source_store_id', 'exists:stores,id'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_requested' => ['required', 'integer', 'min:1'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0'], 'lock_version' => ['nullable', 'integer']]);
+        $validated = request()->validate(['source_store_id' => ['required', 'integer', 'exists:stores,id'], 'destination_store_id' => ['required', 'integer', 'different:source_store_id', 'exists:stores,id'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_requested' => ['required', 'decimal:0,6', 'gt:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0'], 'lock_version' => ['nullable', 'integer']]);
         try {
             $transfer = $action->execute((int) $validated['source_store_id'], (int) $validated['destination_store_id'], $validated['lines'], $validated['reason_code'], $validated['reason_notes'] ?? null);
 
@@ -264,7 +264,7 @@ $router->middleware(['auth', 'verified'])->group(function () use ($router, $rend
     })->middleware('can:transfers.create')->name('inventory.transfers.store');
 
     $router->post('inventory/transfers/{transfer}', function (StockTransfer $transfer, UpdateStockTransferDraftAction $action) {
-        $validated = request()->validate(['source_store_id' => ['required', 'integer', 'exists:stores,id'], 'destination_store_id' => ['required', 'integer', 'different:source_store_id', 'exists:stores,id'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_requested' => ['required', 'integer', 'min:1'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0'], 'lock_version' => ['nullable', 'integer']]);
+        $validated = request()->validate(['source_store_id' => ['required', 'integer', 'exists:stores,id'], 'destination_store_id' => ['required', 'integer', 'different:source_store_id', 'exists:stores,id'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_requested' => ['required', 'decimal:0,6', 'gt:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0'], 'lock_version' => ['nullable', 'integer']]);
         try {
             $saved = $action->execute($transfer->id, (int) $validated['source_store_id'], (int) $validated['destination_store_id'], $validated['lines'], $validated['reason_code'], $validated['reason_notes'] ?? null, $validated['lock_version'] ?? $transfer->lock_version);
 
@@ -343,8 +343,8 @@ $router->middleware(['auth', 'verified'])->group(function () use ($router, $rend
 
     $router->post('inventory/transfers/{transfer}/receive', function (StockTransfer $transfer, ReceiveStockTransferAction $action) {
         try {
-            $validated = request()->validate(['received_quantities' => ['required', 'array', 'min:1'], 'received_quantities.*' => ['required', 'numeric', 'min:0'], 'difference_type' => ['nullable', 'in:shortage,damage,refusal'], 'difference_reason' => ['nullable', 'string', 'max:1000']]);
-            $action->execute($transfer->id, $validated['received_quantities'], $validated['difference_type'] ?? null, $validated['difference_reason'] ?? null);
+            $validated = request()->validate(['received_quantities' => ['required', 'array', 'min:1'], 'received_quantities.*' => ['required', 'decimal:0,6', 'min:0'], 'difference_type' => ['nullable', 'in:shortage,damage,refusal'], 'difference_reason' => ['nullable', 'string', 'max:1000'], 'idempotency_key' => ['required', 'string', 'max:160']]);
+            $action->execute($transfer->id, $validated['received_quantities'], $validated['difference_type'] ?? null, $validated['difference_reason'] ?? null, $validated['idempotency_key']);
 
             return back()->with('success', __('Transfer receipt recorded in Local Demo.'));
         } catch (Throwable $exception) {
