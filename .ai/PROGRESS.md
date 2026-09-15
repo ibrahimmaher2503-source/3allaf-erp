@@ -430,3 +430,11 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Added one composite permission for the shared feed-store operations entry so every authorized operator can reach the page.
 - Updated obsolete source-string/version tests to assert the current Hotfix41 behavior and current shared label/search/render paths. The full suite is green: 132 tests, 131 passed, 1 environment skip, 1,370 assertions.
 - Milestone remains PARTIAL only because authenticated manual browser UAT is outside the current authorization.
+
+## 2026-09-15 — Supervised P0 Phase 1
+
+- Safety Agent reviewed the P0 migration surface read-only and blocked edits to legacy migrations, identified baseline and store-attribution risks, and required forward migrations plus isolated worktrees.
+- Corrected the recorded source baseline to the local Git snapshot and opened only P0 Phase 1 under supervisor control.
+- Merged `3bae98c`, adding forward migration `000122` to reconcile approved-sale `paid_total`, `outstanding_amount`, and `payment_status` from captured sale payments in bounded chunks. The migration fails before writes on approved overpayment and leaves drafts unchanged; document-derived CustomerBalance remains authoritative.
+- Verification passed on dedicated MariaDB `toyjoy_p0_ar_20260915`: fresh migration chain through 000122, 2 migration tests/6 assertions, 5 POS checkout tests/13 assertions, PHP syntax, Pint, schema precision, zero FLOAT/DOUBLE, and diff checks.
+- No other P0 phase opened; no P1, browser, full-day E2E, production, deployment, release, push, or tag action occurred.
