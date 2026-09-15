@@ -36,7 +36,16 @@ final class SavePurchaseInvoiceChargesAction
                     throw new InvalidArgumentException(__('Purchase charge amount must be greater than zero with at most four decimal places.'));
                 }
                 $amount = bcadd($amount, '0', 4);
-                $normalized[] = ['charge_type' => $type, 'amount' => $amount, 'notes' => filled($charge['notes'] ?? null) ? trim((string) $charge['notes']) : null];
+                $treatment = trim((string) ($charge['accounting_treatment'] ?? 'landed_cost'));
+                if (! in_array($treatment, ['landed_cost', 'period_expense'], true)) {
+                    throw new InvalidArgumentException(__('Purchase charge accounting treatment is not supported.'));
+                }
+                $normalized[] = [
+                    'charge_type' => $type,
+                    'amount' => $amount,
+                    'accounting_treatment' => $treatment,
+                    'notes' => filled($charge['notes'] ?? null) ? trim((string) $charge['notes']) : null,
+                ];
                 $chargeTotal = bcadd($chargeTotal, $amount, 4);
             }
 
