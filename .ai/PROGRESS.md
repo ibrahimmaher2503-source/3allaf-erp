@@ -438,3 +438,10 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Merged `3bae98c`, adding forward migration `000122` to reconcile approved-sale `paid_total`, `outstanding_amount`, and `payment_status` from captured sale payments in bounded chunks. The migration fails before writes on approved overpayment and leaves drafts unchanged; document-derived CustomerBalance remains authoritative.
 - Verification passed on dedicated MariaDB `toyjoy_p0_ar_20260915`: fresh migration chain through 000122, 2 migration tests/6 assertions, 5 POS checkout tests/13 assertions, PHP syntax, Pint, schema precision, zero FLOAT/DOUBLE, and diff checks.
 - No other P0 phase opened; no P1, browser, full-day E2E, production, deployment, release, push, or tag action occurred.
+
+## 2026-09-15 — Supervised P0 Phase 3
+
+- Merged `62eb64d` after Safety and Lead review. Transfer approval leaves destination stock unavailable; dispatch moves stock to `in_transit`; partial receipts remain in transit; final receipts alone close the transfer; explicit shortages release transit without adding missing stock.
+- Added immutable transfer receipt events with payload hashes and unique idempotency keys, corrected transfer quantity hydration and UI validation to six decimal places, and verified `2.500000 KG` draft, dispatch, partial/final receipt, full receipt, difference resolution, replay, and destination scope.
+- Dedicated MariaDB `toyjoy_p0_inventory_20260915` passed a fresh migration chain through `000124`, clean down/up before receipt data, 30 focused tests/272 assertions, schema/index/FK checks, zero orphan rows, zero FLOAT/DOUBLE columns, PHP syntax, Pint, and diff checks.
+- P0.4 remains unopened. P1 remains blocked until all P0 phases and the full-day MariaDB E2E pass.
