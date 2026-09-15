@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Modules\CashControl\Actions\RecordCashTransactionAction;
 use App\Modules\CashControl\Actions\RecordExpenseAction;
 use App\Modules\CashControl\Models\CashAccount;
-use App\Modules\CashControl\Models\CashTransaction;
+use App\Modules\CashControl\Models\Expense;
 use App\Modules\CashControl\Models\ExpenseCategory;
 use App\Modules\CashControl\Support\CashAccountBalance;
 use App\Modules\Catalog\Models\Supplier;
@@ -20,6 +20,7 @@ use App\Modules\Platform\Models\PaymentMethod;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Purchasing\Actions\RecordSupplierPaymentAction;
 use App\Modules\Purchasing\Models\PurchaseInvoice;
+use App\Modules\Purchasing\Models\SupplierPayment;
 use App\Modules\Retail\Models\Sale;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
@@ -97,6 +98,34 @@ final class ExpensesGeneralCashAccountsTest extends TestCase
 
         $this->expectException(LogicException::class);
         $original->update(['description' => 'Changed']);
+    }
+
+    public function test_cash_supplier_payment_and_expense_require_an_account_without_partial_documents(): void
+    {
+        [$actor, $company, $store, $account, $method] = $this->fixtures();
+        $this->actingAs($actor);
+        $supplier = Supplier::query()->create(['code' => 'REQ-SUP-'.str()->random(6), 'name_ar' => 'مورد', 'name_en' => 'Supplier', 'status' => 'active']);
+        $invoice = PurchaseInvoice::query()->create([
+            'invoice_number' => 'REQ-INV-'.str()->random(6), 'supplier_id' => $supplier->id, 'store_id' => $store->id,
+            'invoice_date' => now()->toDateString(), 'currency_code' => 'EGP', 'status' => 'approved', 'subtotal' => 100,
+            'total_amount' => 100, 'idempotency_key' => (string) str()->uuid(), 'approved_at' => now(), 'approved_by' => $actor->id,
+            'created_by' => $actor->id, 'updated_by' => $actor->id,
+        ]);
+        $category = ExpenseCategory::query()->create(['company_id' => $company->id, 'code' => 'REQ', 'name_ar' => 'مصروف', 'name_en' => 'Expense', 'active' => true]);
+
+        try {
+            app(RecordSupplierPaymentAction::class)->execute($actor, $supplier, $method, '10', [['purchase_invoice_id' => $invoice->id, 'amount' => '10']], 'REQ-PAY-1');
+            self::fail('Cash supplier payment without account must be rejected.');
+        } catch (InvalidArgumentException) {
+            self::assertSame(0, SupplierPayment::query()->count());
+        }
+        try {
+            app(RecordExpenseAction::class)->execute($actor, $company, $category, '10', 'Cash expense', 'REQ-EXP-1', paymentMethod: $method);
+            self::fail('Cash expense without account must be rejected.');
+        } catch (InvalidArgumentException) {
+            self::assertSame(0, Expense::query()->count());
+        }
+        self::assertSame(0, $account->transactions()->count());
     }
 
     /** @return array{User, Company, Store, CashAccount, PaymentMethod} */

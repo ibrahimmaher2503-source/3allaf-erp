@@ -44,7 +44,7 @@
                 <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
                 <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
                 <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}">{{ $method->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('No treasury posting') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash payments') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
                 <flux:input name="reference" :label="__('Reference')" />
                 <flux:input name="evidence_reference" :label="__('Payment evidence reference')" />
                 <flux:input name="notes" :label="__('Notes')" />
@@ -63,7 +63,7 @@
                 <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
                 <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
                 <flux:select name="payment_method_id" :label="__('Payment method')"><option value="">{{ __('Not specified') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}">{{ $method->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('No treasury posting') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash expenses') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
                 <flux:input name="description" class="sm:col-span-2" :label="__('Description')" required />
                 <flux:input name="reference" :label="__('Reference')" />
                 <div class="text-end"><flux:button type="submit" variant="primary">{{ __('Record expense') }}</flux:button></div>
