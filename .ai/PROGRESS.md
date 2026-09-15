@@ -372,6 +372,13 @@ M53.1 completes the primary Setup context with permission-filtered adjacent navi
 - Dedicated MariaDB `toyjoy_p0_customer_receipts_20260915` passed fresh migration, rollback of `000125`, and re-migration. Focused receipts/financial/UI checks passed 9 tests and 44 assertions. Full suite had 40 passing tests and one pre-existing purchase-order numbering fixture failure; no new receipt failure was observed. PHP syntax, Pint, Blade cache, schema/FK/index and orphan checks passed.
 - P0 Phase 5 remains unopened. P1 remains blocked until the full-day MariaDB E2E gate passes. No browser, production, release, push, or tag action occurred.
 
+# 2026-09-16 — Supervised P0 Phase 5 supplier payments and expenses
+
+- Merged `ce41720` after read-only Safety review and Lead manual review. Cash supplier payments and cash expenses now require an active visible same-company, same-currency cash account; non-cash operations reject an attached cash account and retain the existing non-cash/no-account compatibility. Existing `RecordCashTransactionAction` remains the single treasury posting path, so each approved cash outflow produces one negative idempotent movement inside the source transaction.
+- Updated the shared operations cards to label cash accounts as required for cash payments/expenses. Added focused assertions that missing cash accounts leave no supplier payment, expense, or cash movement.
+- Dedicated MariaDB `toyjoy_p0_supplier_expenses_20260916` migrated through the current chain. Focused AP/Cash/scope/UI checks passed 12 tests and 62 assertions. PHP syntax, targeted Pint, and diff hygiene passed.
+- P0 Phase 6 remains unopened. P1 remains blocked until the full-day MariaDB E2E gate passes. No browser, production, release, push, or tag action occurred.
+
 # v0.1.22-hotfix33 Egyptian Arabic integration — 2026-09-12
 
 - Integrated localization commit `be300bfb039316a3f89b29f2cd2c29bd73bd0add` onto exact Hotfix32 commit `2636d8dc1d345fa050e4e20c729a4cab9ac4a35a` in a separate `rajeh_ahmed` worktree and preserved both tracking histories.
