@@ -408,7 +408,7 @@ $router->middleware(['auth', 'verified'])->group(function () use ($router, $rend
     })->whereNumber('adjustment')->middleware('can:inventory_stock_card.approve')->name('inventory.adjustments.approve');
 
     $router->post('inventory/adjustments', function (SaveInventoryAdjustmentAction $action) {
-        $validated = request()->validate(['store_id' => ['required', 'integer'], 'adjustment_type' => ['required', 'in:entry,exit,exchange,adjustment'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'allow_negative' => ['nullable', 'boolean'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_delta' => ['required', 'integer', 'not_in:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0']]);
+        $validated = request()->validate(['store_id' => ['required', 'integer'], 'adjustment_type' => ['required', 'in:entry,exit,exchange,adjustment'], 'reason_code' => ['required', 'in:opening_stock,opening_inventory,count_variance,reversal,opened_bag,weight_loss,damage,moisture,scale_variance,entry_error'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'allow_negative' => ['nullable', 'boolean'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_delta' => ['required', 'decimal:0,6', 'not_in:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0']]);
         try {
             $document = $action->execute($validated, $validated['lines']);
 
@@ -423,7 +423,7 @@ $router->middleware(['auth', 'verified'])->group(function () use ($router, $rend
     })->middleware('can:inventory_stock_card.create')->name('inventory.adjustments.store');
 
     $router->post('inventory/adjustments/{adjustment}', function (InventoryAdjustment $adjustment, SaveInventoryAdjustmentAction $action) {
-        $validated = request()->validate(['store_id' => ['required', 'integer'], 'adjustment_type' => ['required', 'in:entry,exit,exchange,adjustment'], 'reason_code' => ['required', 'string', 'max:100'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'allow_negative' => ['nullable', 'boolean'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_delta' => ['required', 'integer', 'not_in:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0']]);
+        $validated = request()->validate(['store_id' => ['required', 'integer'], 'adjustment_type' => ['required', 'in:entry,exit,exchange,adjustment'], 'reason_code' => ['required', 'in:opening_stock,opening_inventory,count_variance,reversal,opened_bag,weight_loss,damage,moisture,scale_variance,entry_error'], 'reason_notes' => ['nullable', 'string', 'max:1000'], 'allow_negative' => ['nullable', 'boolean'], 'lines' => ['required', 'array', 'min:1'], 'lines.*.product_id' => ['required', 'integer'], 'lines.*.quantity_delta' => ['required', 'decimal:0,6', 'not_in:0'], 'lines.*.unit_cost' => ['nullable', 'numeric', 'min:0']]);
         try {
             $document = $action->execute($validated, $validated['lines'], $adjustment->id, $adjustment->lock_version);
 
