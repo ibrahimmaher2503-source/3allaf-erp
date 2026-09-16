@@ -41,8 +41,8 @@ final class RetailRefundCalculator
             }
             $seen[$saleLine->id] = true;
             $quantity = trim((string) ($input['quantity'] ?? '0'));
-            if (! preg_match('/^\d+$/', $quantity) || bccomp($quantity, '0', 0) <= 0) {
-                throw ValidationException::withMessages(['lines.'.$index.'.quantity' => __('Refund quantities must be positive whole numbers.')]);
+            if (! preg_match('/^\d+(?:\.\d{1,6})?$/', $quantity) || bccomp($quantity, '0', 6) <= 0) {
+                throw ValidationException::withMessages(['lines.'.$index.'.quantity' => __('Refund quantities must be positive with at most six decimal places.')]);
             }
 
             $remaining = $this->remainingQuantity($saleLine, $excludingReturnId);

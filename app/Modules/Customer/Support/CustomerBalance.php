@@ -21,7 +21,7 @@ final class CustomerBalance
         $sales = Sale::query()->where('customer_id', $customer->id)->where('currency_code', $currencyCode)->where('status', 'approved')->get(['id', 'payable_total']);
         $saleIds = $sales->pluck('id');
         $payments = SalePayment::query()->whereIn('sale_id', $saleIds)->selectRaw('sale_id, SUM(amount) AS total')->groupBy('sale_id')->pluck('total', 'sale_id');
-        $credits = RetailReturn::query()->whereIn('source_sale_id', $saleIds)->where('status', 'completed')->selectRaw('source_sale_id, SUM(settlement_value) AS total')->groupBy('source_sale_id')->pluck('total', 'source_sale_id');
+        $credits = RetailReturn::query()->whereIn('source_sale_id', $saleIds)->where('status', 'completed')->selectRaw('source_sale_id, SUM(CASE WHEN ar_reduction_value = 0 AND actual_refund_value = 0 THEN settlement_value ELSE ar_reduction_value END) AS total')->groupBy('source_sale_id')->pluck('total', 'source_sale_id');
         $adjustments = $this->sum(CustomerAccountAdjustment::query()->where('customer_id', $customer->id)->where('status', 'approved')->pluck('amount'));
         $receipts = $this->sum(CustomerReceipt::query()->where('customer_id', $customer->id)->where('currency_code', $currencyCode)->where('status', 'approved')->pluck('amount'));
         $balance = '0.0000';
@@ -37,7 +37,7 @@ final class CustomerBalance
     {
         $payments = $this->sum(SalePayment::query()->where('sale_id', $sale->id)->pluck('amount'));
         $receipts = $this->sum(CustomerReceiptAllocation::query()->where('sale_id', $sale->id)->whereHas('receipt', fn ($query) => $query->where('status', 'approved'))->pluck('amount'));
-        $credits = $this->sum(RetailReturn::query()->where('source_sale_id', $sale->id)->where('status', 'completed')->pluck('settlement_value'));
+        $credits = $this->sum(RetailReturn::query()->where('source_sale_id', $sale->id)->where('status', 'completed')->selectRaw('CASE WHEN ar_reduction_value = 0 AND actual_refund_value = 0 THEN settlement_value ELSE ar_reduction_value END AS amount')->pluck('amount'));
 
         $outstanding = bcsub(bcsub(bcsub((string) $sale->payable_total, $payments, 4), $receipts, 4), $credits, 4);
 
