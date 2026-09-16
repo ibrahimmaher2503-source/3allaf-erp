@@ -6,6 +6,7 @@ namespace App\Modules\Retail\Actions;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Customer\Support\CustomerBalance;
 use App\Modules\Inventory\Actions\PostInventoryMovement;
 use App\Modules\Platform\Actions\AllocateDocumentNumber;
 use App\Modules\Platform\Actions\RecordAuditEvent;
@@ -294,7 +295,14 @@ final class RetailReturnAction
                     $inventoryCost = bcadd($inventoryCost, bcmul((string) $line->quantity, $unitCost, 4), 4);
                 }
 
-                $settlementValue = (string) $locked->settlement_value;
+                $entitlement = (string) $locked->settlement_value;
+                $arReduction = app(CustomerBalance::class)->outstandingForSale($sourceSale);
+                $arReduction = bccomp($arReduction, $entitlement, 2) > 0 ? $entitlement : $arReduction;
+                $actualRefund = bcsub($entitlement, $arReduction, 2);
+                $locked->ar_reduction_value = $arReduction;
+                $locked->actual_refund_value = $locked->settlement_type === 'gift_card' ? '0.00' : $actualRefund;
+                $settlementValue = $locked->settlement_type === 'gift_card' ? $entitlement : $actualRefund;
+                $locked->settlement_value = $settlementValue;
                 $paymentSnapshot = [];
                 if ($locked->settlement_type === 'gift_card') {
                     $card = app(GiftCardAction::class)->issue($actor, $settlementValue, (int) $locked->branch_id, (int) $locked->store_id, RetailReturn::class, (string) $locked->id, 'return-gift-card:'.$locked->id, $locked->return_number, $locked->customer_id, (string) $locked->currency_code);
@@ -333,7 +341,7 @@ final class RetailReturnAction
                         $paymentSnapshot[] = ['method_code' => $method->code, 'method_type' => $method->type, 'direction' => $direction, 'amount' => $amount];
                     }
                     $exchange->update(['status' => 'completed']);
-                } else {
+                } elseif (bccomp($settlementValue, '0.00', 2) > 0) {
                     $resolved = $this->resolveRefundAllocations($actor, $locked, $sourceSale, $settlementValue, $paymentMethodId, $originalPaymentId, $allocations);
                     foreach ($resolved as $index => $allocation) {
                         RetailReturnSettlement::query()->create($this->settlementAttributes(
@@ -374,6 +382,8 @@ final class RetailReturnAction
                     'tax_reversal' => (string) $locked->tax_refund,
                     'cash_rounding_reversal' => (string) $locked->rounding_refund,
                     'settlement_reversal' => $settlementValue,
+                    'ar_reduction' => $arReduction,
+                    'actual_refund' => (string) $locked->actual_refund_value,
                     'inventory_cost_returned' => $inventoryCost,
                     'payments' => $paymentSnapshot,
                     'approval' => ['approved_by' => $locked->approved_by, 'approved_at' => $locked->approved_at?->toIso8601String()],
