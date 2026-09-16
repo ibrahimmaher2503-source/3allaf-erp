@@ -17,6 +17,7 @@ use InvalidArgumentException;
 
 final class SaveInventoryAdjustmentAction
 {
+    private const REASONS = ['opening_stock', 'opening_inventory', 'count_variance', 'reversal', 'opened_bag', 'weight_loss', 'damage', 'moisture', 'scale_variance', 'entry_error'];
     /** @param array<string, mixed> $data @param array<int, array<string, mixed>> $lines */
     public function execute(array $data, array $lines, ?int $id = null, ?int $expectedVersion = null): InventoryAdjustment
     {
@@ -44,7 +45,7 @@ final class SaveInventoryAdjustmentAction
                 throw new InvalidArgumentException(__('Select a supported inventory document type.'));
             }
             $reason = trim((string) ($data['reason_code'] ?? ''));
-            if ($reason === '') {
+            if (! in_array($reason, self::REASONS, true)) {
                 throw new InvalidArgumentException(__('An inventory document reason is required.'));
             }
             $allowNegative = filter_var($data['allow_negative'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -57,7 +58,7 @@ final class SaveInventoryAdjustmentAction
 
             $normalizedLines = [];
             foreach (array_values($lines) as $line) {
-                $product = Product::query()->sellable()->whereKey((int) ($line['product_id'] ?? 0))->firstOrFail();
+                $product = Product::query()->sellable()->with('baseProductUnit.unit')->whereKey((int) ($line['product_id'] ?? 0))->firstOrFail();
                 if (! $product->isSellable()) {
                     throw new InvalidArgumentException(__('Inactive products cannot be used in inventory documents.'));
                 }
@@ -65,7 +66,8 @@ final class SaveInventoryAdjustmentAction
                 if (bccomp($quantity, '0', 6) === 0) {
                     throw new InvalidArgumentException(__('Inventory quantity cannot be zero.'));
                 }
-                if (bccomp(bcmod($quantity, '1', 6), '0', 6) !== 0) {
+                $precision = $product->fractional_quantity ? min(6, max(1, (int) ($product->baseProductUnit?->unit?->decimal_places ?? 6))) : 0;
+                if ($precision === 0 && bccomp(bcmod($quantity, '1', 6), '0', 6) !== 0) {
                     throw new InvalidArgumentException(__('This product does not allow fractional quantities.'));
                 }
                 if ($type === 'entry') {
