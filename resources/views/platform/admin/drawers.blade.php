@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Modules\CashControl\Models\CashAccount;
 use App\Modules\Platform\Actions\SaveCashDrawerAction;
 use App\Modules\Platform\Actions\PlatformSettingsApprovalAction;
 use App\Modules\Platform\Models\Branch;
@@ -36,6 +37,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
         'branch_id' => '',
         'store_id' => '',
         'assigned_user_id' => '',
+        'treasury_cash_account_id' => '',
         'code' => '',
         'name_ar' => '',
         'name_en' => '',
@@ -80,6 +82,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
             'branch_id' => (string) $defaultBranchId,
             'store_id' => '',
             'assigned_user_id' => '',
+            'treasury_cash_account_id' => '',
             'code' => '',
             'name_ar' => '',
             'name_en' => '',
@@ -100,6 +103,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
             'branch_id' => (string) $drawer->branch_id,
             'store_id' => (string) ($drawer->store_id ?? ''),
             'assigned_user_id' => (string) ($drawer->assigned_user_id ?? ''),
+            'treasury_cash_account_id' => (string) ($drawer->treasury_cash_account_id ?? ''),
             'code' => $drawer->code,
             'name_ar' => $drawer->name_ar,
             'name_en' => $drawer->name_en,
@@ -118,6 +122,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
             'drawerForm.branch_id' => ['required', 'exists:branches,id'],
             'drawerForm.store_id' => [Rule::requiredIf(($this->drawerForm['status'] ?? 'active') === 'active'), 'nullable', 'exists:stores,id'],
             'drawerForm.assigned_user_id' => ['nullable', 'exists:users,id'],
+            'drawerForm.treasury_cash_account_id' => [Rule::requiredIf(($this->drawerForm['status'] ?? 'active') === 'active'), 'nullable', 'exists:cash_accounts,id'],
             'drawerForm.code' => [
                 'required',
                 'string',
@@ -216,7 +221,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
     </flux:card>
 
     @php
-        $query = CashDrawer::visibleTo(auth()->user())->with(['branch', 'store', 'assignedUser']);
+        $query = CashDrawer::visibleTo(auth()->user())->with(['branch', 'store', 'assignedUser', 'treasuryCashAccount']);
 
         if (! empty($search)) {
             $query->where(function ($q) use ($search) {
@@ -252,6 +257,9 @@ new #[Title('Cash Drawer Masters')] class extends Component
             ? Store::visibleTo(auth()->user())->whereKey($selectedSellingStoreId)->where('branch_id', $selectedBranch->id)->where('type', 'selling')->where('status', 'active')->orderBy('name_en')->get()
             : collect();
         $users = User::orderBy('name')->get();
+        $treasuryAccounts = $selectedBranch === null
+            ? collect()
+            : CashAccount::query()->where('company_id', $selectedBranch->company_id)->where('type', 'cash')->where('status', 'active')->orderBy('name_en')->get();
     @endphp
 
     <!-- Cash Drawers Data Table -->
@@ -261,7 +269,7 @@ new #[Title('Cash Drawer Masters')] class extends Component
                 @foreach($drawers as $drawer)
                     <flux:card class="space-y-3 p-4">
                         <div class="flex items-start justify-between gap-3"><div><div class="font-semibold">{{ str_starts_with(app()->getLocale(), 'ar') ? $drawer->name_ar : $drawer->name_en }}</div><div class="text-xs text-text-muted">{{ str_starts_with(app()->getLocale(), 'ar') ? $drawer->name_en : $drawer->name_ar }}</div><span class="font-mono text-xs text-primary" dir="ltr">{{ $drawer->code }}</span></div><x-status.badge :status="$drawer->status === 'active' ? 'active' : ($drawer->status === 'maintenance' ? 'warning' : 'inactive')" :label="__($drawer->status === 'active' ? 'Active' : ($drawer->status === 'maintenance' ? 'Maintenance' : 'Inactive'))" /></div>
-                        <dl class="grid gap-2 text-sm"><div><dt class="text-xs text-text-muted">{{ __('Branch → Sales Outlet → Cashier Till') }}</dt><dd>{{ $drawer->branch?->code ?? '—' }} → {{ $drawer->store?->code ?? '—' }} → <span dir="ltr">{{ $drawer->code }}</span></dd></div><div><dt class="text-xs text-text-muted">{{ __('Assigned Cashier / User') }}</dt><dd>{{ $drawer->assignedUser?->name ?? __('Unassigned') }}</dd></div></dl>
+                        <dl class="grid gap-2 text-sm"><div><dt class="text-xs text-text-muted">{{ __('Branch → Sales Outlet → Cashier Till') }}</dt><dd>{{ $drawer->branch?->code ?? '—' }} → {{ $drawer->store?->code ?? '—' }} → <span dir="ltr">{{ $drawer->code }}</span></dd></div><div><dt class="text-xs text-text-muted">{{ __('Assigned Cashier / User') }}</dt><dd>{{ $drawer->assignedUser?->name ?? __('Unassigned') }}</dd></div><div><dt class="text-xs text-text-muted">{{ __('Treasury cash account') }}</dt><dd>{{ $drawer->treasuryCashAccount?->name_en ?? __('Not configured') }}</dd></div></dl>
                         <div class="flex flex-wrap gap-2 border-t border-border pt-3">
                             @can('drawers_payments_tax_numbering_printers.edit')
                                 <x-actions.button semantic="edit" :label="__('Edit')" size="sm" variant="subtle" color="blue" icon="pencil" wire:click="openEditDrawerModal({{ $drawer->id }})">{{ __('Edit') }}</x-actions.button>
@@ -463,6 +471,18 @@ new #[Title('Cash Drawer Masters')] class extends Component
                     <option value="">{{ __('Unassigned / Any Cashier') }}</option>
                     @foreach($users as $u)
                         <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->username ?? $u->email }})</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select
+                    wire:key="cash-drawer-treasury-select-{{ $editingDrawerId ?? 'create' }}-{{ $drawerForm['branch_id'] ?: 'none' }}"
+                    wire:model="drawerForm.treasury_cash_account_id"
+                    :label="__('Treasury cash account')"
+                    :required="($drawerForm['status'] ?? 'active') === 'active'"
+                >
+                    <option value="">{{ __('Select treasury cash account') }}</option>
+                    @foreach($treasuryAccounts as $account)
+                        <option value="{{ $account->id }}">{{ $account->code }} — {{ str_starts_with(app()->getLocale(), 'ar') ? $account->name_ar : ($account->name_en ?: $account->name_ar) }} ({{ $account->currency_code }})</option>
                     @endforeach
                 </flux:select>
             </div>

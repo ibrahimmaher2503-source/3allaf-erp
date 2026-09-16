@@ -2,6 +2,7 @@
 
 namespace App\Modules\Platform\Actions;
 
+use App\Modules\CashControl\Models\CashAccount;
 use App\Modules\Platform\Models\Branch;
 use App\Modules\Platform\Models\CashDrawer;
 use App\Modules\Platform\Models\Store;
@@ -75,6 +76,7 @@ class SaveCashDrawerAction
                     'branch_id' => $branch->id,
                     'store_id' => $store?->id,
                     'assigned_user_id' => ! empty($data['assigned_user_id']) ? (int) $data['assigned_user_id'] : null,
+                    'treasury_cash_account_id' => $this->treasuryAccountId($data, (int) ($store?->company_id ?? $branch->company_id)),
                     'code' => strtoupper(trim($data['code'])),
                     'name_ar' => trim($data['name_ar']),
                     'name_en' => trim($data['name_en']),
@@ -140,6 +142,27 @@ class SaveCashDrawerAction
 
             throw $exception;
         }
+    }
+
+    /** @param array<string, mixed> $data */
+    private function treasuryAccountId(array $data, int $companyId): ?int
+    {
+        $id = (int) ($data['treasury_cash_account_id'] ?? 0);
+        if ($id < 1) {
+            return null;
+        }
+
+        $valid = CashAccount::query()->whereKey($id)
+            ->where('company_id', $companyId)
+            ->where('type', 'cash')
+            ->where('status', 'active')
+            ->exists();
+
+        if (! $valid) {
+            throw new InvalidArgumentException(__('The treasury account must be an active cash account for the drawer company.'));
+        }
+
+        return $id;
     }
 
     /**

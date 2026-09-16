@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Retail\Actions;
 
 use App\Models\User;
+use App\Modules\CashControl\Actions\RecordCashTransactionAction;
+use App\Modules\CashControl\Models\CashAccount;
 use App\Modules\Platform\Actions\AllocateDocumentNumber;
 use App\Modules\Platform\Actions\ApproveRequest;
 use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Actions\RejectRequest;
 use App\Modules\Platform\Enums\ApprovalState;
 use App\Modules\Platform\Models\ApprovalRecord;
+use App\Modules\Platform\Models\CashDrawer;
 use App\Modules\Retail\Enums\ShiftState;
+use App\Modules\Retail\Models\CashMovement;
 use App\Modules\Retail\Models\PosShift;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
@@ -99,6 +103,9 @@ final class ReviewShiftVarianceAction
 
             $this->assertNotOwnShift($reviewer, $shift);
 
+            $treasuryAccount = $this->treasuryAccount($shift);
+            $transferAmount = $this->transferAmount($shift);
+
             $approval = $this->pendingApproval($shift, $approval);
             app(ApproveRequest::class)->execute(
                 $approval,
@@ -121,6 +128,20 @@ final class ReviewShiftVarianceAction
                 'lock_version' => (int) $shift->getAttribute('lock_version') + 1,
             ]);
 
+            if (bccomp($transferAmount, '0', 4) > 0) {
+                app(RecordCashTransactionAction::class)->execute(
+                    $reviewer,
+                    $treasuryAccount,
+                    $transferAmount,
+                    'shift_treasury_transfer',
+                    __('POS shift cash transferred to treasury'),
+                    'pos-shift:'.$shift->getKey().':treasury-transfer',
+                    sourceType: PosShift::class,
+                    sourceId: (int) $shift->getKey(),
+                    reference: (string) $shift->getAttribute('closing_document_number'),
+                );
+            }
+
             DB::table('active_pos_shift_assignments')->where('shift_id', $shift->getKey())->delete();
 
             $this->audit('close_shift', $shift, $before, $reviewer, [
@@ -130,6 +151,37 @@ final class ReviewShiftVarianceAction
 
             return $shift;
         });
+    }
+
+    private function treasuryAccount(PosShift $shift): CashAccount
+    {
+        $drawer = CashDrawer::query()->lockForUpdate()->findOrFail((int) $shift->getAttribute('cash_drawer_id'));
+        $accountId = (int) $drawer->getAttribute('treasury_cash_account_id');
+        $account = $accountId > 0 ? CashAccount::query()->lockForUpdate()->find($accountId) : null;
+
+        if ($account === null
+            || $account->getAttribute('status') !== 'active'
+            || $account->getAttribute('type') !== 'cash'
+            || (int) $account->getAttribute('company_id') !== (int) $drawer->getAttribute('company_id')
+            || strtoupper((string) $account->getAttribute('currency_code')) !== strtoupper((string) $shift->getAttribute('currency_code'))) {
+            throw new InvalidArgumentException(__('Shift closing requires an active treasury cash account for the same company and currency.'));
+        }
+
+        return $account;
+    }
+
+    /** @return numeric-string */
+    private function transferAmount(PosShift $shift): string
+    {
+        $countedAfterFloat = bcsub((string) $shift->getAttribute('closing_cash'), (string) $shift->getAttribute('opening_cash'), 4);
+        $countedAfterFloat = bccomp($countedAfterFloat, '0', 4) > 0 ? $countedAfterFloat : '0.0000';
+        $safeDeposits = (string) CashMovement::query()
+            ->where('shift_id', $shift->getKey())
+            ->where('movement_type', CashMovement::TYPE_SAFE_DEPOSIT)
+            ->where('amount', '<', 0)
+            ->sum('amount');
+
+        return bcadd($countedAfterFloat, bcsub('0', $safeDeposits, 4), 4);
     }
 
     /** Maker/checker remains mandatory while the zero-variance rule is owner-blocked. */

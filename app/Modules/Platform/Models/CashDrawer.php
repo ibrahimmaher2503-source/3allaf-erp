@@ -3,6 +3,7 @@
 namespace App\Modules\Platform\Models;
 
 use App\Models\User;
+use App\Modules\CashControl\Models\CashAccount;
 use Database\Factories\CashDrawerFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -65,6 +66,7 @@ class CashDrawer extends Model
         'branch_id',
         'store_id',
         'assigned_user_id',
+        'treasury_cash_account_id',
         'code',
         'name_ar',
         'name_en',
@@ -90,6 +92,11 @@ class CashDrawer extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function treasuryCashAccount(): BelongsTo
+    {
+        return $this->belongsTo(CashAccount::class, 'treasury_cash_account_id');
     }
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
