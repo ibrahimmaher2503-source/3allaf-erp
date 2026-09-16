@@ -8,7 +8,7 @@
 
 **Supervisor execution gate — 2026-09-15:** Execute one P0 phase at a time. A read-only Safety Agent must review every database migration before a writable agent begins. Each writable agent uses an isolated Git worktree and a strict file scope. The Lead reviews the diff, focused MariaDB tests, and business rules before merge. Inventory, Cash, AR, AP, Landed Cost, and Refund work requires explicit manual Lead review. P1 remains blocked until the P0 full-day MariaDB end-to-end gate passes.
 
-**Active phase:** P0 Phase 5 is merged as `ce41720`: supplier payments and expenses enforce cash-account rules and create one idempotent cash movement for cash outflows while preserving non-cash no-account compatibility. P0 Phase 6 remains unopened.
+**Active phase: P0 Phase 6, sales returns, is merged as `a00ba34` after Safety and Lead review. P0.7 remains unopened; P1 remains blocked until the P0 full-day MariaDB end-to-end gate passes.
 
 **POS credit checkout follow-up:** The owner-authorized D3 local fix adds pure credit checkout and partial collection through the existing payment and AR actions. Focused tests cover unpaid, partial, full, cash-customer denial, and credit limit. Authenticated browser UAT remains open.
 
@@ -17,4 +17,5 @@ Implement the owner-supplied 11-phase Egyptian feed-store extension without chan
 The current owner instruction explicitly authorizes focused Unit/Feature tests, the existing suite, `migrate --seed`, and an integrity audit for this named scope. Every database execution must use a dedicated local MariaDB database; SQLite and production are prohibited. Browser control is not part of this task.
 
 Completion requires successful seed data plus verified unit conversion, inventory, customer AR, supplier AP, cash, foreign-key, decimal-money, orphan, and nonnegative-stock integrity checks.
+
 

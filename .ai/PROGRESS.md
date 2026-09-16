@@ -459,3 +459,10 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Added immutable transfer receipt events with payload hashes and unique idempotency keys, corrected transfer quantity hydration and UI validation to six decimal places, and verified `2.500000 KG` draft, dispatch, partial/final receipt, full receipt, difference resolution, replay, and destination scope.
 - Dedicated MariaDB `toyjoy_p0_inventory_20260915` passed a fresh migration chain through `000124`, clean down/up before receipt data, 30 focused tests/272 assertions, schema/index/FK checks, zero orphan rows, zero FLOAT/DOUBLE columns, PHP syntax, Pint, and diff checks.
 - P0.4 remains unopened. P1 remains blocked until all P0 phases and the full-day MariaDB E2E pass.
+
+## 2026-09-16 — Supervised P0 Phase 6
+
+- Merged 00ba34 after Safety and Lead review. Added forward migration 000126 with immutable AR reduction and actual refund snapshots; completed returns now split unpaid/partial credit settlement from cash or tender refund while preserving existing settlement rows and shift reconciliation.
+- Retail refund quantities accept up to six decimal places. CustomerBalance uses AR reduction exactly once with a legacy fallback for pre-000126 rows. Focused MariaDB checks passed 4 tests/16 assertions, including partial AR/refund split and existing receipt regressions; PHP syntax, Pint, and diff checks passed.
+- No browser, P1, full-day E2E, production, release, push, or tag action occurred.
+
