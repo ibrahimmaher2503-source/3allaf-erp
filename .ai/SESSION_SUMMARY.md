@@ -1268,3 +1268,11 @@
 - **Verification:** Dedicated MariaDB 	oyjoy_p0_sales_returns_20260916 migrated through 000126. Focused CustomerCreditReceipts and RetailReturnArSplit checks passed 4 tests/16 assertions. PHP syntax, Pint, and diff checks passed. Migration rollback command was environment-prohibited; no destructive rollback was claimed.
 - **Review/boundary:** Lead manually reviewed the refund/AR split, idempotent existing return path, migration backfill/down guard, and shift settlement interaction. No P1, full-day E2E, browser, production, release, push, or tag action occurred. P0.7 remains unopened.
 
+
+## 2026-09-16 — Supervised P0 Phase 7 inventory adjustments
+
+- **Task:** Execute only P0.7 after read-only Safety review.
+- **Work completed:** Restricted inventory adjustment reasons to the feed-store allowlist while preserving legacy seed reasons, aligned routes and action validation to six-decimal quantities, and allowed fractional quantities for products marked fractional. Commit 30e109c merged as 2cc2035 plus focused fixture follow-up.
+- **Verification:** Dedicated MariaDB 	oyjoy_p0_sales_returns_20260916 passed the focused adjustment test after adding its document-numbering fixture (1 test/3 assertions). PHP syntax, Pint, and diff checks passed. No migration was required.
+- **Review/boundary:** Safety confirmed existing schema and stock invariants; Lead reviewed diff, route scope, business rules, and regression risk before merge. No P0.8, full-day E2E, P1, browser, production, release, push, or tag action occurred.
+

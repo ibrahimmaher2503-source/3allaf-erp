@@ -466,3 +466,10 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Retail refund quantities accept up to six decimal places. CustomerBalance uses AR reduction exactly once with a legacy fallback for pre-000126 rows. Focused MariaDB checks passed 4 tests/16 assertions, including partial AR/refund split and existing receipt regressions; PHP syntax, Pint, and diff checks passed.
 - No browser, P1, full-day E2E, production, release, push, or tag action occurred.
 
+
+## 2026-09-16 — Supervised P0 Phase 7
+
+- Merged c1c0b7e after Safety and Lead review. Inventory adjustments now use controlled feed-store reason codes, preserve legacy reasons, accept decimal quantities for fractional products through the existing product/unit precision, and enforce decimal route validation. The existing stock lock, negative-stock override, audit, approval, and idempotent posting paths were reused.
+- Dedicated MariaDB focused adjustment check passed 1 test/3 assertions; PHP syntax, Pint, and diff checks passed. No migration was required.
+- No P0.8, P1, full-day E2E, browser, production, release, push, or tag action occurred.
+
