@@ -117,13 +117,13 @@ final class ExpensesGeneralCashAccountsTest extends TestCase
             app(RecordSupplierPaymentAction::class)->execute($actor, $supplier, $method, '10', [['purchase_invoice_id' => $invoice->id, 'amount' => '10']], 'REQ-PAY-1');
             self::fail('Cash supplier payment without account must be rejected.');
         } catch (InvalidArgumentException) {
-            self::assertSame(0, SupplierPayment::query()->count());
+            self::assertSame(0, SupplierPayment::query()->where('idempotency_key', 'REQ-PAY-1')->count());
         }
         try {
             app(RecordExpenseAction::class)->execute($actor, $company, $category, '10', 'Cash expense', 'REQ-EXP-1', paymentMethod: $method);
             self::fail('Cash expense without account must be rejected.');
         } catch (InvalidArgumentException) {
-            self::assertSame(0, Expense::query()->count());
+            self::assertSame(0, Expense::query()->where('idempotency_key', 'REQ-EXP-1')->count());
         }
         self::assertSame(0, $account->transactions()->count());
     }

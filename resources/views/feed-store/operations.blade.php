@@ -1,53 +1,81 @@
 <x-app.page :title="__('Feed store operations')" :description="__('Record credit settlements, expenses, treasury accounts, and inventory batches.')" :breadcrumbs="__('Operations')" max-width="7xl" class="space-y-5">
     @if(session('success'))<flux:callout variant="success" icon="check-circle">{{ session('success') }}</flux:callout>@endif
     @if($errors->any())<flux:callout variant="danger" icon="exclamation-triangle">{{ $errors->first() }}</flux:callout>@endif
+    @if($proposalError)<flux:callout variant="danger" icon="exclamation-triangle">{{ $proposalError }}</flux:callout>@endif
+
+    @php
+        $customerValues = old('form_context') === 'customer' ? old('allocations', []) : $customerAllocations;
+        $supplierValues = old('form_context') === 'supplier' ? old('allocations', []) : $supplierAllocations;
+    @endphp
 
     <div class="grid gap-4 lg:grid-cols-2">
         @can('customers.edit')
-        <flux:card class="space-y-4">
+        <flux:card id="customer-receipt" class="space-y-4">
             <div><flux:heading size="lg">{{ __('Customer receipt') }}</flux:heading><flux:text>{{ __('Apply one receipt to several approved invoices, or leave it as customer credit.') }}</flux:text></div>
-            <form method="POST" action="{{ route('feed-store.customer-receipts.store') }}" class="grid gap-3 sm:grid-cols-2" x-data="{ selectedCustomer: @js(old('customer_id', '')) }">@csrf
+            <form method="POST" action="{{ route('feed-store.customer-receipts.store') }}" class="grid gap-3 sm:grid-cols-2" x-data="{ amount: @js((string) old('amount', request('amount', ''))), allocations: @js(collect($customerValues)->map(fn($value) => (string) $value)->all()), total() { return Object.values(this.allocations).reduce((sum, value) => sum + (Number(value) || 0), 0) } }">@csrf
+                <input type="hidden" name="form_context" value="customer">
                 <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
-                <flux:select name="customer_id" x-model="selectedCustomer" :label="__('Customer')" required><option value="">{{ __('Select customer') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name_ar }} · {{ $customer->customer_type ?: '—' }}</option>@endforeach</flux:select>
-                <flux:select name="collection_store_id" :label="__('Collection store')" required><option value="">{{ __('Select store') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->name_ar }}</option>@endforeach</flux:select>
-                <flux:input name="currency_code" value="EGP" maxlength="3" :label="__('Currency')" required />
-                <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
-                <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
-                <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}">{{ $method->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash receipts') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
+                <flux:select name="customer_id" :label="__('Customer')" required><option value="">{{ __('Select customer') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', request('customer_id')) === (string) $customer->id)>{{ $customer->name_ar }} · {{ $customer->customer_type ?: '—' }}</option>@endforeach</flux:select>
+                <flux:select name="collection_store_id" :label="__('Collection store')" required><option value="">{{ __('Select store') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}" @selected((string) old('collection_store_id', request('collection_store_id', $selectedCustomer?->created_store_id)) === (string) $store->id)>{{ $store->name_ar }}</option>@endforeach</flux:select>
+                <flux:input name="currency_code" :value="old('currency_code', request('currency_code', 'EGP'))" maxlength="3" :label="__('Currency')" required />
+                <flux:input name="amount" x-model="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
+                <flux:input name="date" type="date" :value="old('date', request('date', now()->toDateString()))" :label="__('Date')" required />
+                <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}" @selected((string) old('payment_method_id', request('payment_method_id')) === (string) $method->id)>{{ $method->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash receipts') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}" @selected((string) old('cash_account_id', request('cash_account_id')) === (string) $account->id)>{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
                 <div class="sm:col-span-2 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                    <div class="border-b border-zinc-200 px-3 py-2 text-sm font-medium dark:border-zinc-700">{{ __('Approved invoices to allocate (optional)') }}</div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-700">
+                        <span class="text-sm font-medium">{{ __('Approved invoices to allocate (optional)') }}</span>
+                        <flux:button type="submit" size="xs" variant="subtle" name="suggest_customer" value="1" formmethod="GET" formaction="{{ route('feed-store.operations') }}">{{ __('Suggest oldest first') }}</flux:button>
+                    </div>
                     @forelse($sales as $sale)
-                        <label class="flex items-center gap-3 border-b border-zinc-100 px-3 py-2 text-sm last:border-0 dark:border-zinc-800" x-show="selectedCustomer === @js((string) $sale->customer_id)" x-cloak>
-                            <input type="number" name="allocations[{{ $sale->id }}]" min="0" max="{{ $sale->current_outstanding }}" step="0.0001" class="order-2 w-32 rounded-md border-zinc-300 text-sm" :disabled="selectedCustomer !== @js((string) $sale->customer_id)" placeholder="0.0000">
-                            <span class="flex-1">{{ $sale->customer?->name_ar }} · {{ $sale->document_number }} · {{ $sale->current_outstanding }} {{ $sale->currency_code }}</span>
+                        <label class="flex items-center gap-3 border-b border-zinc-100 px-3 py-2 text-sm last:border-0 dark:border-zinc-800">
+                            <input type="number" name="allocations[{{ $sale->id }}]" x-model="allocations[@js((string) $sale->id)]" min="0" max="{{ $sale->current_outstanding }}" step="0.0001" class="order-2 w-32 rounded-md border-zinc-300 text-sm" placeholder="0.0000">
+                            <span class="flex-1">{{ $sale->document_number }} · {{ $sale->approved_at?->format('Y-m-d') }} · {{ $sale->current_outstanding }} {{ $sale->currency_code }}</span>
                         </label>
                     @empty
-                        <p class="p-3 text-sm text-zinc-500">{{ __('No approved outstanding customer invoices.') }}</p>
+                        <p class="p-3 text-sm text-zinc-500">{{ $selectedCustomer ? __('No approved outstanding customer invoices.') : __('Select a customer to load outstanding invoices.') }}</p>
                     @endforelse
                 </div>
-                <flux:input name="reference" :label="__('Reference')" />
-                <flux:input name="evidence_reference" :label="__('Payment evidence reference')" />
-                <flux:input name="notes" :label="__('Notes')" />
+                <div class="sm:col-span-2 grid gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-900 sm:grid-cols-2"><span>{{ __('Allocation total') }}: <strong x-text="total().toFixed(4)"></strong></span><span>{{ __('Unapplied customer credit') }}: <strong x-text="Math.max((Number(amount) || 0) - total(), 0).toFixed(4)"></strong></span></div>
+                <flux:input name="reference" :value="old('reference', request('reference'))" :label="__('Reference')" />
+                <flux:input name="evidence_reference" :value="old('evidence_reference', request('evidence_reference'))" :label="__('Payment evidence reference')" />
+                <flux:input name="notes" :value="old('notes', request('notes'))" :label="__('Notes')" />
                 <div class="sm:col-span-2 text-end"><flux:button type="submit" variant="primary">{{ __('Record receipt') }}</flux:button></div>
             </form>
         </flux:card>
         @endcan
 
         @can('purchase_invoices.approve')
-        <flux:card class="space-y-4">
-            <div><flux:heading size="lg">{{ __('Supplier payment') }}</flux:heading><flux:text>{{ __('Allocate one payment to one approved purchase invoice.') }}</flux:text></div>
-            <form method="POST" action="{{ route('feed-store.supplier-payments.store') }}" class="grid gap-3 sm:grid-cols-2">@csrf
+        <flux:card id="supplier-payment" class="space-y-4">
+            <div><flux:heading size="lg">{{ __('Supplier payment') }}</flux:heading><flux:text>{{ __('Allocate one payment across approved purchase invoices. Supplier advances are not supported.') }}</flux:text></div>
+            <form method="POST" action="{{ route('feed-store.supplier-payments.store') }}" class="grid gap-3 sm:grid-cols-2" x-data="{ amount: @js((string) old('amount', request('amount', ''))), allocations: @js(collect($supplierValues)->map(fn($value) => (string) $value)->all()), total() { return Object.values(this.allocations).reduce((sum, value) => sum + (Number(value) || 0), 0) } }">@csrf
+                <input type="hidden" name="form_context" value="supplier">
                 <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
-                <flux:select name="supplier_id" :label="__('Supplier')" required><option value="">{{ __('Select supplier') }}</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="purchase_invoice_id" :label="__('Purchase invoice')" required><option value="">{{ __('Select invoice') }}</option>@foreach($invoices as $invoice)<option value="{{ $invoice->id }}">{{ $invoice->invoice_number }} · {{ $invoice->current_outstanding }} {{ $invoice->currency_code }}</option>@endforeach</flux:select>
-                <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
-                <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
-                <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}">{{ $method->name_ar }}</option>@endforeach</flux:select>
-                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash payments') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
-                <flux:input name="reference" :label="__('Reference')" />
-                <flux:input name="evidence_reference" :label="__('Payment evidence reference')" />
-                <flux:input name="notes" :label="__('Notes')" />
+                <flux:select name="supplier_id" :label="__('Supplier')" required><option value="">{{ __('Select supplier') }}</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected((string) old('supplier_id', request('supplier_id')) === (string) $supplier->id)>{{ $supplier->name_ar }}</option>@endforeach</flux:select>
+                <label class="grid gap-1 text-sm font-medium">
+                    <span>{{ __('Company / owner') }}</span>
+                    <select name="company_id" required class="h-10 rounded-lg border border-zinc-200 bg-white px-3 dark:border-white/10 dark:bg-zinc-800">
+                        <option value="">{{ __('Select company') }}</option>
+                        @foreach($paymentCompanies as $company)<option value="{{ $company->id }}" @selected((string) old('company_id', request('company_id', $selectedCompany?->id)) === (string) $company->id)>{{ $company->name_ar }}</option>@endforeach
+                    </select>
+                </label>
+                <flux:input name="currency_code" :value="old('currency_code', request('currency_code', $selectedCompany?->currency_code ?: 'EGP'))" maxlength="3" :label="__('Currency')" required />
+                <flux:input name="amount" x-model="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
+                <flux:input name="date" type="date" :value="old('date', request('date', now()->toDateString()))" :label="__('Date')" required />
+                <flux:select name="payment_method_id" :label="__('Payment method')" required><option value="">{{ __('Select payment method') }}</option>@foreach($methods as $method)<option value="{{ $method->id }}" @selected((string) old('payment_method_id', request('payment_method_id')) === (string) $method->id)>{{ $method->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="cash_account_id" :label="__('Cash account')"><option value="">{{ __('Required for cash payments') }}</option>@foreach($accounts as $account)<option value="{{ $account->id }}" @selected((string) old('cash_account_id', request('cash_account_id')) === (string) $account->id)>{{ $account->name_ar }} · {{ $account->currency_code }}</option>@endforeach</flux:select>
+                <div class="sm:col-span-2 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-700"><span class="text-sm font-medium">{{ __('Approved purchase invoices') }}</span><flux:button type="submit" size="xs" variant="subtle" name="suggest_supplier" value="1" formmethod="GET" formaction="{{ route('feed-store.operations') }}">{{ __('Suggest oldest first') }}</flux:button></div>
+                    @forelse($invoices as $invoice)
+                        <label class="flex items-center gap-3 border-b border-zinc-100 px-3 py-2 text-sm last:border-0 dark:border-zinc-800"><input type="number" name="allocations[{{ $invoice->id }}]" x-model="allocations[@js((string) $invoice->id)]" min="0" max="{{ $invoice->current_outstanding }}" step="0.0001" class="order-2 w-32 rounded-md border-zinc-300 text-sm" placeholder="0.0000"><span class="flex-1">{{ $invoice->invoice_number }} · {{ $invoice->due_date?->format('Y-m-d') ?: $invoice->invoice_date?->format('Y-m-d') }} · {{ $invoice->current_outstanding }} {{ $invoice->currency_code }}</span></label>
+                    @empty
+                        <p class="p-3 text-sm text-zinc-500">{{ $selectedSupplier ? __('No approved outstanding supplier invoices.') : __('Select a supplier to load outstanding invoices.') }}</p>
+                    @endforelse
+                </div>
+                <div class="sm:col-span-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-900">{{ __('Allocation total must equal payment amount') }}: <strong x-text="total().toFixed(4)"></strong> / <strong x-text="(Number(amount) || 0).toFixed(4)"></strong></div>
+                <flux:input name="reference" :value="old('reference', request('reference'))" :label="__('Reference')" />
+                <flux:input name="evidence_reference" :value="old('evidence_reference', request('evidence_reference'))" :label="__('Payment evidence reference')" />
+                <flux:input name="notes" :value="old('notes', request('notes'))" :label="__('Notes')" />
                 <div class="sm:col-span-2 text-end"><flux:button type="submit" variant="primary">{{ __('Record payment') }}</flux:button></div>
             </form>
         </flux:card>
@@ -58,7 +86,7 @@
             <div><flux:heading size="lg">{{ __('Expense') }}</flux:heading><flux:text>{{ __('Approved expenses post an append-only treasury transaction when an account is selected.') }}</flux:text></div>
             <form method="POST" action="{{ route('feed-store.expenses.store') }}" class="grid gap-3 sm:grid-cols-2">@csrf
                 <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
-                <flux:select name="company_id" :label="__('Company')" required>@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="company_id" :label="__('Company / owner')" required>@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->name_ar }}</option>@endforeach</flux:select>
                 <flux:select name="expense_category_id" :label="__('Expense category')" required><option value="">{{ __('Select category') }}</option>@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name_ar }}</option>@endforeach</flux:select>
                 <flux:input name="amount" type="number" min="0.0001" step="0.0001" :label="__('Amount')" required />
                 <flux:input name="date" type="date" :value="now()->toDateString()" :label="__('Date')" required />
@@ -73,7 +101,7 @@
         <flux:card class="space-y-4">
             <div><flux:heading size="lg">{{ __('General treasury account') }}</flux:heading><flux:text>{{ __('Create a separate store treasury, bank, or wallet account.') }}</flux:text></div>
             <form method="POST" action="{{ route('feed-store.cash-accounts.store') }}" class="grid gap-3 sm:grid-cols-2">@csrf
-                <flux:select name="company_id" :label="__('Company')" required>@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->name_ar }}</option>@endforeach</flux:select>
+                <flux:select name="company_id" :label="__('Company / owner')" required>@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->name_ar }}</option>@endforeach</flux:select>
                 <flux:input name="code" :label="__('Code')" required />
                 <flux:input name="name_ar" :label="__('Arabic name')" required />
                 <flux:input name="name_en" :label="__('English name')" />

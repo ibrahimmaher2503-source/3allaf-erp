@@ -12,11 +12,14 @@ use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Catalog\Models\SupplierCommunicationDestination;
 use App\Modules\Catalog\Models\SupplierContact;
 use App\Modules\Catalog\Models\SupplierGroup;
+use App\Modules\Catalog\Support\SupplierSettlementMethod;
 use App\Modules\Customer\Support\PhoneNormalizer;
 use App\Modules\Platform\Models\Company;
-use App\Modules\Catalog\Support\SupplierSettlementMethod;
-use App\Support\Hierarchy\GroupHierarchy;
+use App\Modules\Platform\Models\Store;
+use App\Modules\Purchasing\Models\PurchaseInvoice;
+use App\Modules\Purchasing\Support\SupplierBalance;
 use App\Support\Bulk\WithBulkSelection;
+use App\Support\Hierarchy\GroupHierarchy;
 use Flux\Flux;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -134,7 +137,11 @@ new #[Title('Supplier Masters')] class extends Component
         if (in_array($section, ['supplier-masters', 'supplier-groups'], true)) {
             $this->section = $section;
         }
-        $this->activeCompanyId = Company::query()->where('status', 'active')->value('id');
+        $this->activeCompanyId = Store::query()
+            ->visibleTo(auth()->user())
+            ->where('status', 'active')
+            ->orderBy('id')
+            ->value('company_id');
     }
 
     public function rendering(): void
@@ -326,6 +333,16 @@ new #[Title('Supplier Masters')] class extends Component
     {
         Gate::authorize('suppliers.view');
         $this->viewingSupplierId = $id;
+        $invoiceCompanyId = PurchaseInvoice::query()
+            ->where('purchase_invoices.supplier_id', $id)
+            ->where('purchase_invoices.status', 'approved')
+            ->whereIn('purchase_invoices.store_id', Store::query()->visibleTo(auth()->user())->select('id'))
+            ->join('stores', 'stores.id', '=', 'purchase_invoices.store_id')
+            ->orderByRaw('CASE WHEN purchase_invoices.due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('purchase_invoices.due_date')
+            ->orderBy('purchase_invoices.invoice_date')
+            ->value('stores.company_id');
+        $this->activeCompanyId = $invoiceCompanyId ? (int) $invoiceCompanyId : $this->activeCompanyId;
         $this->detailTab = 'profile';
         $this->showDetailModal = true;
     }
@@ -513,6 +530,9 @@ new #[Title('Supplier Masters')] class extends Component
         $suppliers = null;
         $viewingSupplier = null;
         $availableProducts = collect();
+        $supplierInvoices = collect();
+        $supplierPayable = '0.0000';
+        $supplierCurrency = 'EGP';
 
         if ($isSupplierMasters) {
             $query = Supplier::query()->with(['supplierGroup', 'preferredPaymentMethod'])->withCount('productSuppliers');
@@ -541,6 +561,14 @@ new #[Title('Supplier Masters')] class extends Component
             $viewingSupplier = $this->viewingSupplierId
                 ? Supplier::query()->with(['productSuppliers.product', 'supplierGroup', 'preferredPaymentMethod', 'contacts'])->find($this->viewingSupplierId)
                 : null;
+            if ($viewingSupplier && $this->activeCompanyId && auth()->user()) {
+                $company = Company::query()->find($this->activeCompanyId);
+                if ($company) {
+                    $supplierCurrency = strtoupper((string) $company->currency_code);
+                    $supplierInvoices = app(SupplierBalance::class)->outstandingInvoices($viewingSupplier, auth()->user(), $company, $supplierCurrency);
+                    $supplierPayable = $supplierInvoices->reduce(fn (string $total, $invoice): string => bcadd($total, (string) $invoice->current_outstanding, 4), '0.0000');
+                }
+            }
             if ($this->showLinkProductModal) {
                 $availableProducts = Product::query()->where('status', 'active')->orderBy('item_code')->limit(200)->get(['id', 'item_code', 'name_ar', 'name_en']);
             }
@@ -550,6 +578,9 @@ new #[Title('Supplier Masters')] class extends Component
             'suppliers' => $suppliers,
             'viewingSupplier' => $viewingSupplier,
             'availableProducts' => $availableProducts,
+            'supplierInvoices' => $supplierInvoices,
+            'supplierPayable' => $supplierPayable,
+            'supplierCurrency' => $supplierCurrency,
             'settlementMethods' => SupplierSettlementMethod::options(),
             'supplierGroups' => $supplierGroups,
             'supplierGroupParents' => $supplierGroupParents,
@@ -937,6 +968,13 @@ new #[Title('Supplier Masters')] class extends Component
                         >
                             {{ __('Contacts') }} ({{ $viewingSupplier->contacts->count() }})
                         </flux:button>
+                        <flux:button
+                            size="sm"
+                            variant="{{ $detailTab === 'payables' ? 'primary' : 'subtle' }}"
+                            wire:click="$set('detailTab', 'payables')"
+                        >
+                            {{ __('Accounts Payable / Supplier Account') }}
+                        </flux:button>
                     </div>
                 </div>
 
@@ -973,6 +1011,32 @@ new #[Title('Supplier Masters')] class extends Component
                             <dd class="mt-1 text-sm font-medium whitespace-pre-line">{{ $viewingSupplier->address ?: __('Not provided') }}</dd>
                         </div>
                     </dl>
+                @elseif ($detailTab === 'payables')
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div><flux:heading size="sm">{{ __('Accounts Payable / Supplier Account') }}</flux:heading><flux:text class="text-sm">{{ __('Payable is derived from approved purchase invoices, returns, allocations, and approved adjustments.') }}</flux:text></div>
+                            @can('purchase_invoices.approve')
+                                <flux:button href="{{ route('feed-store.operations', ['operation' => 'supplier_payment', 'supplier_id' => $viewingSupplier->id, 'company_id' => $activeCompanyId, 'currency_code' => $supplierCurrency]).'#supplier-payment' }}" variant="primary" size="sm" icon="banknotes">{{ __('Pay Supplier / سداد مورد') }}</flux:button>
+                            @endcan
+                        </div>
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <div class="catalog-detail-field"><div class="catalog-detail-label">{{ __('Supplier') }}</div><div class="mt-1 font-semibold">{{ $viewingSupplier->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $viewingSupplier->name_ar : $viewingSupplier->name_en }}</div><div class="text-xs" dir="ltr">{{ $viewingSupplier->phone ?: '—' }}</div></div>
+                            <div class="catalog-detail-field"><div class="catalog-detail-label">{{ __('Current payable') }}</div><div class="mt-1 font-mono font-semibold" dir="ltr">{{ $supplierPayable }} {{ $supplierCurrency }}</div></div>
+                            <div class="catalog-detail-field"><div class="catalog-detail-label">{{ __('Outstanding invoices') }}</div><div class="mt-1 font-semibold">{{ $supplierInvoices->count() }}</div></div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-border">
+                            <table class="min-w-full divide-y divide-border text-sm">
+                                <thead class="bg-zinc-50 dark:bg-zinc-900/50"><tr><th class="px-3 py-2 text-start">{{ __('Purchase invoice') }}</th><th class="px-3 py-2 text-start">{{ __('Date') }}</th><th class="px-3 py-2 text-start">{{ __('Due date') }}</th><th class="px-3 py-2 text-end">{{ __('Invoice total') }}</th><th class="px-3 py-2 text-end">{{ __('Paid amount') }}</th><th class="px-3 py-2 text-end">{{ __('Outstanding') }}</th><th class="px-3 py-2 text-start">{{ __('Payment status') }}</th></tr></thead>
+                                <tbody class="divide-y divide-border">
+                                    @forelse($supplierInvoices as $invoice)
+                                        <tr><td class="px-3 py-2 font-mono">{{ $invoice->invoice_number }}</td><td class="px-3 py-2">{{ $invoice->invoice_date?->format('Y-m-d') }}</td><td class="px-3 py-2">{{ $invoice->due_date?->format('Y-m-d') ?: '—' }}</td><td class="px-3 py-2 text-end font-mono">{{ $invoice->total_amount }}</td><td class="px-3 py-2 text-end font-mono">{{ $invoice->current_paid }}</td><td class="px-3 py-2 text-end font-mono">{{ $invoice->current_outstanding }}</td><td class="px-3 py-2"><x-status.badge :status="$invoice->current_payment_status" /></td></tr>
+                                    @empty
+                                        <tr><td colspan="7" class="px-3 py-6"><x-state.empty :title="__('No outstanding supplier invoices.')" /></td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 @elseif ($detailTab === 'contacts')
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">

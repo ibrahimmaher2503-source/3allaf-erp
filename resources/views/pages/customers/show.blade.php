@@ -83,6 +83,37 @@
                     </section>
                 @endcan
 
+                <section class="rounded-2xl border border-amber-200 bg-white shadow-sm dark:border-amber-900 dark:bg-zinc-900" aria-labelledby="customer-ar-heading">
+                    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-amber-100 px-5 py-4 dark:border-amber-900">
+                        <div>
+                            <flux:heading id="customer-ar-heading" size="lg">{{ __('Accounts Receivable / Customer Account') }}</flux:heading>
+                            <flux:text class="mt-1 text-sm">{{ __('Balances are derived from approved sales, payments, returns, receipts, and approved adjustments.') }}</flux:text>
+                        </div>
+                        @can('customers.edit')
+                            <flux:button href="{{ route('feed-store.operations', ['operation' => 'customer_receipt', 'customer_id' => $customer->id, 'collection_store_id' => $store->id, 'currency_code' => $currencyCode]).'#customer-receipt' }}" variant="primary" icon="banknotes">{{ __('Receive Payment / تحصيل مبلغ') }}</flux:button>
+                        @endcan
+                    </div>
+                    <div class="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-5">
+                        <div class="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950"><div class="text-xs text-text-muted">{{ __('Customer') }}</div><div class="mt-1 font-semibold">{{ $displayName }}</div><div class="text-xs font-mono" dir="ltr">{{ $customer->customer_code }} · {{ $customer->phone_display }}</div></div>
+                        <div class="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950"><div class="text-xs text-text-muted">{{ __('Credit enabled') }}</div><div class="mt-1 font-semibold">{{ in_array($customer->customer_type, ['credit', 'both'], true) ? __('Yes') : __('No') }}</div><div class="text-xs">{{ __('Credit limit') }}: <span class="font-mono" dir="ltr">{{ $customer->credit_limit ?? '—' }} {{ $currencyCode }}</span></div></div>
+                        <div class="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950"><div class="text-xs text-text-muted">{{ __('Current outstanding balance') }}</div><div class="mt-1 font-mono font-semibold" dir="ltr">{{ $arOutstanding }} {{ $currencyCode }}</div><div class="text-xs">{{ __('Net customer balance') }}: {{ $currentBalance }}</div></div>
+                        <div class="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950"><div class="text-xs text-text-muted">{{ __('Available credit') }}</div><div class="mt-1 font-mono font-semibold" dir="ltr">{{ $availableCredit ?? '—' }} {{ $currencyCode }}</div></div>
+                        <div class="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950"><div class="text-xs text-text-muted">{{ __('Unapplied customer credit') }}</div><div class="mt-1 font-mono font-semibold" dir="ltr">{{ $unappliedCredit }} {{ $currencyCode }}</div></div>
+                    </div>
+                    <div class="overflow-x-auto border-t border-amber-100 dark:border-amber-900">
+                        <table class="min-w-full text-start text-sm">
+                            <thead class="bg-amber-50/60 text-xs uppercase tracking-wide text-text-muted dark:bg-amber-950/20"><tr><th class="px-5 py-3">{{ __('Invoice') }}</th><th class="px-5 py-3">{{ __('Date') }}</th><th class="px-5 py-3 text-end">{{ __('Original total') }}</th><th class="px-5 py-3 text-end">{{ __('Paid amount') }}</th><th class="px-5 py-3 text-end">{{ __('Outstanding') }}</th><th class="px-5 py-3">{{ __('Payment status') }}</th></tr></thead>
+                            <tbody class="divide-y divide-amber-100 dark:divide-amber-900">
+                                @forelse($arInvoices as $invoice)
+                                    <tr><td class="px-5 py-3 font-mono">{{ $invoice->document_number ?? '#'.$invoice->id }}</td><td class="px-5 py-3">{{ $invoice->approved_at?->format('Y-m-d') }}</td><td class="px-5 py-3 text-end font-mono" dir="ltr">{{ $invoice->payable_total }}</td><td class="px-5 py-3 text-end font-mono" dir="ltr">{{ $invoice->current_paid }}</td><td class="px-5 py-3 text-end font-mono" dir="ltr">{{ $invoice->current_outstanding }}</td><td class="px-5 py-3"><x-status.badge :status="$invoice->current_payment_status" /></td></tr>
+                                @empty
+                                    <tr><td colspan="6" class="px-5 py-8"><x-state.empty :title="__('No outstanding customer invoices.')" /></td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <section class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900" aria-labelledby="customer-history-heading">
                     <div class="border-b border-slate-200 px-5 py-4 dark:border-zinc-800">
                         <flux:heading id="customer-history-heading" size="lg">{{ __('Customer history') }}</flux:heading>

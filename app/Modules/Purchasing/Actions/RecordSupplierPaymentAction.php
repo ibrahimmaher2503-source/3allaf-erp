@@ -10,10 +10,12 @@ use App\Modules\CashControl\Models\CashAccount;
 use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\PaymentMethod;
+use App\Modules\Platform\Models\Company;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Purchasing\Models\PurchaseInvoice;
 use App\Modules\Purchasing\Models\SupplierPayment;
 use App\Modules\Purchasing\Support\SupplierBalance;
+use App\Support\OldestOutstandingAllocator;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +23,27 @@ use InvalidArgumentException;
 
 final class RecordSupplierPaymentAction
 {
+    /** @return array<int, numeric-string> */
+    public function proposeAllocations(User $actor, Supplier $supplier, Company $company, string $currencyCode, string $amount): array
+    {
+        Gate::forUser($actor)->authorize('purchase_invoices.approve');
+        $amount = $this->money($amount);
+        $currencyCode = $this->currency($currencyCode);
+        $company = Company::query()
+            ->whereIn('id', Store::query()->visibleTo($actor)->select('company_id'))
+            ->findOrFail($company->id);
+        $supplier = Supplier::query()->where('status', 'active')->findOrFail($supplier->id);
+        if (strtoupper((string) $company->currency_code) !== $currencyCode) {
+            throw new InvalidArgumentException(__('Supplier payment currency must match the selected company.'));
+        }
+
+        $invoices = app(SupplierBalance::class)
+            ->outstandingInvoices($supplier, $actor, $company, $currencyCode)
+            ->map(fn (PurchaseInvoice $invoice): array => ['id' => (int) $invoice->id, 'outstanding' => (string) $invoice->current_outstanding]);
+
+        return app(OldestOutstandingAllocator::class)->allocate($invoices, $amount);
+    }
+
     /** @param array<int, array{purchase_invoice_id:int, amount:string}> $allocations */
     public function execute(User $actor, Supplier $supplier, PaymentMethod $method, string $amount, array $allocations, string $idempotencyKey, ?string $paymentDate = null, string $currencyCode = 'EGP', ?int $cashAccountId = null, ?string $reference = null, ?string $evidenceReference = null, ?string $notes = null): SupplierPayment
     {
@@ -80,6 +103,10 @@ final class RecordSupplierPaymentAction
                         throw new InvalidArgumentException(__('A supplier payment allocation exceeds the invoice outstanding amount.'));
                     }
                 }
+                $companyIds = Store::query()->whereIn('id', $invoices->pluck('store_id'))->pluck('company_id')->filter()->unique();
+                if ($companyIds->count() !== 1) {
+                    throw new InvalidArgumentException(__('Supplier payment allocations must belong to one company.'));
+                }
                 $cashAccount = null;
                 if ($method->isCash() && $cashAccountId === null) {
                     throw new InvalidArgumentException(__('Cash supplier payments require a cash account.'));
@@ -88,10 +115,6 @@ final class RecordSupplierPaymentAction
                     throw new InvalidArgumentException(__('Non-cash supplier payments cannot use a cash account.'));
                 }
                 if ($cashAccountId !== null) {
-                    $companyIds = Store::query()->whereIn('id', $invoices->pluck('store_id'))->pluck('company_id')->filter()->unique();
-                    if ($companyIds->count() !== 1) {
-                        throw new InvalidArgumentException(__('Supplier payment allocations must belong to one company when a cash account is selected.'));
-                    }
                     $cashAccount = CashAccount::query()->where('company_id', $companyIds->first())->where('currency_code', $currencyCode)->where('type', 'cash')->where('status', 'active')->lockForUpdate()->findOrFail($cashAccountId);
                 }
 

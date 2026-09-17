@@ -15,6 +15,7 @@ use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Customer\Actions\RecordCustomerReceiptAction;
 use App\Modules\Customer\Models\Customer;
 use App\Modules\Customer\Models\CustomerReceipt;
+use App\Modules\Customer\Support\CustomerBalance;
 use App\Modules\Inventory\Models\InventoryBatch;
 use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\Company;
@@ -23,7 +24,7 @@ use App\Modules\Platform\Models\Store;
 use App\Modules\Purchasing\Actions\RecordSupplierPaymentAction;
 use App\Modules\Purchasing\Models\PurchaseInvoice;
 use App\Modules\Purchasing\Models\SupplierPayment;
-use App\Modules\Retail\Models\Sale;
+use App\Modules\Purchasing\Support\SupplierBalance;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ use Throwable;
 
 final class FeedStoreOperationsController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, RecordCustomerReceiptAction $customerReceipts, RecordSupplierPaymentAction $supplierPayments): View
     {
         $actor = $this->actor($request);
         Gate::forUser($actor)->authorize('access-feed-store-operations');
@@ -47,49 +48,62 @@ final class FeedStoreOperationsController extends Controller
         $companyIds = Store::query()->whereIn('id', $storeIds)->pluck('company_id')->unique();
         $visibleCustomerIds = Customer::query()->visibleTo($actor)->select('customers.id');
 
-        $sales = $canCustomerReceipts ? Sale::query()
-            ->visibleTo($actor)
-            ->whereNotNull('customer_id')
-            ->where('status', 'approved')
-            ->with(['customer', 'store'])
-            ->withSum('payments as direct_payments_total', 'amount')
-            ->withSum(['receiptAllocations as receipt_allocations_total' => fn ($query) => $query->whereHas('receipt', fn ($receipt) => $receipt->where('status', 'approved'))], 'amount')
-            ->withSum(['retailReturns as returns_total' => fn ($query) => $query->where('status', 'completed')], 'settlement_value')
-            ->latest('approved_at')
-            ->limit(100)
-            ->get()
-            ->map(function (Sale $sale): Sale {
-                $outstanding = bcsub(bcsub(bcsub((string) $sale->payable_total, (string) ($sale->direct_payments_total ?? 0), 4), (string) ($sale->receipt_allocations_total ?? 0), 4), (string) ($sale->returns_total ?? 0), 4);
-                $sale->setAttribute('current_outstanding', bccomp($outstanding, '0', 4) > 0 ? $outstanding : '0.0000');
+        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->with('company')->orderBy('name_ar')->get();
+        $paymentCompanies = Company::query()->whereIn('id', $companyIds)->where('status', 'active')->orderBy('name_ar')->get();
+        $selectedCustomer = $canCustomerReceipts && $request->integer('customer_id') > 0
+            ? Customer::query()->visibleTo($actor)->where('status', 'active')->find($request->integer('customer_id'))
+            : null;
+        $selectedStore = $selectedCustomer === null ? null : $stores->firstWhere('id', $request->integer('collection_store_id') ?: $selectedCustomer->created_store_id);
+        $customerCurrency = strtoupper((string) ($request->string('currency_code')->value() ?: $selectedStore?->company?->currency_code ?: 'EGP'));
+        $sales = $selectedCustomer && $selectedStore
+            ? app(CustomerBalance::class)->outstandingInvoices($selectedCustomer, $actor, $selectedStore->company, $customerCurrency)
+            : collect();
+        $customerAllocations = [];
 
-                return $sale;
-            })
-            ->filter(fn (Sale $sale): bool => bccomp((string) $sale->current_outstanding, '0', 4) > 0) : collect();
+        $selectedSupplier = $canSupplierPayments && $request->integer('supplier_id') > 0
+            ? Supplier::query()->where('status', 'active')->find($request->integer('supplier_id'))
+            : null;
+        $selectedCompany = $paymentCompanies->firstWhere('id', $request->integer('company_id')) ?? ($selectedSupplier ? $paymentCompanies->first() : null);
+        $supplierCurrency = strtoupper((string) ($request->string('currency_code')->value() ?: $selectedCompany?->currency_code ?: 'EGP'));
+        $invoices = $selectedSupplier && $selectedCompany
+            ? app(SupplierBalance::class)->outstandingInvoices($selectedSupplier, $actor, $selectedCompany, $supplierCurrency)
+            : collect();
+        $supplierAllocations = [];
+        $proposalError = null;
 
-        $invoices = $canSupplierPayments ? PurchaseInvoice::query()
-            ->whereIn('store_id', $storeIds)
-            ->where('status', 'approved')
-            ->withSum(['supplierPaymentAllocations as payments_total' => fn ($query) => $query->whereHas('payment', fn ($payment) => $payment->where('status', 'approved'))], 'amount')
-            ->withSum(['supplierReturns as returns_total' => fn ($query) => $query->where('status', 'approved')], 'total_amount')
-            ->withSum(['supplierAccountAdjustments as debits_total' => fn ($query) => $query->where('status', 'approved')->where('direction', 'debit')], 'amount')
-            ->withSum(['supplierAccountAdjustments as credits_total' => fn ($query) => $query->where('status', 'approved')->where('direction', 'credit')], 'amount')
-            ->latest('approved_at')
-            ->limit(100)
-            ->get()
-            ->map(function (PurchaseInvoice $invoice): PurchaseInvoice {
-                $outstanding = bcsub(bcadd(bcsub((string) $invoice->total_amount, (string) ($invoice->returns_total ?? 0), 4), (string) ($invoice->debits_total ?? 0), 4), bcadd((string) ($invoice->payments_total ?? 0), (string) ($invoice->credits_total ?? 0), 4), 4);
-                $invoice->setAttribute('current_outstanding', bccomp($outstanding, '0', 4) > 0 ? $outstanding : '0.0000');
+        try {
+            if ($request->boolean('suggest_customer') && $selectedCustomer && $selectedStore && $this->isPositiveMoney((string) $request->input('amount'))) {
+                $customerAllocations = $customerReceipts->proposeAllocations($actor, $selectedCustomer, $selectedStore, $customerCurrency, (string) $request->input('amount'));
+            }
+            if ($request->boolean('suggest_supplier') && $selectedSupplier && $selectedCompany && $this->isPositiveMoney((string) $request->input('amount'))) {
+                $supplierAllocations = $supplierPayments->proposeAllocations($actor, $selectedSupplier, $selectedCompany, $supplierCurrency, (string) $request->input('amount'));
+            }
+        } catch (Throwable $exception) {
+            $proposalError = \App\Support\UserSafeError::message($exception);
+        }
 
-                return $invoice;
-            })
-            ->filter(fn (PurchaseInvoice $invoice): bool => bccomp((string) $invoice->current_outstanding, '0', 4) > 0) : collect();
+        $customers = $canCustomerReceipts ? Customer::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect();
+        if ($selectedCustomer && ! $customers->contains('id', $selectedCustomer->id)) {
+            $customers->prepend($selectedCustomer);
+        }
+        $suppliers = $canSupplierPayments ? Supplier::query()->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect();
+        if ($selectedSupplier && ! $suppliers->contains('id', $selectedSupplier->id)) {
+            $suppliers->prepend($selectedSupplier);
+        }
 
         return view('feed-store.operations', [
-            'customers' => $canCustomerReceipts ? Customer::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect(),
-            'stores' => $canCustomerReceipts ? Store::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->get() : collect(),
+            'customers' => $customers,
+            'stores' => $canCustomerReceipts ? $stores : collect(),
             'sales' => $sales,
-            'suppliers' => $canSupplierPayments ? Supplier::query()->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect(),
+            'selectedCustomer' => $selectedCustomer,
+            'selectedSupplier' => $selectedSupplier,
+            'selectedCompany' => $selectedCompany,
+            'suppliers' => $suppliers,
             'invoices' => $invoices,
+            'paymentCompanies' => $paymentCompanies,
+            'customerAllocations' => $customerAllocations,
+            'supplierAllocations' => $supplierAllocations,
+            'proposalError' => $proposalError,
             'methods' => PaymentMethod::query()->where('status', 'active')->orderBy('name_ar')->get(),
             'accounts' => CashAccount::query()->whereIn('company_id', $companyIds)->where('status', 'active')->orderBy('name_ar')->get(),
             'companies' => $canCashControl ? Company::query()->whereIn('id', $companyIds)->where('status', 'active')->orderBy('name_ar')->get() : collect(),
@@ -136,12 +150,32 @@ final class FeedStoreOperationsController extends Controller
     public function supplierPayment(Request $request, RecordSupplierPaymentAction $action): RedirectResponse
     {
         $actor = $this->actor($request);
-        $data = $request->validate($this->paymentRules('supplier_id', 'purchase_invoice_id'));
+        $data = $request->validate([
+            'supplier_id' => 'required|integer',
+            'company_id' => 'nullable|integer',
+            'allocations' => 'nullable|array',
+            'allocations.*' => 'nullable|decimal:0,4|gt:0',
+            'purchase_invoice_id' => 'nullable|required_without:allocations|integer',
+            ...$this->paymentRules(),
+        ]);
         try {
             $visibleStores = Store::query()->visibleTo($actor)->select('id');
-            $invoice = PurchaseInvoice::query()->whereIn('store_id', $visibleStores)->findOrFail($data['purchase_invoice_id']);
             $supplier = Supplier::query()->findOrFail($data['supplier_id']);
-            $action->execute($actor, $supplier, PaymentMethod::query()->findOrFail($data['payment_method_id']), $data['amount'], [['purchase_invoice_id' => $invoice->id, 'amount' => $data['amount']]], $data['idempotency_key'], $data['date'], cashAccountId: $data['cash_account_id'] ?? null, reference: $data['reference'] ?? null, evidenceReference: $data['evidence_reference'] ?? null, notes: $data['notes'] ?? null);
+            $requested = collect($data['allocations'] ?? [])->filter(fn ($value): bool => filled($value) && bccomp((string) $value, '0', 4) > 0);
+            if ($requested->isEmpty() && filled($data['purchase_invoice_id'] ?? null)) {
+                $requested = collect([(int) $data['purchase_invoice_id'] => $data['amount']]);
+            }
+            $invoiceIds = $requested->keys()->map(fn ($id): int => (int) $id);
+            $invoices = PurchaseInvoice::query()->whereIn('store_id', $visibleStores)->whereIn('id', $invoiceIds)->get()->keyBy('id');
+            if ($invoices->count() !== $invoiceIds->count()) {
+                abort(404);
+            }
+            if (filled($data['company_id'] ?? null)) {
+                $companyId = (int) $data['company_id'];
+                abort_unless($invoices->every(fn (PurchaseInvoice $invoice): bool => (int) $invoice->store()->value('company_id') === $companyId), 404);
+            }
+            $allocations = $requested->map(fn ($value, $id): array => ['purchase_invoice_id' => (int) $id, 'amount' => (string) $value])->values()->all();
+            $action->execute($actor, $supplier, PaymentMethod::query()->findOrFail($data['payment_method_id']), $data['amount'], $allocations, $data['idempotency_key'], $data['date'], currencyCode: strtoupper((string) ($data['currency_code'] ?? 'EGP')), cashAccountId: $data['cash_account_id'] ?? null, reference: $data['reference'] ?? null, evidenceReference: $data['evidence_reference'] ?? null, notes: $data['notes'] ?? null);
             return back()->with('success', __('Supplier payment recorded successfully.'));
         } catch (Throwable $exception) {
             return back()->withInput()->withErrors(['operation' => \App\Support\UserSafeError::message($exception)]);
@@ -197,8 +231,14 @@ final class FeedStoreOperationsController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function paymentRules(string $party, string $document): array
+    private function paymentRules(): array
     {
-        return [$party => 'required|integer', $document => 'required|integer', 'payment_method_id' => 'required|integer', 'cash_account_id' => 'nullable|integer', 'amount' => 'required|decimal:0,4|gt:0', 'date' => 'required|date', 'reference' => 'nullable|string|max:190', 'evidence_reference' => 'nullable|string|max:190', 'notes' => 'nullable|string|max:1000', 'idempotency_key' => 'required|uuid'];
+        return ['payment_method_id' => 'required|integer', 'cash_account_id' => 'nullable|integer', 'currency_code' => 'nullable|alpha:ascii|size:3', 'amount' => 'required|decimal:0,4|gt:0', 'date' => 'required|date', 'reference' => 'nullable|string|max:190', 'evidence_reference' => 'nullable|string|max:190', 'notes' => 'nullable|string|max:1000', 'idempotency_key' => 'required|uuid'];
+    }
+
+    private function isPositiveMoney(string $value): bool
+    {
+        return preg_match('/^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/', trim($value)) === 1
+            && bccomp($value, '0', 4) > 0;
     }
 }

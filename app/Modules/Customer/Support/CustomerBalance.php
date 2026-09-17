@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Customer\Support;
 
+use App\Models\User;
 use App\Modules\Customer\Models\Customer;
 use App\Modules\Customer\Models\CustomerAccountAdjustment;
 use App\Modules\Customer\Models\CustomerReceipt;
 use App\Modules\Customer\Models\CustomerReceiptAllocation;
+use App\Modules\Platform\Models\Company;
 use App\Modules\Retail\Models\RetailReturn;
 use App\Modules\Retail\Models\Sale;
 use App\Modules\Retail\Models\SalePayment;
+use Illuminate\Support\Collection;
 
 final class CustomerBalance
 {
@@ -35,13 +38,75 @@ final class CustomerBalance
     /** @return numeric-string */
     public function outstandingForSale(Sale $sale): string
     {
-        $payments = $this->sum(SalePayment::query()->where('sale_id', $sale->id)->pluck('amount'));
-        $receipts = $this->sum(CustomerReceiptAllocation::query()->where('sale_id', $sale->id)->whereHas('receipt', fn ($query) => $query->where('status', 'approved'))->pluck('amount'));
+        $paid = $this->paidForSale($sale);
         $credits = $this->sum(RetailReturn::query()->where('source_sale_id', $sale->id)->where('status', 'completed')->selectRaw('CASE WHEN ar_reduction_value = 0 AND actual_refund_value = 0 THEN settlement_value ELSE ar_reduction_value END AS amount')->pluck('amount'));
 
-        $outstanding = bcsub(bcsub(bcsub((string) $sale->payable_total, $payments, 4), $receipts, 4), $credits, 4);
+        $outstanding = bcsub(bcsub((string) $sale->payable_total, $paid, 4), $credits, 4);
 
         return bccomp($outstanding, '0', 4) > 0 ? $outstanding : '0.0000';
+    }
+
+    /** @return numeric-string */
+    public function paidForSale(Sale $sale): string
+    {
+        $payments = $this->sum(SalePayment::query()->where('sale_id', $sale->id)->pluck('amount'));
+        $receipts = $this->sum(CustomerReceiptAllocation::query()->where('sale_id', $sale->id)->whereHas('receipt', fn ($query) => $query->where('status', 'approved'))->pluck('amount'));
+
+        return bcadd($payments, $receipts, 4);
+    }
+
+    public function paymentStatusForSale(Sale $sale): string
+    {
+        if (bccomp($this->outstandingForSale($sale), '0', 4) <= 0) {
+            return 'paid';
+        }
+
+        return bccomp($this->paidForSale($sale), '0', 4) > 0 ? 'partial' : 'unpaid';
+    }
+
+    /**
+     * Oldest first by immutable approval timestamp, then sale id.
+     *
+     * @return Collection<int, Sale>
+     */
+    public function outstandingInvoices(Customer $customer, User $actor, Company $company, string $currencyCode = 'EGP'): Collection
+    {
+        $currencyCode = strtoupper(trim($currencyCode));
+
+        return Sale::query()
+            ->visibleTo($actor)
+            ->where('customer_id', $customer->id)
+            ->where('status', 'approved')
+            ->where('currency_code', $currencyCode)
+            ->whereHas('store', fn ($query) => $query->where('company_id', $company->id))
+            ->with('store')
+            ->orderBy('approved_at')
+            ->orderBy('id')
+            ->get()
+            ->each(function (Sale $sale): void {
+                $paid = $this->paidForSale($sale);
+                $outstanding = $this->outstandingForSale($sale);
+                $sale->setAttribute('current_paid', $paid);
+                $sale->setAttribute('current_outstanding', $outstanding);
+                $sale->setAttribute('current_payment_status', bccomp($outstanding, '0', 4) <= 0 ? 'paid' : (bccomp($paid, '0', 4) > 0 ? 'partial' : 'unpaid'));
+            })
+            ->filter(fn (Sale $sale): bool => bccomp((string) $sale->current_outstanding, '0', 4) > 0)
+            ->values();
+    }
+
+    /** @return numeric-string */
+    public function unappliedCreditFor(Customer $customer, Company $company, string $currencyCode = 'EGP'): string
+    {
+        $receiptIds = CustomerReceipt::query()
+            ->where('customer_id', $customer->id)
+            ->where('currency_code', strtoupper(trim($currencyCode)))
+            ->where('status', 'approved')
+            ->whereHas('store', fn ($query) => $query->where('company_id', $company->id))
+            ->pluck('id');
+        $receipts = (string) CustomerReceipt::query()->whereIn('id', $receiptIds)->sum('amount');
+        $allocated = (string) CustomerReceiptAllocation::query()->whereIn('customer_receipt_id', $receiptIds)->sum('amount');
+
+        return bcsub($receipts, $allocated, 4);
     }
 
     /** @param iterable<mixed> $amounts @return numeric-string */

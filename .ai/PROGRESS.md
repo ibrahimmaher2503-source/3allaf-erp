@@ -473,4 +473,12 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Dedicated MariaDB focused adjustment check passed 1 test/3 assertions; PHP syntax, Pint, and diff checks passed. No migration was required.
 - No P0.8, P1, full-day E2E, browser, production, release, push, or tag action occurred.
 
+# 2026-09-17 — P0.8 credit settlement
+
+- Audited the existing POS, customer AR/receipts, supplier AP/payments, treasury posting, and profile flows. Reused the existing document-derived balances, transaction boundaries, row locks, idempotency, audit events, and single cash-posting path.
+- Added one deterministic editable oldest-first proposal policy. Customer ordering is approval timestamp then sale id; supplier ordering is due date, invoice date, then invoice id. Historical allocations are untouched.
+- Added scoped AR/AP profile sections and action links, multi-invoice editable allocation UI, customer unapplied-credit display, and same-company supplier-payment enforcement for every method.
+- Corrected demo receipt seed scope/currency snapshots and made the missing-cash-account regression assertion seed-safe.
+- Dedicated MariaDB `rajeh_p0_8_credit_settlement_20260917` passed `migrate:fresh --seed`, 5 P0.8 tests/23 assertions, 22 linked regression tests/92 assertions, targeted formatting/syntax/Blade/diff checks, and 14 direct integrity checks with zero violations.
+- No schema migration, browser control, report, production action, deployment, release, push, or tag occurred. P1 remains blocked by the full-day MariaDB gate.
 
