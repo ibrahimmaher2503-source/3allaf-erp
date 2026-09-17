@@ -87,6 +87,14 @@ final class PosCreditCheckoutTest extends TestCase
         app(CapturePaymentAction::class)->execute($cashier, $sale, $method, '200.00', 'POS-CASH-UNDER-'.Str::uuid(), '200.00');
     }
 
+    public function test_cash_customer_cannot_complete_with_zero_payment(): void
+    {
+        [$sale] = $this->draft('cash', '500.00');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->settlement($sale);
+    }
+
     /** @return array{Sale, User, Customer, PaymentMethod} */
     private function draft(string $type, string $payable, ?string $limit = null): array
     {

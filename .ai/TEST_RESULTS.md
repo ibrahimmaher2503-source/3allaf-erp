@@ -391,3 +391,12 @@
 - Dedicated MariaDB `toyjoy_review_testing_20260915`: `PosCreditCheckoutTest` PASS — 5 tests, 13 assertions for unpaid credit, partial cash and AR, full cash, credit-limit denial, cash-customer partial denial, and idempotent partial replay.
 - Combined focused suite PASS — 9 tests, 169 assertions: 5 MariaDB financial tests plus 4 Hotfix16 checkout/UI source-contract tests. POS payment calculator smoke assertions PASS for unpaid, partial, full, and cash-customer denial. Locale JSON, PHP syntax, Blade cache, Vite build, checkout route registration, and `/login` HTTP 200 PASS.
 - Pint passes on both changed test files. Whole-application-file Pint check reports existing formatting patterns in three edited files; no broad reformat performed. Targeted PHPStan reports 23 existing Eloquent/decimal inference findings in the touched legacy files. Authenticated browser UAT, release, and production checks NOT RUN.
+# 2026-09-17 — P0.8 credit settlement
+
+- Database: dedicated local MariaDB `rajeh_p0_8_credit_settlement_20260917`; migration chain through `000127` and `migrate:fresh --seed` PASS.
+- P0.8 focused suite: PASS — 5 tests, 23 assertions.
+- Linked POS/AR/returns/AP/cash/scope/operations regressions: PASS — 22 tests, 92 assertions; PHPUnit also emitted one non-failing risky marker from the pre-existing return test.
+- Direct seeded MariaDB audit base: 150 approved sales, 1 approved customer receipt, 36 approved purchase invoices, 2 approved supplier payments, 44 cash transactions.
+- Direct MariaDB violations: customer AR reconciliation 0; supplier AP reconciliation 0; receipt allocation totals 0; supplier payment allocation totals 0; invoice paid/outstanding totals 0; cash transaction reconciliation 0; duplicate idempotency keys 0; orphan allocations 0; orphan receipts/payments 0; cross-company/currency relationships 0; invalid money precision 0; FLOAT/DOUBLE financial columns 0; negative outstanding balances 0; over-allocated documents 0.
+- Targeted Pint, changed PHP syntax, full Blade compilation, and `git diff --check`: PASS.
+- Browser UAT: NOT RUN by explicit task boundary. Full application suite: NOT RUN; the owner authorized it only if needed, and the focused financial slice plus direct integrity audit covered this phase.

@@ -33,6 +33,7 @@ use App\Modules\Customer\Models\PartyWalletLedger;
 use App\Modules\Customer\Models\ProductWalletAdjustment;
 use App\Modules\Customer\Models\ProductWalletLedger;
 use App\Modules\Customer\Support\CustomerPolicy;
+use App\Modules\Customer\Support\CustomerBalance;
 use App\Modules\Customer\Support\PartyWalletBalance;
 use App\Modules\Customer\Support\PhoneNormalizer;
 use App\Modules\Customer\Support\ProductWalletBalance;
@@ -382,8 +383,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         /** @var User $user */
         $user = $request->user();
         abort_unless($user->can('customers.view'), 403);
-        $store = $sellingStore($user);
         $customer = Customer::query()->visibleTo($user)->whereKey($customerId)->where('status', 'active')->firstOrFail();
+        $store = Store::query()->visibleTo($user)->with('company')->where('status', 'active')->find($customer->created_store_id)
+            ?? $sellingStore($user)->load('company');
         $customer->load(['scopes.store', 'scopes.branch', 'group.parent', 'governorate', 'city']);
         $historyIds = Customer::query()->where(fn ($query) => $query->whereKey($customer->id)->orWhere('merged_into_id', $customer->id))->pluck('id');
         $consents = collect();
@@ -407,8 +409,20 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         }
         $governorates = Governorate::query()->active()->orderBy('sort_order')->get();
         $cities = City::query()->visibleToCompany((int) $store->company_id)->active()->orderBy('sort_order')->get();
+        $currencyCode = strtoupper((string) $store->company?->currency_code);
+        $customerBalance = app(CustomerBalance::class);
+        $arInvoices = $customerBalance->outstandingInvoices($customer, $user, $store->company, $currencyCode);
+        $arOutstanding = $arInvoices->reduce(fn (string $total, Sale $sale): string => bcadd($total, (string) $sale->current_outstanding, 4), '0.0000');
+        $unappliedCredit = $customerBalance->unappliedCreditFor($customer, $store->company, $currencyCode);
+        $currentBalance = $customerBalance->for($customer, $currencyCode);
+        $availableCredit = $customer->credit_limit === null
+            ? null
+            : bcsub((string) $customer->credit_limit, bccomp($currentBalance, '0', 4) > 0 ? $currentBalance : '0.0000', 4);
+        if ($availableCredit !== null && bccomp($availableCredit, '0', 4) < 0) {
+            $availableCredit = '0.0000';
+        }
 
-        return view('pages.customers.show', compact('customer', 'store', 'sales', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities'));
+        return view('pages.customers.show', compact('customer', 'store', 'sales', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities', 'currencyCode', 'arInvoices', 'arOutstanding', 'unappliedCredit', 'currentBalance', 'availableCredit'));
     })->middleware('can:customers.view')->name('customers.show');
 
     Route::put('customers/{customerId}', function (Request $request, int $customerId, UpdateCustomerAction $action) use ($sellingStore) {

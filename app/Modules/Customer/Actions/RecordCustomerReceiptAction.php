@@ -15,6 +15,7 @@ use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\PaymentMethod;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Retail\Models\Sale;
+use App\Support\OldestOutstandingAllocator;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +23,27 @@ use InvalidArgumentException;
 
 final class RecordCustomerReceiptAction
 {
+    /** @return array<int, numeric-string> */
+    public function proposeAllocations(User $actor, Customer $customer, Store $collectionStore, string $currencyCode, string $amount): array
+    {
+        Gate::forUser($actor)->authorize('customers.edit');
+        $amount = $this->positiveMoney($amount);
+        $customer = Customer::query()->visibleTo($actor)->where('status', 'active')->findOrFail($customer->id);
+        $collectionStore = Store::query()->with('company')->visibleTo($actor)->where('status', 'active')->findOrFail($collectionStore->id);
+        $currencyCode = strtoupper(trim($currencyCode));
+
+        if ((int) $customer->createdStore()->value('company_id') !== (int) $collectionStore->company_id
+            || strtoupper((string) $collectionStore->company?->currency_code) !== $currencyCode) {
+            throw new InvalidArgumentException(__('Receipt proposals must use the customer company and currency.'));
+        }
+
+        $invoices = app(CustomerBalance::class)
+            ->outstandingInvoices($customer, $actor, $collectionStore->company, $currencyCode)
+            ->map(fn (Sale $sale): array => ['id' => (int) $sale->id, 'outstanding' => (string) $sale->current_outstanding]);
+
+        return app(OldestOutstandingAllocator::class)->allocate($invoices, $amount);
+    }
+
     /** @param array<int|string, numeric-string> $allocations */
     public function execute(User $actor, Customer $customer, PaymentMethod $method, string $amount, array $allocations, string $idempotencyKey, ?string $date = null, ?string $reference = null, ?string $notes = null, ?string $evidenceReference = null, ?int $cashAccountId = null, ?Store $collectionStore = null, ?string $currencyCode = null): CustomerReceipt
     {

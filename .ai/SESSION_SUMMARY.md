@@ -1276,3 +1276,10 @@
 - **Verification:** Dedicated MariaDB 	oyjoy_p0_sales_returns_20260916 passed the focused adjustment test after adding its document-numbering fixture (1 test/3 assertions). PHP syntax, Pint, and diff checks passed. No migration was required.
 - **Review/boundary:** Safety confirmed existing schema and stock invariants; Lead reviewed diff, route scope, business rules, and regression risk before merge. No P0.8, full-day E2E, P1, browser, production, release, push, or tag action occurred.
 
+## 2026-09-17 — P0.8 credit settlement
+
+- **Task:** Audit and complete POS credit, customer debt collection/allocation, supplier AP, and supplier payment/allocation without starting reports or changing architecture.
+- **Work completed:** Reused the existing Sale/Payment/CustomerBalance, PurchaseInvoice/SupplierBalance, receipt/payment actions, transactions, row locks, idempotency, audit, and treasury posting. Added editable oldest-first proposals, profile AR/AP sections, multi-invoice supplier UI, customer unapplied-credit visibility, and an all-method same-company supplier allocation guard. Corrected local demo receipt store/currency snapshots.
+- **Verification actually run:** Dedicated MariaDB `rajeh_p0_8_credit_settlement_20260917` passed the full migration chain and seed. P0.8 passed 5 tests/23 assertions; linked financial regressions passed 22 tests/92 assertions. Fourteen direct post-test MariaDB checks returned zero violations across reconciliation, allocations, cash, idempotency, orphans, scope/currency, precision, negative balances, and over-allocation. Pint, PHP syntax, Blade compilation, and diff hygiene passed.
+- **Remaining / boundary:** Authenticated browser UAT and the full-day MariaDB end-to-end gate remain; browser control was excluded. No migration was required, so no Safety Agent migration review was triggered. No report, production access/change, deployment, release, push, or tag occurred.
+- **Activity:** Code, views, seed data, focused tests, and `.ai` records changed. P0.8 commit `299af72` was merged locally into `main`; no push, tag, or remote mutation occurred.

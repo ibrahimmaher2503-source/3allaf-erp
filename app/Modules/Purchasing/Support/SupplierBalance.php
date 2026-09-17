@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Purchasing\Support;
 
+use App\Models\User;
 use App\Modules\Catalog\Models\Supplier;
+use App\Modules\Platform\Models\Company;
+use App\Modules\Platform\Models\Store;
 use App\Modules\Purchasing\Models\PurchaseInvoice;
 use App\Modules\Purchasing\Models\PurchaseReturn;
 use App\Modules\Purchasing\Models\SupplierAccountAdjustment;
 use App\Modules\Purchasing\Models\SupplierPaymentAllocation;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 final class SupplierBalance
@@ -48,6 +52,39 @@ final class SupplierBalance
         if (bccomp($this->outstandingForInvoice($invoice), '0', 4) <= 0) return 'paid';
 
         return bccomp($this->paidForInvoice($invoice), '0', 4) > 0 ? 'partially_paid' : 'unpaid';
+    }
+
+    /**
+     * Oldest first by snapshotted due date, then document date and invoice id.
+     * Invoices without a due date follow due-dated invoices.
+     *
+     * @return Collection<int, PurchaseInvoice>
+     */
+    public function outstandingInvoices(Supplier $supplier, User $actor, Company $company, string $currencyCode = 'EGP'): Collection
+    {
+        $currencyCode = $this->currency($currencyCode);
+        $storeIds = Store::query()->visibleTo($actor)->where('company_id', $company->id)->select('id');
+
+        return PurchaseInvoice::query()
+            ->where('supplier_id', $supplier->id)
+            ->whereIn('store_id', $storeIds)
+            ->where('status', 'approved')
+            ->where($this->invoiceCurrency($currencyCode))
+            ->with('store')
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_date')
+            ->orderBy('invoice_date')
+            ->orderBy('id')
+            ->get()
+            ->each(function (PurchaseInvoice $invoice): void {
+                $paid = $this->paidForInvoice($invoice);
+                $outstanding = $this->outstandingForInvoice($invoice);
+                $invoice->setAttribute('current_paid', $paid);
+                $invoice->setAttribute('current_outstanding', $outstanding);
+                $invoice->setAttribute('current_payment_status', bccomp($outstanding, '0', 4) <= 0 ? 'paid' : (bccomp($paid, '0', 4) > 0 ? 'partially_paid' : 'unpaid'));
+            })
+            ->filter(fn (PurchaseInvoice $invoice): bool => bccomp((string) $invoice->current_outstanding, '0', 4) > 0)
+            ->values();
     }
 
     private function currency(string $currencyCode): string
