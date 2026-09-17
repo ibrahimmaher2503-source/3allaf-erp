@@ -31,7 +31,7 @@ final class ApplicationNavigation
         'parties.calendar' => ['parties.calendar*'],
         'parties.invoices.index' => ['parties.invoices*'],
         'parties.orders.index' => ['parties.orders*'],
-        'reports.index' => ['reports.*', 'exports.*'],
+        'reports.index' => ['reports.index', 'reports.sales', 'reports.customers', 'reports.cash', 'reports.purchasing', 'reports.inventory', 'reports.parties', 'reports.assets', 'exports.*'],
         'feed-store.operations' => ['feed-store.*'],
         'admin.branches' => ['admin.branches*'],
         'admin.stores' => ['admin.stores*'],
@@ -42,6 +42,7 @@ final class ApplicationNavigation
         'admin.audit' => ['admin.audit*'],
         'admin.approvals' => ['admin.approvals*'],
     ];
+
     /** @return array<int, array<string, mixed>> */
     public function for(User $user, string $locale): array
     {
@@ -68,13 +69,14 @@ final class ApplicationNavigation
 
                         $route = $item['route'] ?? null;
                         $permission = $item['permission'] ?? null;
+                        $permissions = is_array($item['permissions'] ?? null) ? $item['permissions'] : [$permission];
 
                         return is_string($route)
                             && $route !== ''
                             && is_string($permission)
                             && $permission !== ''
                             && Route::has($route)
-                            && $user->can($permission);
+                            && collect($permissions)->every(fn (mixed $required): bool => is_string($required) && $user->can($required));
                     })
                     ->map(function (array $item) use ($locale, $user): array {
                         $type = $this->entryType($item, 'item');
@@ -335,7 +337,10 @@ final class ApplicationNavigation
                             function (array $child) use (&$seen): bool {
                                 $identity = $this->destinationIdentity($child);
                                 if ($identity === '' || ! isset($seen[$identity])) {
-                                    if ($identity !== '') $seen[$identity] = true;
+                                    if ($identity !== '') {
+                                        $seen[$identity] = true;
+                                    }
+
                                     return true;
                                 }
 
@@ -350,11 +355,14 @@ final class ApplicationNavigation
                     }
                     unset($subcategory);
                     $item['children_active'] = collect($item['subgroups'])->contains('active', true);
+
                     continue;
                 }
 
                 $identity = $this->destinationIdentity($item);
-                if ($identity !== '') $seen[$identity] = true;
+                if ($identity !== '') {
+                    $seen[$identity] = true;
+                }
             }
             unset($item);
             $group['active'] = collect($group['items'])->contains(
@@ -369,14 +377,20 @@ final class ApplicationNavigation
     /** @param array<string,mixed> $entry */
     private function destinationIdentity(array $entry): string
     {
-        if (in_array($entry['type'] ?? '', ['heading', 'separator'], true)) return '';
+        if (in_array($entry['type'] ?? '', ['heading', 'separator'], true)) {
+            return '';
+        }
 
         $url = $this->scalarString($entry['url'] ?? null);
-        if ($url === '' || $url === '#') return '';
+        if ($url === '' || $url === '#') {
+            return '';
+        }
         $parts = parse_url($url);
         parse_str($parts['query'] ?? '', $query);
         unset($query['setup'], $query['setup_step']);
-        if (($query['section'] ?? null) === 'supplier-masters') unset($query['section']);
+        if (($query['section'] ?? null) === 'supplier-masters') {
+            unset($query['section']);
+        }
         ksort($query);
 
         return ($parts['path'] ?? $url).($query === [] ? '' : '?'.http_build_query($query));

@@ -489,3 +489,11 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Added bounded pricing controls to Product and Customer screens plus realistic KG/BAG/TON demo prices, minimums, customer levels, and one special-price example.
 - Dedicated MariaDB `rajeh_p0_9_feed_pricing_20260917` passed fresh migration/seed, 8 focused tests/31 assertions, and 18 direct integrity checks with zero violations. Migration Safety review passed after fail-closed preflight, restrictive FKs, precision, scope uniqueness, and rollback guards.
 - Browser UAT and the P0 full-day gate remain open. No report, production action, deployment, release, push, or tag occurred.
+
+# 2026-09-17 — R1 Sales Reports
+
+- Added permission-scoped Sales Summary and Sales by Product destinations plus embedded customer sales analysis on the existing profile; no duplicate customer-report route or navigation item was introduced.
+- Reused one reporting query path and the existing export-job pipeline. Calculations include approved sales, completed returns, captured collections, credit, prior-period comparison, product/unit history, and current customer balance kept separate from period activity.
+- Dedicated MariaDB `rajeh_r1_sales_reports_20260917` passed 9 focused tests/61 assertions, 15 linked regression tests/53 assertions, real CSV/XLSX/PDF generation, and direct duplicate/scope/integrity checks.
+- Authenticated Arabic and English browser UAT passed for both report pages and customer analysis, including filter/drilldown/empty states, sidebar destinations, export request, 390px mobile layout with no page overflow, and zero console warnings/errors.
+- No migration was required. Targeted Pint, changed PHP syntax, locale JSON parsing, targeted compiled-Blade syntax, route discovery, and diff hygiene passed. No full suite, production action, deployment, release, push, or tag occurred.

@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductUnit;
 use App\Modules\Customer\Actions\ApproveLoyaltyAdjustmentAction;
 use App\Modules\Customer\Actions\CreateCustomerAction;
@@ -44,12 +46,14 @@ use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\ApprovalRecord;
 use App\Modules\Platform\Models\City;
 use App\Modules\Platform\Models\Governorate;
+use App\Modules\Platform\Models\PaymentMethod;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Pricing\Actions\AssignCustomerPriceListAction;
 use App\Modules\Pricing\Actions\SaveCustomerProductPriceAction;
 use App\Modules\Pricing\Models\PriceList;
 use App\Modules\Pricing\Services\PriceListResolver;
 use App\Modules\Retail\Models\Sale;
+use App\Modules\Reporting\Queries\SalesReport;
 use App\Support\DataExchange\ImportTemplateFactory;
 use App\Support\DataExchange\MasterDataDocument;
 use App\Support\Hierarchy\GroupHierarchy;
@@ -398,7 +402,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             $consents = CustomerConsent::query()->visibleTo($user)->with('capturer')->whereIn('customer_id', $historyIds)->latest('id')->get();
             $customer->load(['children' => fn ($query) => $query->visibleTo($user)->latest('id')]);
         }
-        $sales = Sale::query()->visibleTo($user)->whereIn('customer_id', $historyIds)->approved()->with('store')->latest('approved_at')->paginate(10, ['*'], 'sales_page')->withQueryString();
+        $canViewSalesAnalysis = $user->can('dashboard_reports.view') && $user->can('pos_sales.view') && $user->can('pos_sales.payment_view');
+        $salesAnalysis = $canViewSalesAnalysis ? app(SalesReport::class)->customer($user, collect($historyIds)->all(), $request->only(['date_from', 'date_to', 'store_id', 'product_id', 'category_id', 'payment_method_id', 'sales_page'])) : null;
+        $salesStores = $canViewSalesAnalysis ? Store::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->get(['id', 'name_ar', 'name_en']) : collect();
+        $salesProducts = $canViewSalesAnalysis ? Product::query()->where('status', 'active')->orderBy('item_code')->limit(200)->get(['id', 'item_code', 'name_ar', 'name_en']) : collect();
+        $salesCategories = $canViewSalesAnalysis ? Category::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']) : collect();
+        $salesPaymentMethods = $canViewSalesAnalysis && $user->can('pos_sales.payment_view') ? PaymentMethod::query()->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']) : collect();
         $partyBookings = $user->can('party_bookings_invoices.view')
             ? PartyBooking::query()->visibleTo($user)->whereIn('customer_id', $historyIds)->with(['store', 'invoice'])->latest('party_date')->paginate(8, ['*'], 'party_page')->withQueryString()
             : null;
@@ -428,17 +437,21 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         }
         $priceLists = PriceList::query()->where('company_id', $store->company_id)->where('status', 'active')->orderBy('list_number')->get();
         $specialPrices = $customer->specialPrices()->with(['product', 'productUnit.unit'])->latest('id')->limit(50)->get();
-        $normalList = $customer->priceList ?: app(PriceListResolver::class)->listForOutlet($store);
+        try {
+            $normalList = $customer->priceList ?: app(PriceListResolver::class)->listForOutlet($store);
+        } catch (Throwable) {
+            $normalList = null;
+        }
         $specialPrices->each(function ($special) use ($normalList): void {
             try {
-                $special->setAttribute('normal_customer_price', app(PriceListResolver::class)->resolveForUnit($special->product, $special->productUnit, $normalList)->finalPrice);
+                $special->setAttribute('normal_customer_price', $normalList ? app(PriceListResolver::class)->resolveForUnit($special->product, $special->productUnit, $normalList)->finalPrice : null);
             } catch (Throwable) {
                 $special->setAttribute('normal_customer_price', null);
             }
         });
         $sellingUnits = ProductUnit::query()->with(['product', 'unit'])->where('is_sale_unit', true)->whereHas('product', fn ($query) => $query->sellable())->orderBy('product_id')->limit(100)->get();
 
-        return view('pages.customers.show', compact('customer', 'store', 'sales', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities', 'currencyCode', 'arInvoices', 'arOutstanding', 'unappliedCredit', 'currentBalance', 'availableCredit', 'priceLists', 'specialPrices', 'sellingUnits'));
+        return view('pages.customers.show', compact('customer', 'store', 'salesAnalysis', 'salesStores', 'salesProducts', 'salesCategories', 'salesPaymentMethods', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities', 'currencyCode', 'arInvoices', 'arOutstanding', 'unappliedCredit', 'currentBalance', 'availableCredit', 'priceLists', 'specialPrices', 'sellingUnits'));
     })->middleware('can:customers.view')->name('customers.show');
 
     Route::put('customers/{customerId}', function (Request $request, int $customerId, UpdateCustomerAction $action) use ($sellingStore) {

@@ -408,3 +408,13 @@
 - Direct MariaDB integrity audit: PASS — 18/18 checks returned zero violations for duplicate scopes, orphan products/units/customers/snapshots, product-unit mismatches, cross-company assignments/specials, nonpositive prices, negative minimums, invalid source values, FLOAT/DOUBLE pricing columns, and incorrect DECIMAL(19,4) definitions.
 - Pint dirty-file check: PASS. Migration/seed and focused suite prove the pricing paths; a separate `view:cache` attempt was stopped after hanging without output and is not claimed.
 - Browser UAT and full application suite: NOT RUN. Production, release, deployment, push, and tag: NOT RUN.
+
+# 2026-09-17 — R1 Sales Reports
+
+- PASS: Dedicated local MariaDB `rajeh_r1_sales_reports_20260917` on private loopback port `3307`; seeded scope contained 150 approved sales across July–September and a customer with four invoices.
+- PASS: `R1SalesReportsTest` — 9 tests, 61 assertions covering permissions, store/company isolation, Cairo date boundaries, summary/previous-period/payment/cashier calculations, product-unit grain, returns, customer analysis, duplicate resistance, and real CSV/XLSX/PDF export generation.
+- PASS: Linked POS/return/customer-credit/P0.8 regressions — 15 tests, 53 assertions; PHPUnit emitted one existing non-failing risky marker.
+- PASS: Authenticated browser UAT in Arabic and English for Sales Summary, Sales by Product, and customer profile analysis; sidebar showed exactly the two new report destinations, drilldowns and empty states rendered, CSV request showed success, 390x844 mobile viewport had no horizontal page overflow, and browser console warnings/errors were empty.
+- PASS: Targeted Pint, changed/new PHP syntax, three locale JSON files, targeted compiled-Blade PHP syntax, report route discovery, and `git diff --check`.
+- INFO: MariaDB EXPLAIN used existing product-line and return indexes. The small seeded sales query scanned 150 rows against `approved_at`; no new index migration was justified by measured evidence.
+- NOT RUN: Full application suite, production access/change, deployment, release, push, or tag. A broad `view:cache` attempt was stopped after hanging; the six touched views were compiled and syntax-checked individually and rendered through browser UAT.

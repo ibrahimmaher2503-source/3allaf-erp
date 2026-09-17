@@ -1291,3 +1291,11 @@
 - **Verification actually run:** Dedicated MariaDB `rajeh_p0_9_feed_pricing_20260917` passed `migrate:fresh --seed`; focused PHPUnit passed 8 tests/31 assertions; 18 direct integrity checks returned zero violations; targeted Pint passed. Safety review findings were applied. A separate Blade cache command hung without output and was stopped, so it is not a pass.
 - **Remaining / boundary:** Authenticated browser UAT and the P0 full-day MariaDB gate remain. No report, production access/change, deployment, release, push, or tag occurred.
 - **Activity:** Code, migration, views, seed data, focused tests, and `.ai` records changed in `codex/p0-9-feed-pricing`. Commit state is recorded at closure; no remote mutation occurred.
+
+## 2026-09-17 — R1 Sales Reports
+
+- **Task:** Implement and verify R1 Sales Summary, Sales by Product, and customer sales analysis without changing accounting, inventory, or pricing architecture.
+- **Work completed:** Added one shared reporting query path, two permission-scoped report pages and navigation destinations, embedded customer-profile analysis, historical product/unit calculations, completed-return deductions, prior-period and payment/cashier summaries, invoice drilldowns, and reuse of the existing CSV/XLSX/PDF snapshot export pipeline. No schema migration was needed.
+- **Verification actually run:** Dedicated MariaDB `rajeh_r1_sales_reports_20260917` passed 9 focused tests/61 assertions and 15 linked financial regressions/53 assertions, including real CSV/XLSX/PDF generation and direct integrity assertions. Targeted Pint, PHP/compiled-Blade syntax, locale JSON, routes, and diff checks passed. Authenticated Arabic/English browser UAT covered both reports, customer analysis, filters, drilldowns, empty states, sidebar placement, export request, 390px responsive layout, and a clean browser console.
+- **Remaining / boundary:** The full application suite was not run. A broad Blade cache command hung and was stopped; touched views were compiled and checked individually and rendered in the browser. No production access/change, deployment, release, push, or tag occurred.
+- **Activity:** Code, views, focused tests, browser checks, and `.ai` records changed on `codex/r1-sales-reports`. The local commit is recorded at closure; no remote mutation occurred.

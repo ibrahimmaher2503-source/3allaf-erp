@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache/r1">
+    <testsuites><testsuite name="R1 Sales Reports"><file>tests/Feature/R1SalesReportsTest.php</file></testsuite></testsuites>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/><env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
+        <env name="CACHE_STORE" value="array" force="true"/><env name="SESSION_DRIVER" value="array" force="true"/><env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="DB_CONNECTION" value="mysql" force="true"/><env name="DB_HOST" value="127.0.0.1" force="true"/><env name="DB_PORT" value="3307" force="true"/><env name="DB_DATABASE" value="rajeh_r1_sales_reports_20260917" force="true"/><env name="DB_USERNAME" value="root" force="true"/><env name="DB_PASSWORD" value="" force="true"/>
+    </php>
+</phpunit>

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Assets\Models\RentalAsset;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductUnit;
 use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Models\AgeLabel;
@@ -13,6 +14,7 @@ use App\Modules\Catalog\Models\Character;
 use App\Modules\Catalog\Models\Colour;
 use App\Modules\Catalog\Models\Gender;
 use App\Modules\Customer\Models\Customer;
+use App\Modules\Customer\Models\CustomerGroup;
 use App\Modules\Inventory\Models\StockBalance;
 use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\Branch;
@@ -23,6 +25,7 @@ use App\Modules\Reporting\Actions\EvaluateAlertsAction;
 use App\Modules\Reporting\Models\Alert;
 use App\Modules\Reporting\Models\ExportJob;
 use App\Modules\Reporting\Queries\ReportSnapshot;
+use App\Modules\Reporting\Queries\SalesReport;
 use App\Modules\Retail\Models\Sale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -31,6 +34,19 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
+    $salesReportOptions = function (User $user): array {
+        return [
+            'stores' => Store::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->get(['id', 'name_ar', 'name_en']),
+            'users' => User::query()->where('status', 'active')->orderBy('name')->limit(200)->get(['id', 'name']),
+            'customers' => Customer::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']),
+            'customerGroups' => CustomerGroup::query()->active()->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']),
+            'products' => Product::query()->where('status', 'active')->orderBy('item_code')->limit(200)->get(['id', 'item_code', 'name_ar', 'name_en']),
+            'categories' => Category::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']),
+            'productUnits' => ProductUnit::query()->with(['product:id,item_code,name_ar,name_en', 'unit:id,code,name_ar,name_en'])->where('is_sale_unit', true)->orderBy('product_id')->limit(300)->get(),
+            'paymentMethods' => $user->can('pos_sales.payment_view') ? PaymentMethod::query()->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']) : collect(),
+        ];
+    };
+
     $reportTitles = [
         'sales' => __('Sales reports'),
         'customers' => __('Customer & loyalty reports'),
@@ -101,6 +117,24 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('reports', fn (Request $request, ReportSnapshot $snapshot) => $renderReport($request, $snapshot))
         ->middleware('can:dashboard_reports.view')->name('reports.index');
 
+    Route::get('reports/sales-summary', function (Request $request, SalesReport $reports) use ($salesReportOptions) {
+        /** @var User $user */
+        $user = $request->user();
+        $filters = $request->only(['date_from', 'date_to', 'store_id', 'user_id', 'customer_id', 'customer_group_id', 'payment_method_id', 'product_id', 'category_id', 'product_unit_id', 'invoice_page']);
+        $report = $reports->summary($user, $filters);
+
+        return view('pages.reports.sales-summary', ['report' => $report, ...$salesReportOptions($user)]);
+    })->middleware(['can:dashboard_reports.view', 'can:pos_sales.view', 'can:pos_sales.payment_view'])->name('reports.sales-summary');
+
+    Route::get('reports/sales-by-product', function (Request $request, SalesReport $reports) use ($salesReportOptions) {
+        /** @var User $user */
+        $user = $request->user();
+        $filters = $request->only(['date_from', 'date_to', 'store_id', 'user_id', 'customer_group_id', 'product_id', 'category_id', 'product_unit_id', 'detail_product_id', 'detail_product_unit_id', 'product_page', 'detail_page']);
+        $report = $reports->byProduct($user, $filters);
+
+        return view('pages.reports.sales-by-product', ['report' => $report, ...$salesReportOptions($user)]);
+    })->middleware(['can:dashboard_reports.view', 'can:pos_sales.view', 'can:pos_sales.payment_view'])->name('reports.sales-by-product');
+
     foreach ([
         'sales' => 'sales',
         'customers' => 'customers',
@@ -128,7 +162,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             'product_type' => ['nullable', 'string', 'in:standard,service,digital,bundle,rental,party_consumable'], 'product_status' => ['nullable', 'string', 'in:active,inactive,archived'],
             'brand_id' => ['nullable', 'integer'], 'age_label_id' => ['nullable', 'integer'], 'character_id' => ['nullable', 'integer'], 'colour_id' => ['nullable', 'integer'], 'gender_id' => ['nullable', 'integer'],
             'search' => ['nullable', 'string', 'max:100'], 'sort' => ['nullable', 'string', 'in:document,store,cashier,gross,discount,tax,total'], 'direction' => ['nullable', 'string', 'in:asc,desc'],
-            'dataset' => ['nullable', 'string', 'in:products_barcodes,customers_groups,suppliers_groups,purchase_orders,purchase_invoices_receiving,opening_inventory,inventory_movements'],
+            'product_unit_id' => ['nullable', 'integer'],
+            'customer_group_id' => ['nullable', 'integer'],
+            'dataset' => ['nullable', 'string', 'in:products_barcodes,customers_groups,suppliers_groups,purchase_orders,purchase_invoices_receiving,opening_inventory,inventory_movements,sales_summary,sales_by_product'],
             'format' => ['required', 'string', 'in:csv,xlsx,pdf'],
         ]);
         $job = $action->execute($user, $filters, $filters['format']);

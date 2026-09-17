@@ -51,6 +51,8 @@ return [
     ]],
     ['key' => 'reports', 'icon' => 'chart-bar', 'label' => ['ar' => 'التقارير والتصدير', 'en' => 'Reports & exports'], 'items' => [
         ['route' => 'feed-store.operations', 'permission' => 'access-feed-store-operations', 'icon' => 'calculator', 'label' => ['ar' => 'عمليات محل الأعلاف', 'en' => 'Feed store operations']],
+        ['route' => 'reports.sales-summary', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'pos_sales.view', 'pos_sales.payment_view'], 'icon' => 'chart-bar-square', 'label' => ['ar' => 'ملخص المبيعات', 'en' => 'Sales Summary']],
+        ['route' => 'reports.sales-by-product', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'pos_sales.view', 'pos_sales.payment_view'], 'icon' => 'cube', 'label' => ['ar' => 'المبيعات حسب الصنف', 'en' => 'Sales by Product']],
         ['route' => 'reports.index', 'permission' => 'dashboard_reports.view', 'icon' => 'squares-2x2', 'label' => ['ar' => 'مركز التقارير والتصدير', 'en' => 'Reports and Export Center']],
     ]],
     ['key' => 'administration', 'icon' => 'cog-6-tooth', 'label' => ['ar' => 'الإدارة والإعدادات', 'en' => 'Administration & settings'], 'items' => [

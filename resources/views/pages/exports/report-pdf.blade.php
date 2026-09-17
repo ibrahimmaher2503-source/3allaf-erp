@@ -21,7 +21,7 @@
     <div class="muted">Generated {{ now()->toIso8601String() }} · Date {{ $report['filters']['date_from'] }} to {{ $report['filters']['date_to'] }} · Modules {{ implode(', ', $report['modules']) }}</div>
 
     <h2>Filters and scope</h2>
-    <table><tbody>@foreach($report['filters'] as $key => $value)<tr><th>{{ $key }}</th><td>{{ $value ?? 'All authorized' }}</td></tr>@endforeach</tbody></table>
+    <table><tbody>@foreach($report['filters'] as $key => $value)<tr><th>{{ $key }}</th><td>{{ is_scalar($value) ? $value : (empty($value) ? 'All authorized' : json_encode($value, JSON_UNESCAPED_UNICODE)) }}</td></tr>@endforeach</tbody></table>
 
     <h2>KPIs</h2>
     <div class="grid">@foreach($report['kpis'] as $key => $value)<div class="cell"><strong>{{ $key }}</strong><br>{{ is_numeric($value) ? number_format((float) $value, 2) : $value }}</div>@endforeach</div>
