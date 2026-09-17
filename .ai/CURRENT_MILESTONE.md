@@ -1,12 +1,8 @@
 # Current Milestone — Egyptian Feed Store ERP
 
 **Date:** 2026-09-17
-**Status:** P0.8 COMPLETE locally for focused automated and seeded MariaDB integrity evidence; authenticated browser UAT was out of scope and the full-day MariaDB gate remains open.
+**Status:** P0.9 COMPLETE locally; P1 remains blocked until the full-day MariaDB end-to-end gate passes.
 
-**Active supervised phase — 2026-09-17:** P0.8 credit sale, customer collection/allocation, supplier payable, and supplier payment/allocation flows are implemented and verified on dedicated MariaDB `rajeh_p0_8_credit_settlement_20260917`. No migration was required. P1 is blocked until the full-day gate passes.
+P0.9 feed-store pricing is implemented and verified on dedicated MariaDB `rajeh_p0_9_feed_pricing_20260917`. Price precedence is customer special, customer list, legacy approved store price for the base unit, then outlet/default List 0. Prices and minimums are exact per selling unit; approved sale lines retain immutable source snapshots.
 
-Deliver the additive feed-store schema and business behavior in dependency order: product-specific units and transaction snapshots; customer and supplier credit ledgers; latest customer price; landed purchase cost; expenses and general treasury; optional batch/expiry tracking; then realistic local factories/seeding and complete MariaDB verification.
-
-The milestone remains local until all integrity gates pass. Production deployment, migration, release packaging, activation, push, and tag are outside this milestone.
-
-
+Authenticated browser UAT remains manual. Production deployment, migration, release packaging, activation, push, and tag are outside this milestone.

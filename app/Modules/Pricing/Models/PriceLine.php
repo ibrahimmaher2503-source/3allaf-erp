@@ -15,7 +15,7 @@ class PriceLine extends Model
 
     protected $fillable = ['price_version_id', 'product_id', 'store_id', 'branch_id', 'amount', 'reference_amount', 'open_price_allowed', 'open_price_minimum', 'open_price_maximum', 'active_key', 'notes'];
 
-    protected $casts = ['amount' => 'decimal:3', 'reference_amount' => 'decimal:3', 'open_price_allowed' => 'boolean', 'open_price_minimum' => 'decimal:4', 'open_price_maximum' => 'decimal:4'];
+    protected $casts = ['amount' => 'decimal:4', 'reference_amount' => 'decimal:4', 'open_price_allowed' => 'boolean', 'open_price_minimum' => 'decimal:4', 'open_price_maximum' => 'decimal:4'];
 
     /** @return BelongsTo<PriceVersion, $this> */
     public function version(): BelongsTo

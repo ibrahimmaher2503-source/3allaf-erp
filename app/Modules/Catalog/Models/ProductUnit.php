@@ -11,6 +11,7 @@ class ProductUnit extends Model
         'product_id',
         'unit_id',
         'conversion_factor',
+        'minimum_selling_price',
         'is_base_unit',
         'is_purchase_unit',
         'is_sale_unit',
@@ -18,6 +19,7 @@ class ProductUnit extends Model
 
     protected $casts = [
         'conversion_factor' => 'decimal:6',
+        'minimum_selling_price' => 'decimal:4',
         'is_base_unit' => 'boolean',
         'is_purchase_unit' => 'boolean',
         'is_sale_unit' => 'boolean',

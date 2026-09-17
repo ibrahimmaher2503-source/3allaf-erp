@@ -1283,3 +1283,11 @@
 - **Verification actually run:** Dedicated MariaDB `rajeh_p0_8_credit_settlement_20260917` passed the full migration chain and seed. P0.8 passed 5 tests/23 assertions; linked financial regressions passed 22 tests/92 assertions. Fourteen direct post-test MariaDB checks returned zero violations across reconciliation, allocations, cash, idempotency, orphans, scope/currency, precision, negative balances, and over-allocation. Pint, PHP syntax, Blade compilation, and diff hygiene passed.
 - **Remaining / boundary:** Authenticated browser UAT and the full-day MariaDB end-to-end gate remain; browser control was excluded. No migration was required, so no Safety Agent migration review was triggered. No report, production access/change, deployment, release, push, or tag occurred.
 - **Activity:** Code, views, seed data, focused tests, and `.ai` records changed. P0.8 commit `299af72` was merged locally into `main`; no push, tag, or remote mutation occurred.
+
+## 2026-09-17 — P0.9 feed-store pricing
+
+- **Task:** Complete only P0.9 product-unit/list/customer pricing, minimum-price enforcement, POS repricing, and history snapshots in an isolated worktree after read-only migration Safety review.
+- **Work completed:** Added forward migration `000128`, scoped models/actions, the shared resolver precedence, customer/unit-aware POS pricing, minimum-price permission and audit, sale snapshots, Product/Customer pricing UI, and realistic KG/BAG/TON seeded examples. Reused existing pricing, sale, transaction, permission, and audit paths without a new package or architecture layer.
+- **Verification actually run:** Dedicated MariaDB `rajeh_p0_9_feed_pricing_20260917` passed `migrate:fresh --seed`; focused PHPUnit passed 8 tests/31 assertions; 18 direct integrity checks returned zero violations; targeted Pint passed. Safety review findings were applied. A separate Blade cache command hung without output and was stopped, so it is not a pass.
+- **Remaining / boundary:** Authenticated browser UAT and the P0 full-day MariaDB gate remain. No report, production access/change, deployment, release, push, or tag occurred.
+- **Activity:** Code, migration, views, seed data, focused tests, and `.ai` records changed in `codex/p0-9-feed-pricing`. Commit state is recorded at closure; no remote mutation occurred.

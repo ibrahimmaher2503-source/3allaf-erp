@@ -29,8 +29,8 @@ Route::post('pos/customer/select', function (Request $request, PosContextResolve
         }
         $orders->setCustomer($request, $user, $context, $customer);
 
-        return back()->with('success', __('Customer attached to the active order.'));
-    } catch (\Throwable $exception) {
+        return back()->with('success', __('تم ربط العميل وإعادة احتساب أسعار البنود غير المعتمدة وفق سياسة تسعيره.'));
+    } catch (Throwable $exception) {
         return back()->withErrors(['customer' => UserSafeError::message($exception)]);
     }
 })->middleware(['can:pos_sales.create', 'can:customers.view'])->name('pos.customer.select');
@@ -41,8 +41,8 @@ Route::post('pos/customer/clear', function (Request $request, PosContextResolver
     try {
         $orders->setCustomer($request, $user, $contexts->resolve($user), null);
 
-        return back()->with('success', __('The active order now uses the walk-in customer.'));
-    } catch (\Throwable $exception) {
+        return back()->with('success', __('تم إلغاء العميل وإعادة الأسعار إلى قائمة القطاعي الافتراضية.'));
+    } catch (Throwable $exception) {
         return back()->withErrors(['customer' => UserSafeError::message($exception)]);
     }
 })->middleware('can:pos_sales.create')->name('pos.customer.clear');
@@ -69,7 +69,7 @@ Route::post('pos/customer/create', function (Request $request, CreateCustomerAct
         $orders->setCustomer($request, $user, $context, $customer);
 
         return back()->with('success', __('Customer created and attached only to the active order.'));
-    } catch (\Throwable $exception) {
+    } catch (Throwable $exception) {
         return back()->withInput()->withErrors(['customer' => UserSafeError::message($exception)]);
     }
 })->middleware(['can:pos_sales.create', 'can:customers.create'])->name('pos.customer.create');

@@ -9,6 +9,7 @@ use App\Modules\Platform\Models\TaxSetting;
 use App\Modules\Pricing\Services\EffectivePriceResolver;
 use App\Modules\Retail\Data\PosContext;
 use App\Modules\Retail\Services\PosCalculationService;
+use App\Support\UserSafeError;
 use InvalidArgumentException;
 
 final class PosCartSnapshot
@@ -34,20 +35,19 @@ final class PosCartSnapshot
         $cart = collect(request()->session()->get('pos.cart', []));
         $ids = $cart->pluck('product_id')->map(fn ($id): int => (int) $id)->unique()->values();
         $products = Product::query()->with(['parent.images.attachment', 'images.attachment', 'variantValues.group', 'variantValues.value', 'productUnits.unit'])->whereIn('id', $ids)->get()->keyBy('id');
-        $prices = $this->prices->resolveForStore($ids->all(), (int) $store->id);
+        $customerId = request()->session()->get('pos.customer_id');
         $lines = [];
         $error = null;
         foreach ($cart as $cartLine) {
             $product = $products->get((int) ($cartLine['product_id'] ?? 0));
-            $price = $product ? $prices->get($product->id) : null;
+            $productUnit = filled($cartLine['product_unit_id'] ?? null) ? $product?->productUnits->firstWhere('id', (int) $cartLine['product_unit_id']) : $product?->productUnits->firstWhere('is_base_unit', true);
+            $price = $product ? $this->prices->resolve($product->id, (int) $store->id, productUnitId: $productUnit?->id, customerId: $customerId ? (int) $customerId : null) : null;
             if (! $product?->isSellable() || ! $price) {
                 $error = __('One or more cart SKUs became inactive, unpriced, or invalid. The cart was preserved.');
 
                 continue;
             }
-            $productUnit = filled($cartLine['product_unit_id'] ?? null) ? $product->productUnits->firstWhere('id', (int) $cartLine['product_unit_id']) : null;
-            $factor = (string) ($productUnit?->conversion_factor ?? '1');
-            $unitPrice = isset($cartLine['open_price_amount']) ? (string) $cartLine['open_price_amount'] : bcmul((string) $price->amount, $factor, 4);
+            $unitPrice = isset($cartLine['open_price_amount']) ? (string) $cartLine['open_price_amount'] : (string) $price->amount;
             $lines[] = ['product' => $product, 'product_unit' => $productUnit, 'quantity' => (string) $cartLine['quantity'], 'unit_price' => $unitPrice, 'discount_amount' => (string) ($cartLine['discount_amount'] ?? '0.00'), 'price' => $price, 'cart' => $cartLine];
         }
         $taxApplicable = (bool) request()->session()->get('pos.tax_applicable', false);
@@ -57,7 +57,7 @@ final class PosCartSnapshot
             $preview = $lines === [] ? null : $this->calculator->calculate(array_map(fn (array $line): array => ['quantity' => $line['quantity'], 'unit_price' => $line['unit_price'], 'discount_amount' => $line['discount_amount']], $lines), '0.00', $taxApplicable ? ['applicable' => true, 'rate' => $taxSetting?->rate, 'inclusive' => (bool) ($taxSetting?->is_tax_inclusive ?? false)] : ['applicable' => false]);
         } catch (InvalidArgumentException $exception) {
             $preview = null;
-            $error = \App\Support\UserSafeError::message($exception);
+            $error = UserSafeError::message($exception);
         }
 
         return compact('cart', 'products', 'lines', 'preview', 'error', 'taxApplicable', 'taxSetting');

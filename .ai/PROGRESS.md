@@ -482,3 +482,10 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Dedicated MariaDB `rajeh_p0_8_credit_settlement_20260917` passed `migrate:fresh --seed`, 5 P0.8 tests/23 assertions, 22 linked regression tests/92 assertions, targeted formatting/syntax/Blade/diff checks, and 14 direct integrity checks with zero violations.
 - No schema migration, browser control, report, production action, deployment, release, push, or tag occurred. P1 remains blocked by the full-day MariaDB gate.
 
+# 2026-09-17 — P0.9 feed-store pricing
+
+- Added exact product/unit/list overrides, customer price-list assignment, dated customer special prices, per-unit minimum selling prices, and immutable sale price-source snapshots through forward migration `000128`.
+- Centralized POS precedence and immediate customer/unit repricing in the existing pricing resolver and sale action. Below-minimum completion now requires the dedicated stronger permission and an audited reason; discounts cannot bypass it.
+- Added bounded pricing controls to Product and Customer screens plus realistic KG/BAG/TON demo prices, minimums, customer levels, and one special-price example.
+- Dedicated MariaDB `rajeh_p0_9_feed_pricing_20260917` passed fresh migration/seed, 8 focused tests/31 assertions, and 18 direct integrity checks with zero violations. Migration Safety review passed after fail-closed preflight, restrictive FKs, precision, scope uniqueness, and rollback guards.
+- Browser UAT and the P0 full-day gate remain open. No report, production action, deployment, release, push, or tag occurred.

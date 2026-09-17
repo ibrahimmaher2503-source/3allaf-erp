@@ -3,10 +3,12 @@
 namespace App\Modules\Pricing\Models;
 
 use App\Models\User;
+use App\Modules\Customer\Models\Customer;
 use App\Modules\Platform\Models\Company;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class PriceList extends Model
 {
@@ -26,11 +28,25 @@ class PriceList extends Model
         return $this->hasMany(PriceVersion::class);
     }
 
-    public function overrides(): HasMany { return $this->hasMany(ProductPriceOverride::class); }
-    public function isBase(): bool { return $this->list_number === 0; }
+    public function overrides(): HasMany
+    {
+        return $this->hasMany(ProductPriceOverride::class);
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function isBase(): bool
+    {
+        return $this->list_number === 0;
+    }
+
     public function isEffective(?\DateTimeInterface $at = null): bool
     {
-        $at = \Illuminate\Support\Carbon::instance($at ?? now())->startOfDay();
+        $at = Carbon::instance($at ?? now())->startOfDay();
+
         return $this->status === 'active' && ($this->effective_from === null || $this->effective_from->lte($at)) && ($this->effective_to === null || $this->effective_to->gte($at));
     }
 

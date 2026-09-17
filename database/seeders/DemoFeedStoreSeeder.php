@@ -13,6 +13,9 @@ use App\Modules\Platform\Models\CashDrawer;
 use App\Modules\Platform\Models\Company;
 use App\Modules\Platform\Models\PaymentMethod;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Pricing\Models\CustomerProductPrice;
+use App\Modules\Pricing\Models\PriceList;
+use App\Modules\Pricing\Models\ProductPriceOverride;
 use App\Modules\Retail\Models\PosShift;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;
@@ -67,6 +70,7 @@ final class DemoFeedStoreSeeder extends Seeder
         $supplierIds = $this->suppliers($cashMethod->id, $userId, $now);
         [$products, $productUnits, $batches] = $this->products($categoryIds, $supplierIds, $unitIds, $userId, $now);
         $customerIds = $this->customers($userId, $branch->id, $salesStore->id, $now);
+        $this->pricing($company->id, $products, $productUnits, $customerIds, $userId, $now);
         $cashAccountId = $this->cashControl($company->id, $cashMethod->id, $userId, $now);
 
         $this->openingStock($products, $batches, $salesStore->id);
@@ -125,9 +129,10 @@ final class DemoFeedStoreSeeder extends Seeder
         foreach (self::PRODUCT_NAMES as $i => $name) {
             $kind = $i < 12 ? 'feed' : ($i < 22 ? 'raw_material' : 'additive');
             $animal = $i < 6 ? 'cattle' : ($i < 10 ? 'poultry' : ($i < 12 ? 'rabbit' : 'other'));
-            $bagFactor = $kind === 'additive' ? 25 : ($i % 4 === 0 ? 40 : 50);
+            $bagFactor = $kind === 'additive' ? 25 : ($i > 0 && $i % 4 === 0 ? 40 : 50);
             $tracked = $i < 2;
-            $product = Product::query()->create(['item_code' => sprintf('FEED-%03d', $i + 1), 'name_ar' => $name, 'name_en' => 'Synthetic '.$name, 'model_number' => sprintf('FD-%03d', $i + 1), 'product_type' => 'standard', 'feed_kind' => $kind, 'animal_type' => $animal, 'protein_percentage' => preg_match('/(\d+)%/', $name, $m) ? $m[1] : null, 'track_batches' => $tracked, 'track_expiry' => $tracked, 'unit_of_measure' => 'KG', 'category_id' => $categoryIds[$i % count($categoryIds)], 'status' => 'active', 'barcode_mode' => 'none', 'lock_version' => 0, 'average_cost' => (string) (12 + $i), 'sale_price' => (string) ((14 + $i) * $bagFactor), 'reorder_threshold' => '100.000', 'fractional_quantity' => true]);
+            $product = Product::query()->create(['item_code' => sprintf('FEED-%03d', $i + 1), 'name_ar' => $name, 'name_en' => 'Synthetic '.$name, 'model_number' => sprintf('FD-%03d', $i + 1), 'product_type' => 'standard', 'feed_kind' => $kind, 'animal_type' => $animal, 'protein_percentage' => preg_match('/(\d+)%/', $name, $m) ? $m[1] : null, 'track_batches' => $tracked, 'track_expiry' => $tracked, 'unit_of_measure' => 'KG', 'category_id' => $categoryIds[$i % count($categoryIds)], 'status' => 'active', 'barcode_mode' => 'none', 'lock_version' => 0, 'average_cost' => (string) (12 + $i), 'sale_price' => (string) ($i === 0 ? 27 : 14 + $i), 'open_price' => $i === 0, 'reorder_threshold' => '100.000', 'fractional_quantity' => true]);
+            DB::table('barcodes')->insert(['product_id' => $product->id, 'barcode' => sprintf('622%010d', $i + 1), 'source' => 'manual', 'status' => 'active', 'is_primary' => true, 'created_at' => $now, 'updated_at' => $now]);
             $products[] = $product;
             foreach ([['KG', '1', true, true, true], ['BAG', (string) $bagFactor, false, true, true], ['TON', '1000', false, true, true]] as [$code,$factor,$base,$purchase,$sale]) {
                 $units[$product->id][$code] = ProductUnit::query()->create(['product_id' => $product->id, 'unit_id' => $unitIds[$code], 'conversion_factor' => $factor, 'is_base_unit' => $base, 'is_purchase_unit' => $purchase, 'is_sale_unit' => $sale]);
@@ -167,6 +172,33 @@ final class DemoFeedStoreSeeder extends Seeder
         }
 
         return (int) $accountId;
+    }
+
+    private function pricing(int $companyId, array $products, array $productUnits, array $customerIds, int $userId, $now): void
+    {
+        $retail = PriceList::query()->where('company_id', $companyId)->where('list_number', 0)->firstOrFail();
+        $retail->update(['code' => 'RETAIL', 'name_ar' => 'قطاعي', 'name_en' => 'Retail', 'status' => 'active']);
+        $wholesale = PriceList::query()->create(['company_id' => $companyId, 'list_number' => 1, 'code' => 'WHOLESALE', 'name_ar' => 'جملة', 'name_en' => 'Wholesale', 'percentage_increase' => '0', 'status' => 'active', 'created_by' => $userId, 'updated_by' => $userId]);
+        $trader = PriceList::query()->create(['company_id' => $companyId, 'list_number' => 2, 'code' => 'TRADER', 'name_ar' => 'تاجر', 'name_en' => 'Trader', 'percentage_increase' => '0', 'status' => 'active', 'created_by' => $userId, 'updated_by' => $userId]);
+
+        foreach ($products as $i => $product) {
+            foreach ($productUnits[$product->id] as $code => $unit) {
+                $retailPrice = $i === 0 ? ['KG' => '27', 'BAG' => '1250', 'TON' => '24000'][$code] : ($code === 'KG' ? (string) (14 + $i) : ($code === 'BAG' ? (string) (800 + $i * 20) : (string) (14000 + $i * 300)));
+                $wholesalePrice = $i === 0 ? ['KG' => '26', 'BAG' => '1220', 'TON' => '23500'][$code] : bcsub($retailPrice, $code === 'KG' ? '1' : ($code === 'BAG' ? '20' : '300'), 4);
+                $traderPrice = $i === 0 ? ['KG' => '25', 'BAG' => '1210', 'TON' => '23000'][$code] : bcsub($wholesalePrice, $code === 'KG' ? '1' : ($code === 'BAG' ? '10' : '200'), 4);
+                $minimum = $i === 0 ? ['KG' => '24', 'BAG' => '1170', 'TON' => '22000'][$code] : bcsub($traderPrice, $code === 'KG' ? '1' : ($code === 'BAG' ? '20' : '500'), 4);
+                $unit->update(['minimum_selling_price' => $minimum]);
+                if (! $unit->is_base_unit) {
+                    ProductPriceOverride::query()->create(['company_id' => $companyId, 'price_list_id' => $retail->id, 'product_id' => $product->id, 'product_unit_id' => $unit->id, 'amount' => $retailPrice, 'reason' => 'Feed demo independent unit retail price', 'created_by' => $userId, 'updated_by' => $userId]);
+                }
+                foreach ([[$wholesale, $wholesalePrice], [$trader, $traderPrice]] as [$list, $amount]) {
+                    ProductPriceOverride::query()->create(['company_id' => $companyId, 'price_list_id' => $list->id, 'product_id' => $product->id, 'product_unit_id' => $unit->id, 'amount' => $amount, 'reason' => 'Feed demo price level', 'created_by' => $userId, 'updated_by' => $userId]);
+                }
+            }
+        }
+        DB::table('customers')->where('id', $customerIds[0])->update(['price_list_id' => $retail->id]);
+        DB::table('customers')->whereIn('id', [$customerIds[1], $customerIds[2]])->update(['price_list_id' => $trader->id]);
+        CustomerProductPrice::query()->create(['company_id' => $companyId, 'customer_id' => $customerIds[2], 'product_id' => $products[0]->id, 'product_unit_id' => $productUnits[$products[0]->id]['BAG']->id, 'price' => '1190', 'effective_from' => today(), 'status' => 'active', 'active_key' => implode(':', [$companyId, $customerIds[2], $products[0]->id, $productUnits[$products[0]->id]['BAG']->id]), 'reason' => 'Feed demo customer agreement', 'created_by' => $userId, 'approved_by' => $userId, 'approved_at' => $now]);
     }
 
     private function openingStock(array $products, array $batches, int $storeId): void

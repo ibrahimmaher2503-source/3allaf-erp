@@ -13,6 +13,7 @@ use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Pricing\Services\EffectivePriceResolver;
 use App\Modules\Retail\Data\PosContext;
+use App\Modules\Retail\Support\PosCartSnapshot;
 use App\Modules\Retail\Support\PosContextResolver;
 use App\Modules\Retail\Support\PosOpenOrderManager;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ final class PosCartAction
         private readonly EffectivePriceResolver $prices,
         private readonly PosContextResolver $contextResolver,
         private readonly PosOpenOrderManager $openOrders,
-        private readonly \App\Modules\Retail\Support\PosCartSnapshot $snapshot,
+        private readonly PosCartSnapshot $snapshot,
         private readonly ConvertProductQuantity $converter,
     ) {}
 
@@ -36,11 +37,11 @@ final class PosCartAction
         if (! $product?->isSellable()) {
             throw new InvalidArgumentException(__('Select an active simple product or a fully resolved variation SKU. Product families cannot be added.'));
         }
-        if ($this->prices->resolve($product->id, $store->id) === null) {
-            throw new InvalidArgumentException(__('The selected SKU has no positive selling price for this store.'));
-        }
-
         $unit = $this->resolveUnit($product, $productUnitId);
+        $customerId = $request->session()->get('pos.customer_id');
+        if ($this->prices->resolve($product->id, $store->id, productUnitId: $unit?->id, customerId: $customerId ? (int) $customerId : null) === null) {
+            throw new InvalidArgumentException(__('The selected SKU unit has no positive selling price for this customer and store.'));
+        }
         $entered = $this->enteredQuantity($product, $unit, $quantity);
         $baseQuantity = $unit ? $this->converter->execute($product, $unit, $entered) : $entered;
         $cart = collect($request->session()->get('pos.cart', []));
@@ -106,10 +107,15 @@ final class PosCartAction
         $unit = $this->resolveUnit($product, $productUnitId) ?? throw new InvalidArgumentException(__('The selected unit is unavailable.'));
         $cart = collect($request->session()->get('pos.cart', []));
         $index = $cart->search(fn (array $line): bool => (int) ($line['product_id'] ?? 0) === $productId);
-        if ($index === false) throw new InvalidArgumentException(__('The requested cart line was not found.'));
+        if ($index === false) {
+            throw new InvalidArgumentException(__('The requested cart line was not found.'));
+        }
         $line = $cart[$index];
         $line['product_unit_id'] = $unit->id;
         $line['quantity'] = '1';
+        foreach (['open_price_amount', 'open_price_reason', 'open_price_approval_id', 'discount_amount', 'discount_type', 'discount_reason', 'discount_approval_id'] as $key) {
+            unset($line[$key]);
+        }
         $cart[$index] = $line;
         $request->session()->put('pos.cart', $cart->values()->all());
         $this->persist($request, $user, $context);
@@ -156,8 +162,11 @@ final class PosCartAction
 
     private function resolveUnit(Product $product, ?int $productUnitId): ?ProductUnit
     {
-        if ($product->productUnits->isEmpty()) return null;
+        if ($product->productUnits->isEmpty()) {
+            return null;
+        }
         $unit = $productUnitId ? $product->productUnits->firstWhere('id', $productUnitId) : null;
+
         return $unit ?? $product->productUnits->firstWhere('is_base_unit', true);
     }
 
@@ -167,6 +176,7 @@ final class PosCartAction
         if (! preg_match('/^\d+(?:\.\d{1,6})?$/', $quantity) || strlen(rtrim(explode('.', $quantity, 2)[1] ?? '', '0')) > $places || bccomp($quantity, '0', 6) <= 0 || bccomp($quantity, '999999', 6) > 0) {
             throw new InvalidArgumentException(__('Quantity must be greater than zero and within the allowed limit.'));
         }
+
         return bcadd($quantity, '0', 6);
     }
 }

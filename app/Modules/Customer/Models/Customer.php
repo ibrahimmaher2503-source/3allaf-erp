@@ -9,6 +9,8 @@ use App\Modules\Platform\Models\Branch;
 use App\Modules\Platform\Models\City;
 use App\Modules\Platform\Models\Governorate;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Pricing\Models\CustomerProductPrice;
+use App\Modules\Pricing\Models\PriceList;
 use App\Modules\Retail\Models\Sale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +26,7 @@ final class Customer extends Model
     protected $fillable = [
         'public_id', 'phone_normalized', 'phone_display', 'first_name_ar', 'last_name_ar', 'first_name_en', 'last_name_en', 'name_ar', 'name_en', 'email',
         'secondary_phone', 'secondary_phone_normalized', 'address_ar', 'address_en', 'status', 'merged_into_id',
-        'created_by', 'updated_by', 'created_branch_id', 'created_store_id', 'customer_group_id', 'customer_type', 'credit_limit', 'notes', 'governorate_id', 'city_id', 'idempotency_key', 'lock_version',
+        'created_by', 'updated_by', 'created_branch_id', 'created_store_id', 'customer_group_id', 'price_list_id', 'customer_type', 'credit_limit', 'notes', 'governorate_id', 'city_id', 'idempotency_key', 'lock_version',
     ];
 
     protected $casts = [
@@ -60,6 +62,16 @@ final class Customer extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(CustomerGroup::class, 'customer_group_id');
+    }
+
+    public function priceList(): BelongsTo
+    {
+        return $this->belongsTo(PriceList::class);
+    }
+
+    public function specialPrices(): HasMany
+    {
+        return $this->hasMany(CustomerProductPrice::class);
     }
 
     public function governorate(): BelongsTo

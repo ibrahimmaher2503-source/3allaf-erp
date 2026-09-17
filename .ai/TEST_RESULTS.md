@@ -400,3 +400,11 @@
 - Direct MariaDB violations: customer AR reconciliation 0; supplier AP reconciliation 0; receipt allocation totals 0; supplier payment allocation totals 0; invoice paid/outstanding totals 0; cash transaction reconciliation 0; duplicate idempotency keys 0; orphan allocations 0; orphan receipts/payments 0; cross-company/currency relationships 0; invalid money precision 0; FLOAT/DOUBLE financial columns 0; negative outstanding balances 0; over-allocated documents 0.
 - Targeted Pint, changed PHP syntax, full Blade compilation, and `git diff --check`: PASS.
 - Browser UAT: NOT RUN by explicit task boundary. Full application suite: NOT RUN; the owner authorized it only if needed, and the focused financial slice plus direct integrity audit covered this phase.
+
+# 2026-09-17 — P0.9 feed-store pricing
+
+- Dedicated local MariaDB `rajeh_p0_9_feed_pricing_20260917` on private loopback port `3307`: `migrate:fresh --seed` PASS.
+- `P09FeedPricingTest`: PASS — 8 tests, 31 assertions covering precedence, unit independence, expiry, company isolation, direct-price and discount minimum enforcement, stronger permission/audit, customer switching, immutable history, and open-order resume repricing.
+- Direct MariaDB integrity audit: PASS — 18/18 checks returned zero violations for duplicate scopes, orphan products/units/customers/snapshots, product-unit mismatches, cross-company assignments/specials, nonpositive prices, negative minimums, invalid source values, FLOAT/DOUBLE pricing columns, and incorrect DECIMAL(19,4) definitions.
+- Pint dirty-file check: PASS. Migration/seed and focused suite prove the pricing paths; a separate `view:cache` attempt was stopped after hanging without output and is not claimed.
+- Browser UAT and full application suite: NOT RUN. Production, release, deployment, push, and tag: NOT RUN.

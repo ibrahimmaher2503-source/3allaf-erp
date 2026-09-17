@@ -31,6 +31,7 @@ use App\Modules\Platform\Models\CashDrawer;
 use App\Modules\Platform\Models\PaymentMethod;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Platform\Models\TaxSetting;
+use App\Modules\Platform\Support\WorkContext;
 use App\Modules\Pricing\Services\EffectivePriceResolver;
 use App\Modules\Pricing\Services\OpenPricePolicy;
 use App\Modules\Retail\Actions\EnrollOfflineDeviceAction;
@@ -61,6 +62,8 @@ use App\Modules\Retail\Services\PosCalculationService;
 use App\Modules\Retail\Support\DecimalMoney;
 use App\Modules\Retail\Support\PosContextResolver;
 use App\Modules\Retail\Support\PosFinancialSettingRegistry;
+use App\Modules\Retail\Support\PosOpenOrderManager;
+use App\Support\UserSafeError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -442,7 +445,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             WalletPolicy::for('product');
         } catch (InvalidArgumentException $exception) {
-            $policyError = \App\Support\UserSafeError::message($exception);
+            $policyError = UserSafeError::message($exception);
         }
         $pendingAdjustments = $user->can('product_wallet.approve')
             ? ApprovalRecord::query()->visibleTo($user)->where('source_type', 'product_wallet_adjustments')->where('approval_state', 'pending')->where('decision_permission', 'product_wallet.approve')->latest('id')->limit(20)->get()
@@ -483,7 +486,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             WalletPolicy::for('party');
         } catch (InvalidArgumentException $exception) {
-            $policyError = \App\Support\UserSafeError::message($exception);
+            $policyError = UserSafeError::message($exception);
         }
         $pendingAdjustments = $user->can('party_wallet.approve')
             ? ApprovalRecord::query()->visibleTo($user)->where('source_type', 'party_wallet_adjustments')->where('approval_state', 'pending')->where('decision_permission', 'party_wallet.approve')->latest('id')->limit(20)->get()
@@ -607,7 +610,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             try {
                 $customerPurposes = CustomerPolicy::allowedPurposes('customer.consent.purpose')['value'];
             } catch (InvalidArgumentException $exception) {
-                $customerPolicyError = \App\Support\UserSafeError::message($exception);
+                $customerPolicyError = UserSafeError::message($exception);
             }
             $selectedCustomerId = $request->session()->get('pos.customer_id');
             if (is_numeric($selectedCustomerId)) {
@@ -739,7 +742,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             }
         }
         $request->session()->put('pos.cart', $cart->values()->all());
-        app(\App\Modules\Retail\Support\PosOpenOrderManager::class)->persistSession($request, $user, $context);
+        app(PosOpenOrderManager::class)->persistSession($request, $user, $context);
         $taxApplicable = (bool) $request->session()->get('pos.tax_applicable', false);
         $effectiveTaxes = TaxSetting::query()
             ->where('status', 'active')
@@ -762,7 +765,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             );
         } catch (InvalidArgumentException $exception) {
             $preview = null;
-            $previewError = \App\Support\UserSafeError::message($exception);
+            $previewError = UserSafeError::message($exception);
         }
 
         $checkoutToken = $request->session()->get('pos.checkout_token');
@@ -776,7 +779,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             $cashDenomination = app(PosCalculationService::class)->cashRoundingDenomination();
         } catch (PosFinancialConfigurationException $exception) {
             $cashDenomination = null;
-            $cashRoundingConfigurationError = \App\Support\UserSafeError::message($exception);
+            $cashRoundingConfigurationError = UserSafeError::message($exception);
         }
         $openPriceApprovalLimit = PosFinancialSettingRegistry::numericValue(PosFinancialSettingRegistry::OPEN_PRICE_APPROVAL_LIMIT);
         $discountApprovalLimit = PosFinancialSettingRegistry::numericValue(PosFinancialSettingRegistry::DISCOUNT_APPROVAL_LIMIT);
@@ -878,7 +881,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 'SHIFT-OPEN:'.$validated['idempotency_key'],
             );
         } catch (InvalidArgumentException $e) {
-            return back()->withErrors(['cash_drawer_id' => \App\Support\UserSafeError::message($e)]);
+            return back()->withErrors(['cash_drawer_id' => UserSafeError::message($e)]);
         }
 
         $request->session()->forget('pos.shift.open_token');
@@ -911,7 +914,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 $validated['reference'] ?? null,
             );
         } catch (InvalidArgumentException $e) {
-            return back()->withErrors(['amount' => \App\Support\UserSafeError::message($e)]);
+            return back()->withErrors(['amount' => UserSafeError::message($e)]);
         }
 
         $request->session()->forget('pos.shift.movement_token.'.$shift->getKey());
@@ -952,7 +955,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 $validated['notes'] ?? null,
             );
         } catch (InvalidArgumentException $e) {
-            return back()->withErrors(['actual_cash' => \App\Support\UserSafeError::message($e)]);
+            return back()->withErrors(['actual_cash' => UserSafeError::message($e)]);
         }
 
         // The cashier returns to a screen that deliberately shows no expected
@@ -1117,7 +1120,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $action->execute($user, PosShift::query()->findOrFail($validated['shift_id']), $validated['name'], $validated['token']);
         } catch (InvalidArgumentException|LogicException $exception) {
-            return back()->withErrors(['offline' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withErrors(['offline' => UserSafeError::message($exception)]);
         }
 
         return to_route('pos.offline-readiness')->with('success', __('Offline device enrolled. Keep its token only on the enrolled browser.'));
@@ -1150,7 +1153,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $action->execute($user, $device, $validated['token'], $validated['payload']);
         } catch (InvalidArgumentException|LogicException $exception) {
-            return to_route('pos.offline.queue')->withErrors(['offline' => \App\Support\UserSafeError::message($exception)]);
+            return to_route('pos.offline.queue')->withErrors(['offline' => UserSafeError::message($exception)]);
         }
 
         return to_route('pos.offline.queue')->with('success', __('Offline transaction queued provisionally. No sale document has been created.'));
@@ -1170,7 +1173,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $result = $action->execute($user, $device, $validated['token']);
         } catch (InvalidArgumentException|LogicException $exception) {
-            return to_route('pos.offline.queue')->withErrors(['offline' => \App\Support\UserSafeError::message($exception)]);
+            return to_route('pos.offline.queue')->withErrors(['offline' => UserSafeError::message($exception)]);
         }
 
         return to_route('pos.offline.queue')->with('success', __('Sync completed: :accepted accepted, :conflicted require review.', $result));
@@ -1228,7 +1231,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $action->execute($user, $transaction, $validated['disposition'], $validated['reason']);
         } catch (InvalidArgumentException $exception) {
-            return back()->withErrors(['offline' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withErrors(['offline' => UserSafeError::message($exception)]);
         }
 
         return to_route('offline.conflicts.index')->with('success', __('Offline conflict disposition was recorded in the audit trail.'));
@@ -1369,7 +1372,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             app(PosCartAction::class)->add($request, $request->user(), (int) $data['product_id'], (string) $data['quantity']);
         } catch (InvalidArgumentException $exception) {
-            return back()->withErrors(['cart' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withErrors(['cart' => UserSafeError::message($exception)]);
         }
 
         return back()->with('success', __('Product added to cart.'));
@@ -1396,7 +1399,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             app(PosCartAction::class)->quantity($request, $user, (int) $data['product_id'], (string) $data['quantity']);
         } catch (InvalidArgumentException $exception) {
-            return back()->withErrors(['cart' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withErrors(['cart' => UserSafeError::message($exception)]);
         }
 
         return back()->with('success', __('Cart quantity updated.'));
@@ -1429,7 +1432,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             return back()->withErrors(['discount' => $context->disabledReason]);
         }
         $store = $context->store;
-        $price = app(EffectivePriceResolver::class)->resolve((int) $line['product_id'], $store->id);
+        $resolver = app(EffectivePriceResolver::class);
+        $customerId = $request->session()->get('pos.customer_id');
+        $price = $resolver->resolve((int) $line['product_id'], $store->id, productUnitId: filled($line['product_unit_id'] ?? null) ? (int) $line['product_unit_id'] : null, customerId: $customerId ? (int) $customerId : null);
         abort_if($price === null, 422, __('The product has no effective price.'));
         $unitPrice = (string) ($line['open_price_amount'] ?? $price->amount);
         $gross = DecimalMoney::round(bcmul((string) $line['quantity'], $unitPrice, 8));
@@ -1444,8 +1449,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $sourceHash = app(OpenPricePolicy::class)->fingerprint([
             'product_id' => (int) $line['product_id'],
             'store_id' => (int) $store->id,
-            'price_line_id' => (int) $price->id,
-            'price_updated_at' => (string) $price->updated_at,
+            'price_identity' => $resolver->identity($price),
             'gross' => $gross,
             'discount_amount' => $discountAmount,
             'discount_type' => (string) $data['discount_type'],
@@ -1459,7 +1463,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             $approval = app(RequestApproval::class)->execute(new ApprovalRequestData(
                 sourceType: 'pos_discount',
                 sourceId: 'cart:'.$checkoutToken.':product:'.$line['product_id'].':discount-revision:'.$nextRevision,
-                sourceVersion: (string) $price->id.':'.(string) $price->updated_at,
+                sourceVersion: $resolver->identity($price),
                 requestedAction: 'approve_discount',
                 requestPermission: 'pos_sales.apply_discount',
                 branchId: (int) $store->branch_id,
@@ -1490,7 +1494,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 approved: $requiresApproval,
             );
         } catch (InvalidArgumentException $exception) {
-            return back()->withErrors(['discount' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withErrors(['discount' => UserSafeError::message($exception)]);
         }
 
         $before = [
@@ -1509,7 +1513,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $line['discount_approval_state'] = $approval?->approval_state->value;
         $cart[$index] = $line;
         $request->session()->put('pos.cart', $cart->values()->all());
-        app(\App\Modules\Retail\Support\PosOpenOrderManager::class)->persistSession($request, $user, $context);
+        app(PosOpenOrderManager::class)->persistSession($request, $user, $context);
 
         app(RecordAuditEvent::class)->execute(
             category: 'retail',
@@ -1553,16 +1557,19 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             return back()->withErrors(['open_price' => $context->disabledReason]);
         }
         $store = $context->store;
-        $price = app(EffectivePriceResolver::class)->resolve((int) $line['product_id'], $store->id);
+        $resolver = app(EffectivePriceResolver::class);
+        $customerId = $request->session()->get('pos.customer_id');
+        $price = $resolver->resolve((int) $line['product_id'], $store->id, productUnitId: filled($line['product_unit_id'] ?? null) ? (int) $line['product_unit_id'] : null, customerId: $customerId ? (int) $customerId : null);
         abort_if($price === null || ! $price->open_price_allowed, 422, __('Open price is not enabled for this product.'));
         $reference = DecimalMoney::normalize((string) ($price->reference_amount ?? $price->amount), 4);
         $policy->validateOrThrow(
             referenceAmount: $reference,
             requestedAmount: (string) $data['amount'],
-            minimum: $price->open_price_minimum === null ? null : (string) $price->open_price_minimum,
+            minimum: $price->minimum_selling_price ?? $price->open_price_minimum,
             maximum: $price->open_price_maximum === null ? null : (string) $price->open_price_maximum,
             hasPermission: true,
             reason: (string) $data['reason'],
+            allowBelowMinimum: $user->can('pos_sales.override_below_minimum'),
         );
 
         $before = ['amount' => $line['open_price_amount'] ?? null, 'revision' => (int) ($line['pricing_revision'] ?? 0)];
@@ -1573,10 +1580,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $sourceHash = $policy->fingerprint([
             'product_id' => (int) $line['product_id'],
             'store_id' => (int) $store->id,
-            'price_line_id' => (int) $price->id,
-            'price_updated_at' => (string) $price->updated_at,
+            'price_identity' => $resolver->identity($price),
             'reference' => $reference,
-            'minimum' => $price->open_price_minimum,
+            'minimum' => $price->minimum_selling_price ?? $price->open_price_minimum,
             'maximum' => $price->open_price_maximum,
             'requested_amount' => DecimalMoney::normalize((string) $data['amount'], 4),
             'reason' => trim((string) $data['reason']),
@@ -1587,7 +1593,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             $approval = app(RequestApproval::class)->execute(new ApprovalRequestData(
                 sourceType: 'pos_open_price',
                 sourceId: 'cart:'.$checkoutToken.':product:'.$line['product_id'].':revision:'.((int) $before['revision'] + 1),
-                sourceVersion: (string) $price->id.':'.(string) $price->updated_at,
+                sourceVersion: $resolver->identity($price),
                 requestedAction: 'approve_open_price',
                 requestPermission: 'pos_sales.open_price',
                 branchId: (int) $store->branch_id,
@@ -1596,7 +1602,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 limitContext: [
                     'product_id' => (int) $line['product_id'],
                     'reference_amount' => $reference,
-                    'minimum' => $price->open_price_minimum,
+                    'minimum' => $price->minimum_selling_price ?? $price->open_price_minimum,
                     'maximum' => $price->open_price_maximum,
                     'requested_amount' => DecimalMoney::normalize((string) $data['amount'], 4),
                     'approval_limit_percent' => $approvalLimit,
@@ -1615,13 +1621,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $line['pricing_revision'] = $before['revision'] + 1;
         $cart[$index] = $line;
         $request->session()->put('pos.cart', $cart->values()->all());
-        app(\App\Modules\Retail\Support\PosOpenOrderManager::class)->persistSession($request, $user, $context);
+        app(PosOpenOrderManager::class)->persistSession($request, $user, $context);
 
         app(RecordAuditEvent::class)->execute(
             category: 'pricing',
             event: 'pos_cart_open_price_set',
             before: $before,
-            after: ['reference' => $reference, 'amount' => $line['open_price_amount'], 'minimum' => $price->open_price_minimum, 'maximum' => $price->open_price_maximum, 'revision' => $line['pricing_revision']],
+            after: ['reference' => $reference, 'amount' => $line['open_price_amount'], 'minimum' => $price->minimum_selling_price ?? $price->open_price_minimum, 'maximum' => $price->open_price_maximum, 'revision' => $line['pricing_revision']],
             branchId: (int) $store->branch_id,
             storeId: (int) $store->id,
             reasonText: (string) $data['reason'],
@@ -1658,7 +1664,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         }
 
         $before = (bool) $request->session()->get('pos.tax_applicable', false);
-        app(\App\Modules\Retail\Support\PosOpenOrderManager::class)->setTax($request, $user, $context, $applicable);
+        app(PosOpenOrderManager::class)->setTax($request, $user, $context, $applicable);
         app(RecordAuditEvent::class)->execute(
             category: 'retail', event: 'pos_cart_tax_selection_changed',
             before: ['tax_applicable' => $before],
@@ -1800,7 +1806,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                 $customer,
             );
         } catch (InvalidArgumentException|RuntimeException $e) {
-            return back()->withInput()->withErrors(['payments' => \App\Support\UserSafeError::message($e)]);
+            return back()->withInput()->withErrors(['payments' => UserSafeError::message($e)]);
         }
 
         $request->session()->forget('pos.cart');
@@ -1829,7 +1835,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $preview = $action->suspendedResumePreview($user, $sale);
         } catch (InvalidArgumentException $exception) {
-            return redirect()->route('pos.suspended')->withErrors(['resume' => \App\Support\UserSafeError::message($exception)]);
+            return redirect()->route('pos.suspended')->withErrors(['resume' => UserSafeError::message($exception)]);
         }
 
         $paymentMethods = PaymentMethod::query()->where('status', 'active')->orderBy('code')->get();
@@ -1846,7 +1852,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             $cashDenomination = app(PosCalculationService::class)->cashRoundingDenomination();
         } catch (PosFinancialConfigurationException $exception) {
             $cashDenomination = null;
-            $cashRoundingConfigurationError = \App\Support\UserSafeError::message($exception);
+            $cashRoundingConfigurationError = UserSafeError::message($exception);
         }
 
         return view('pages.pos.resume', compact('sale', 'preview', 'cashMethod', 'electronicMethods', 'resumeToken', 'cashDenomination', 'cashRoundingConfigurationError'));
@@ -1923,7 +1929,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         try {
             $sale = $action->finalizeSuspended($user, $sale, $tenders);
         } catch (InvalidArgumentException|RuntimeException $exception) {
-            return back()->withInput()->withErrors(['payments' => \App\Support\UserSafeError::message($exception)]);
+            return back()->withInput()->withErrors(['payments' => UserSafeError::message($exception)]);
         }
 
         $request->session()->forget($resumeTokenKey);
@@ -1935,7 +1941,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         /** @var User $user */
         $user = $request->user();
         abort_unless($user->can('pos_sales.view'), 403);
-        if (! $request->filled('store_id') && ($contextStoreId = app(\App\Modules\Platform\Support\WorkContext::class)->id($user)) !== null) { $request->merge(['store_id' => $contextStoreId]); }
+        if (! $request->filled('store_id') && ($contextStoreId = app(WorkContext::class)->id($user)) !== null) {
+            $request->merge(['store_id' => $contextStoreId]);
+        }
         $perPage = in_array($request->integer('per_page'), [20, 50, 100], true) ? $request->integer('per_page') : 20;
         $sort = in_array((string) $request->string('sort'), ['created_at', 'document_number', 'status', 'total'], true) ? (string) $request->string('sort') : 'created_at';
         $direction = (string) $request->string('direction') === 'asc' ? 'asc' : 'desc';
@@ -1963,6 +1971,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $trendDays = collect(range(0, 6))->map(function (int $offset) use ($sevenDayStart, $trend): array {
             $date = $sevenDayStart->copy()->addDays($offset);
             $row = $trend->get($date->toDateString());
+
             return ['date' => $date, 'count' => (int) ($row?->invoice_count ?? 0), 'total' => (string) ($row?->sales_total ?? '0.00')];
         });
         $paymentSummary = SalePayment::query()->whereHas('sale', fn ($builder) => $builder->visibleTo($user)->approved()->whereDate('approved_at', today())
@@ -1993,7 +2002,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         /** @var User $user */
         $user = $request->user();
         abort_unless($user->can('pos_sales.view'), 403);
-        if (! $request->filled('store_id') && ($contextStoreId = app(\App\Modules\Platform\Support\WorkContext::class)->id($user)) !== null) { $request->merge(['store_id' => $contextStoreId]); }
+        if (! $request->filled('store_id') && ($contextStoreId = app(WorkContext::class)->id($user)) !== null) {
+            $request->merge(['store_id' => $contextStoreId]);
+        }
         $perPage = in_array($request->integer('per_page'), [20, 50, 100], true) ? $request->integer('per_page') : 20;
         $query = Sale::query()->visibleTo($user)->approved()->with(['store', 'cashier'])->withCount('payments');
         $query->when($request->filled('q'), fn ($query) => $query->where('document_number', 'like', '%'.trim((string) $request->string('q')).'%'));

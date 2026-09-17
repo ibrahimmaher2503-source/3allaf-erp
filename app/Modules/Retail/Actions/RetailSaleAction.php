@@ -76,7 +76,7 @@ final class RetailSaleAction
             abort_unless(Customer::query()->visibleFrom($cashier, (int) $store->branch_id, (int) $store->id)->whereKey($customer->id)->exists(), 404);
         }
 
-        $lines = $this->resolveLines($cashier, $store, $requestedLines);
+        $lines = $this->resolveLines($cashier, $store, $requestedLines, $customer);
         $tax = $this->resolveTax($cashier, (bool) ($financial['tax_applicable'] ?? false));
         $tenders = $this->orderedTenders($tenders);
         $fingerprint = $this->fingerprint($store, $cashier, $lines, $tax, $tenders, $suspend, $customer);
@@ -159,6 +159,7 @@ final class RetailSaleAction
                     ? ['applicable' => false]
                     : ['applicable' => true, 'rate' => (string) $tax->rate, 'inclusive' => (bool) $tax->is_tax_inclusive],
             );
+            $this->assertMinimumPrices($cashier, $lines, $totals);
 
             $hasCash = ! $suspend && $this->hasCashTender($tenders);
             $cashRounding = $hasCash ? $this->calculator->cashRoundingAdjustment($totals['total']) : '0.00';
@@ -213,6 +214,10 @@ final class RetailSaleAction
                     'entered_quantity' => $line['entered_quantity'],
                     'conversion_factor_snapshot' => $line['conversion_factor_snapshot'],
                     'entered_unit_price' => $line['entered_unit_price'],
+                    'price_list_id' => $line['price_list_id'],
+                    'customer_product_price_id' => $line['customer_product_price_id'],
+                    'price_source' => $line['price_source'],
+                    'minimum_price_snapshot' => $line['minimum_price'],
                     'line_number' => $index + 1,
                     'item_code' => $line['product']->item_code,
                     'name_ar' => $line['product']->name_ar,
@@ -275,6 +280,15 @@ final class RetailSaleAction
                         storeId: (int) $store->id,
                         reasonText: $line['open_price_reason'],
                         metadata: ['actor_id' => $cashier->id, 'sale_id' => $sale->id, 'approval_limit_percent' => $line['open_price_approval_limit']],
+                    );
+                }
+                if ($line['below_minimum']) {
+                    app(RecordAuditEvent::class)->execute(
+                        category: 'pricing', event: 'sale_below_minimum_authorized', source: $saleLine,
+                        before: ['minimum_price' => $line['minimum_price'], 'resolved_price' => $line['resolved_entered_price']],
+                        after: ['net_unit_price' => $line['net_entered_unit_price'], 'entered_unit_price' => $line['entered_unit_price']],
+                        branchId: (int) $store->branch_id, storeId: (int) $store->id, reasonText: $line['minimum_override_reason'],
+                        metadata: ['actor_id' => $cashier->id, 'sale_id' => $sale->id, 'customer_id' => $customer?->id, 'product_id' => $line['product']->id, 'product_unit_id' => $line['product_unit_id']],
                     );
                 }
             }
@@ -359,6 +373,14 @@ final class RetailSaleAction
                     'name_ar' => $line['product']->name_ar,
                     'name_en' => $line['product']->name_en,
                     'variant_snapshot' => $line['product']->variantSnapshot(),
+                    'product_unit_id' => $line['product_unit_id'],
+                    'entered_quantity' => $line['entered_quantity'],
+                    'conversion_factor_snapshot' => $line['conversion_factor_snapshot'],
+                    'entered_unit_price' => $line['entered_unit_price'],
+                    'price_list_id' => $line['price_list_id'],
+                    'customer_product_price_id' => $line['customer_product_price_id'],
+                    'price_source' => $line['price_source'],
+                    'minimum_price_snapshot' => $line['minimum_price'],
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unit_price'],
                     'reference_price' => $line['reference_price'],
@@ -414,7 +436,7 @@ final class RetailSaleAction
     }
 
     /** @param array<int, array<string, mixed>> $requestedLines @return array<int, array<string, mixed>> */
-    private function resolveLines(User $cashier, Store $store, array $requestedLines): array
+    private function resolveLines(User $cashier, Store $store, array $requestedLines, ?Customer $customer = null): array
     {
         if ($requestedLines === []) {
             throw new InvalidArgumentException(__('Add at least one product to the cart.'));
@@ -445,15 +467,15 @@ final class RetailSaleAction
                 ? $this->quantityConverter->execute($product, $productUnit, $enteredQuantity)
                 : $enteredQuantity;
 
-            $price = $this->prices->resolve($product->id, $store->id);
+            $price = $this->prices->resolve($product->id, $store->id, productUnitId: $productUnit?->id, customerId: $customer?->id);
             if (! $price instanceof PriceLine) {
                 throw new InvalidArgumentException(__('Product has no positive selling price for this store.'));
             }
 
-            $standardPrice = DecimalMoney::normalize((string) $price->amount, 4);
-            $referencePrice = DecimalMoney::normalize((string) ($price->reference_amount ?? $price->amount), 4);
-            $unitPrice = $standardPrice;
-            $enteredUnitPrice = bcmul($standardPrice, $factor, 4);
+            $enteredReferencePrice = DecimalMoney::normalize((string) ($price->reference_amount ?? $price->amount), 4);
+            $enteredUnitPrice = DecimalMoney::normalize((string) $price->amount, 4);
+            $unitPrice = bcdiv($enteredUnitPrice, $factor, 4);
+            $referencePrice = bcdiv($enteredReferencePrice, $factor, 4);
             $openPriceReason = null;
             $isOpenPrice = filled($requested['open_price_amount'] ?? null);
             $openPriceApprovalId = filled($requested['open_price_approval_id'] ?? null)
@@ -470,15 +492,16 @@ final class RetailSaleAction
                 $unitPrice = bcdiv($enteredUnitPrice, $factor, 4);
                 $openPriceReason = trim((string) ($requested['open_price_reason'] ?? ''));
                 $this->openPrices->validateOrThrow(
-                    referenceAmount: $referencePrice,
-                    requestedAmount: $unitPrice,
-                    minimum: $price->open_price_minimum === null ? null : (string) $price->open_price_minimum,
+                    referenceAmount: $enteredReferencePrice,
+                    requestedAmount: $enteredUnitPrice,
+                    minimum: $price->minimum_selling_price ?? $price->open_price_minimum,
                     maximum: $price->open_price_maximum === null ? null : (string) $price->open_price_maximum,
                     hasPermission: true,
                     reason: $openPriceReason,
+                    allowBelowMinimum: $cashier->can('pos_sales.override_below_minimum'),
                 );
                 $approvalLimit = PosFinancialSettingRegistry::numericValue(PosFinancialSettingRegistry::OPEN_PRICE_APPROVAL_LIMIT);
-                $openPriceApprovalRequired = $this->openPrices->requiresApproval($referencePrice, $unitPrice, $approvalLimit);
+                $openPriceApprovalRequired = $this->openPrices->requiresApproval($enteredReferencePrice, $enteredUnitPrice, $approvalLimit);
                 if ($openPriceApprovalRequired && $openPriceApprovalId === null) {
                     throw new InvalidArgumentException(__('Independent manager approval is required for this open-price deviation.'));
                 }
@@ -488,8 +511,8 @@ final class RetailSaleAction
                         $store,
                         $product->id,
                         $price,
-                        $referencePrice,
-                        $unitPrice,
+                        $enteredReferencePrice,
+                        $enteredUnitPrice,
                         $openPriceReason,
                         $approvalLimit,
                         $openPriceApprovalId,
@@ -555,13 +578,22 @@ final class RetailSaleAction
                 'entered_quantity' => $enteredQuantity,
                 'conversion_factor_snapshot' => bcadd($factor, '0', 6),
                 'entered_unit_price' => $enteredUnitPrice,
-                'price_line_id' => $price->id,
+                'price_identity' => $this->prices->identity($price),
+                'price_list_id' => $price->price_list_id,
+                'customer_product_price_id' => $price->customer_product_price_id,
+                'price_source' => $price->price_source,
+                'customer_id' => $customer?->id,
+                'minimum_price' => $price->minimum_selling_price === null ? null : DecimalMoney::normalize((string) $price->minimum_selling_price, 4),
+                'resolved_entered_price' => DecimalMoney::normalize((string) $price->amount, 4),
+                'below_minimum' => false,
+                'minimum_override_reason' => null,
                 'quantity' => DecimalMoney::normalize($quantity, 6),
                 'unit_price' => $unitPrice,
                 'reference_price' => $referencePrice,
+                'entered_reference_price' => $enteredReferencePrice,
                 'is_open_price' => $isOpenPrice,
-                'open_price_minimum' => $isOpenPrice ? (string) $price->open_price_minimum : null,
-                'open_price_maximum' => $isOpenPrice ? (string) $price->open_price_maximum : null,
+                'open_price_minimum' => $isOpenPrice && $price->open_price_minimum !== null ? (string) $price->open_price_minimum : null,
+                'open_price_maximum' => $isOpenPrice && $price->open_price_maximum !== null ? (string) $price->open_price_maximum : null,
                 'open_price_reason' => $openPriceReason,
                 'open_price_approval_id' => $openPriceApprovalId,
                 'open_price_approval_required' => $openPriceApprovalRequired,
@@ -587,9 +619,13 @@ final class RetailSaleAction
     private function assertPricesRemainCurrent(Store $store, array $lines): void
     {
         foreach ($lines as $line) {
-            PriceLine::query()->lockForUpdate()->findOrFail($line['price_line_id']);
-            $current = $this->prices->resolve($line['product']->id, $store->id);
-            if ($current === null || (int) $current->id !== (int) $line['price_line_id']) {
+            $current = $this->prices->resolve($line['product']->id, $store->id, productUnitId: $line['product_unit_id'], customerId: $line['customer_id'] ?? null);
+            if ($current === null) {
+                throw new InvalidArgumentException(__('A basket price changed before checkout. Review the basket and try again.'));
+            }
+            $this->prices->lockSource($current);
+            $current = $this->prices->resolve($line['product']->id, $store->id, productUnitId: $line['product_unit_id'], customerId: $line['customer_id'] ?? null);
+            if ($current === null || ! hash_equals($line['price_identity'], $this->prices->identity($current))) {
                 throw new InvalidArgumentException(__('A basket price changed before checkout. Review the basket and try again.'));
             }
         }
@@ -603,13 +639,13 @@ final class RetailSaleAction
                 continue;
             }
 
-            $price = $this->prices->resolve($line['product']->id, $store->id);
+            $price = $this->prices->resolve($line['product']->id, $store->id, productUnitId: $line['product_unit_id'], customerId: $line['customer_id']);
             if (! $price instanceof PriceLine) {
                 throw new InvalidArgumentException(__('The approved price is no longer available for this open-price line.'));
             }
 
             $approvalLimit = PosFinancialSettingRegistry::numericValue(PosFinancialSettingRegistry::OPEN_PRICE_APPROVAL_LIMIT);
-            $required = $this->openPrices->requiresApproval((string) $line['reference_price'], (string) $line['unit_price'], $approvalLimit);
+            $required = $this->openPrices->requiresApproval((string) $line['entered_reference_price'], (string) $line['entered_unit_price'], $approvalLimit);
             if ($required && $line['open_price_approval_id'] === null) {
                 throw new InvalidArgumentException(__('Independent manager approval is required before checkout.'));
             }
@@ -619,8 +655,8 @@ final class RetailSaleAction
                 $store,
                 (int) $line['product']->id,
                 $price,
-                (string) $line['reference_price'],
-                (string) $line['unit_price'],
+                (string) $line['entered_reference_price'],
+                (string) $line['entered_unit_price'],
                 (string) $line['open_price_reason'],
                 $approvalLimit,
                 $line['open_price_approval_id'],
@@ -673,10 +709,9 @@ final class RetailSaleAction
         $sourceHash = $this->openPrices->fingerprint([
             'product_id' => $productId,
             'store_id' => (int) $store->id,
-            'price_line_id' => (int) $price->id,
-            'price_updated_at' => (string) $price->updated_at,
+            'price_identity' => $this->prices->identity($price),
             'reference' => $reference,
-            'minimum' => $price->open_price_minimum,
+            'minimum' => $price->minimum_selling_price ?? $price->open_price_minimum,
             'maximum' => $price->open_price_maximum,
             'requested_amount' => DecimalMoney::normalize($requested, 4),
             'reason' => trim($reason),
@@ -706,7 +741,11 @@ final class RetailSaleAction
             }
 
             if ($line['discount_approval_id'] !== null) {
-                $price = PriceLine::query()->lockForUpdate()->findOrFail((int) $line['price_line_id']);
+                $price = $this->prices->resolve($line['product']->id, $store->id, productUnitId: $line['product_unit_id'], customerId: $line['customer_id']);
+                if (! $price instanceof PriceLine) {
+                    throw new InvalidArgumentException(__('The approved price is no longer available for this discount line.'));
+                }
+                $this->prices->lockSource($price);
                 $line['discount_approver_id'] = $this->assertDiscountApproval(
                     $cashier,
                     $store,
@@ -771,7 +810,7 @@ final class RetailSaleAction
             throw new InvalidArgumentException(__('The discount approval has expired. Request a fresh decision.'));
         }
 
-        $sourceVersion = (string) $price->id.':'.(string) $price->updated_at;
+        $sourceVersion = $this->prices->identity($price);
         if ($approval->source_version !== $sourceVersion) {
             throw new InvalidArgumentException(__('The discount approval is stale. Request approval again for the current price policy.'));
         }
@@ -779,8 +818,7 @@ final class RetailSaleAction
         $sourceHash = $this->openPrices->fingerprint([
             'product_id' => $productId,
             'store_id' => (int) $store->id,
-            'price_line_id' => (int) $price->id,
-            'price_updated_at' => (string) $price->updated_at,
+            'price_identity' => $this->prices->identity($price),
             'gross' => $gross,
             'discount_amount' => DecimalMoney::round($discountAmount),
             'discount_type' => $discountType,
@@ -795,6 +833,29 @@ final class RetailSaleAction
         }
 
         return (int) $approval->approver_id;
+    }
+
+    /** @param array<int, array<string, mixed>> $lines @param array<string, mixed> $totals */
+    private function assertMinimumPrices(User $cashier, array &$lines, array $totals): void
+    {
+        foreach ($lines as $index => &$line) {
+            if ($line['minimum_price'] === null) {
+                continue;
+            }
+            $netUnit = bcdiv((string) $totals['lines'][$index]['net_amount'], (string) $line['entered_quantity'], 4);
+            $line['net_entered_unit_price'] = $netUnit;
+            if (bccomp($netUnit, (string) $line['minimum_price'], 4) >= 0) {
+                continue;
+            }
+
+            $reason = trim((string) ($line['open_price_reason'] ?: $line['discount_reason']));
+            if (! $cashier->can('pos_sales.override_below_minimum') || $reason === '') {
+                throw new InvalidArgumentException(__('The net selling price is below the minimum allowed for this unit. An authorized override and reason are required.'));
+            }
+            $line['below_minimum'] = true;
+            $line['minimum_override_reason'] = $reason;
+        }
+        unset($line);
     }
 
     private function resolveTax(User $cashier, bool $applicable): ?TaxSetting
@@ -1089,8 +1150,9 @@ final class RetailSaleAction
 
         $requestedLines = $sale->lines->sortBy('line_number')->map(static fn (SaleLine $line): array => [
             'product_id' => (int) $line->product_id,
-            'quantity' => (string) $line->quantity,
-            'open_price_amount' => $line->is_open_price ? (string) $line->unit_price : null,
+            'product_unit_id' => $line->product_unit_id,
+            'quantity' => (string) $line->entered_quantity,
+            'open_price_amount' => $line->is_open_price ? (string) $line->entered_unit_price : null,
             'open_price_reason' => $line->open_price_reason,
             'open_price_approval_id' => $line->open_price_approval_record_id,
             'discount_amount' => (string) $line->discount_amount,
@@ -1100,7 +1162,8 @@ final class RetailSaleAction
             'discount_previous_amount' => (string) $line->discount_amount,
         ])->values()->all();
 
-        $lines = $this->resolveLines($cashier, $store, $requestedLines);
+        $sale->loadMissing('customer');
+        $lines = $this->resolveLines($cashier, $store, $requestedLines, $sale->customer);
         $this->assertPricesRemainCurrent($store, $lines);
         $this->assertOpenPriceApprovalsRemainCurrent($cashier, $store, $lines);
         $this->assertDiscountApprovalsRemainCurrent($cashier, $store, $lines);
@@ -1114,6 +1177,7 @@ final class RetailSaleAction
             '0.00',
             $tax === null ? ['applicable' => false] : ['applicable' => true, 'rate' => (string) $tax->rate, 'inclusive' => (bool) $tax->is_tax_inclusive],
         );
+        $this->assertMinimumPrices($cashier, $lines, $totals);
 
         return compact('shift', 'lines', 'tax', 'totals');
     }
@@ -1132,7 +1196,7 @@ final class RetailSaleAction
                 'product_unit_id' => $line['product_unit_id'],
                 'entered_quantity' => $line['entered_quantity'],
                 'conversion_factor_snapshot' => $line['conversion_factor_snapshot'],
-                'price_line_id' => $line['price_line_id'],
+                'price_identity' => $line['price_identity'],
                 'quantity' => $line['quantity'],
                 'unit_price' => $line['unit_price'],
                 'discount_amount' => $line['discount_amount'],

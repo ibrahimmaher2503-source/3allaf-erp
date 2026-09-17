@@ -1,43 +1,16 @@
 <?php
-use App\Modules\Catalog\Models\Product; use App\Modules\Platform\Models\Company; use App\Modules\Platform\Models\Store; use App\Modules\Pricing\Actions\SaveProductPriceOverrideAction; use App\Modules\Pricing\Models\PriceList; use App\Modules\Pricing\Services\PriceListResolver; use Flux\Flux; use Illuminate\Support\Facades\Gate; use Livewire\Component;
+use App\Modules\Catalog\Models\Product; use App\Modules\Platform\Models\Company; use App\Modules\Pricing\Actions\SaveProductPriceOverrideAction; use App\Modules\Pricing\Models\PriceList; use App\Modules\Pricing\Services\PriceListResolver; use Flux\Flux; use Illuminate\Support\Facades\Gate; use Livewire\Component;
 new class extends Component {
- public int $productId; public ?int $editingListId=null; public string $overrideAmount=''; public string $overrideReason=''; public string $overrideFrom=''; public string $overrideTo='';
+ public int $productId; public ?int $editingListId=null; public ?int $editingUnitId=null; public string $overrideAmount=''; public string $minimumPrice=''; public string $overrideReason=''; public string $overrideFrom=''; public string $overrideTo='';
  public function mount(Product $product):void{Gate::authorize('pricing_lists.view');$this->productId=$product->id;}
- public function editOverride(int $id):void{Gate::authorize('pricing_lists.overrides');$o=Product::findOrFail($this->productId)->priceOverrides()->where('price_list_id',$id)->first();$this->editingListId=$id;$this->overrideAmount=(string)($o?->amount??'');$this->overrideReason=$o?->reason??'';$this->overrideFrom=$o?->effective_from?->toDateString()??'';$this->overrideTo=$o?->effective_to?->toDateString()??'';}
- public function saveOverride(SaveProductPriceOverrideAction $action):void{$d=$this->validate(['overrideAmount'=>['nullable','decimal:0,3','gt:0'],'overrideReason'=>['required','string','max:2000'],'overrideFrom'=>['nullable','date'],'overrideTo'=>['nullable','date','after_or_equal:overrideFrom']]);$action->execute(Product::findOrFail($this->productId),PriceList::findOrFail($this->editingListId),$d['overrideAmount'],$d['overrideReason'],$d['overrideFrom'],$d['overrideTo']);$this->editingListId=null;Flux::toast(variant:'success',text:__('Product price override saved.'));}
- public function with():array{$product=Product::findOrFail($this->productId);$companyId=(int)Company::where('status','active')->value('id');$resolver=app(PriceListResolver::class);$rows=PriceList::where('company_id',$companyId)->where('status','active')->orderBy('list_number')->get()->map(function($list)use($resolver,$product){try{return['list'=>$list,'resolved'=>$resolver->resolve($product,$list),'error'=>null];}catch(\Throwable $e){return['list'=>$list,'resolved'=>null,'error'=>\App\Support\UserSafeError::message($e)];}});return compact('product','rows');}
+ public function editOverride(int $listId,int $unitId):void{Gate::authorize('pricing_lists.overrides');$product=Product::with('productUnits')->findOrFail($this->productId);$unit=$product->productUnits->firstWhere('id',$unitId)??abort(404);$override=$product->priceOverrides()->where('price_list_id',$listId)->where('product_unit_id',$unitId)->first();$this->editingListId=$listId;$this->editingUnitId=$unitId;$this->overrideAmount=(string)($override?->amount??'');$this->minimumPrice=(string)($unit->minimum_selling_price??'');$this->overrideReason=$override?->reason??'';$this->overrideFrom=$override?->effective_from?->toDateString()??'';$this->overrideTo=$override?->effective_to?->toDateString()??'';}
+ public function saveOverride(SaveProductPriceOverrideAction $action):void{$data=$this->validate(['overrideAmount'=>['nullable','decimal:0,4','gt:0'],'minimumPrice'=>['nullable','decimal:0,4','min:0'],'overrideReason'=>['required','string','max:2000'],'overrideFrom'=>['nullable','date'],'overrideTo'=>['nullable','date','after_or_equal:overrideFrom']]);$action->execute(Product::findOrFail($this->productId),PriceList::findOrFail($this->editingListId),$data['overrideAmount'],$data['overrideReason'],$data['overrideFrom'],$data['overrideTo'],$this->editingUnitId,$data['minimumPrice']);$this->editingListId=$this->editingUnitId=null;Flux::toast(variant:'success',text:__('Selling-unit price saved.'));}
+ public function with():array{$product=Product::with(['productUnits.unit','priceOverrides'])->findOrFail($this->productId);$companyId=(int)Company::where('status','active')->value('id');$lists=PriceList::where('company_id',$companyId)->where('status','active')->orderBy('list_number')->get();$resolver=app(PriceListResolver::class);$units=$product->productUnits->where('is_sale_unit',true)->map(function($unit)use($resolver,$product,$lists){$prices=$lists->mapWithKeys(function($list)use($resolver,$product,$unit){try{return[$list->id=>['value'=>$resolver->resolveForUnit($product,$unit,$list)->finalPrice,'error'=>null]];}catch(\Throwable $e){return[$list->id=>['value'=>null,'error'=>\App\Support\UserSafeError::message($e)]];}});return['unit'=>$unit,'prices'=>$prices];});return compact('product','lists','units');}
 }; ?>
 <section class="form-section space-y-4" aria-labelledby="product-pricing-title">
-    <div>
-        <h2 id="product-pricing-title" class="text-lg font-semibold">{{ __('Pricing matrix') }}</h2>
-        <p class="text-sm text-zinc-600">{{ __('List 0 comes directly from the Product Card. Overrides win without automatic rounding; removing one restores the percentage calculation.') }}</p>
-    </div>
-    <div class="table-panel-surface">
-        <table class="data-table">
-            <thead><tr><th>{{ __('Price list') }}</th><th>{{ __('Percentage') }}</th><th>{{ __('Base price') }}</th><th>{{ __('Pre-round price') }}</th><th>{{ __('Effective price') }}</th><th>{{ __('Source') }}</th><th>{{ __('Actions') }}</th></tr></thead>
-            <tbody>
-            @foreach ($rows as $row)
-                <tr>
-                    <td>{{ $row['list']->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $row['list']->name_ar : $row['list']->name_en }}</td>
-                    <td dir="ltr">{{ $row['list']->percentage_increase }}%</td>
-                    @if ($row['resolved'])
-                        <td dir="ltr">{{ $row['resolved']->basePrice }} {{ __('EGP') }}</td>
-                        <td dir="ltr">{{ $row['resolved']->calculatedPrice }} {{ __('EGP') }}</td>
-                        <td dir="ltr"><strong>{{ $row['resolved']->finalPrice }} {{ __('EGP') }}</strong></td>
-                        <td>{{ $row['resolved']->overridden ? __('Manual override') : __('Calculated') }}</td>
-                    @else
-                        <td colspan="4" class="text-amber-700">{{ $row['error'] }}</td>
-                    @endif
-                    <td>
-                        @if (! $row['list']->isBase())
-                            @can('pricing_lists.overrides')
-                                <x-actions.button type="button" wire:click="editOverride({{ $row['list']->id }})" semantic="edit" :label="__('Edit override')" />
-                            @endcan
-                        @endif
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    </div>
-@if($editingListId)<div class="rounded-xl border p-4 grid gap-3 md:grid-cols-2"><flux:input wire:model="overrideAmount" type="number" step="0.001" :label="__('Manual price (leave empty to remove)')"/><flux:input wire:model="overrideReason" :label="__('Reason')" required/><flux:input wire:model="overrideFrom" type="date" :label="__('Effective from')"/><flux:input wire:model="overrideTo" type="date" :label="__('Effective to')"/><div class="md:col-span-2 flex justify-end"><flux:button variant="primary" wire:click="saveOverride" wire:target="saveOverride" wire:loading.attr="disabled"><span wire:loading.remove wire:target="saveOverride">{{__('Save')}}</span><span wire:loading wire:target="saveOverride">{{__('Saving…')}}</span></flux:button></div></div>@endif</section>
+ <div class="flex flex-wrap items-end justify-between gap-3"><div><h2 id="product-pricing-title" class="text-lg font-semibold">{{ __('أسعار البيع') }}</h2><p class="text-sm text-zinc-600">{{ __('كل وحدة بيع لها سعر مستقل؛ معامل تحويل المخزون لا يحسب سعر البيع.') }}</p></div>@canany(['products_categories_brands.cost_view','inventory_stock_card.cost_view'])<div class="text-sm text-zinc-600">{{ __('متوسط التكلفة') }}: <strong dir="ltr">{{ $product->average_cost }} {{ __('ج.م') }}</strong></div>@endcanany</div>
+ <div class="table-panel-surface overflow-x-auto"><table class="data-table"><thead><tr><th>{{ __('الوحدة') }}</th>@foreach($lists as $list)<th>{{ str_starts_with(app()->getLocale(),'ar')?$list->name_ar:$list->name_en }}</th>@endforeach<th>{{ __('الحد الأدنى لسعر البيع') }}</th><th>{{ __('إجراء') }}</th></tr></thead><tbody>
+ @forelse($units as $row)<tr><td><strong>{{ str_starts_with(app()->getLocale(),'ar')?$row['unit']->unit?->name_ar:$row['unit']->unit?->name_en }}</strong><div class="text-xs text-zinc-500">{{ $row['unit']->unit?->code }}</div></td>@foreach($lists as $list)<td dir="ltr">@if($row['prices'][$list->id]['value']!==null)<strong>{{ $row['prices'][$list->id]['value'] }} {{ __('ج.م') }}</strong>@else<span class="text-amber-700" title="{{ $row['prices'][$list->id]['error'] }}">{{ __('غير مسعر') }}</span>@endif</td>@endforeach<td dir="ltr">{{ $row['unit']->minimum_selling_price ?? '—' }} @if($row['unit']->minimum_selling_price!==null){{ __('ج.م') }}@endif</td><td>@can('pricing_lists.overrides')<div class="flex flex-wrap gap-1">@foreach($lists as $list)<x-actions.button type="button" wire:click="editOverride({{ $list->id }},{{ $row['unit']->id }})" semantic="edit" :label="__('تعديل').' '.(str_starts_with(app()->getLocale(),'ar')?$list->name_ar:$list->name_en)" />@endforeach</div>@endcan</td></tr>@empty<tr><td colspan="{{ $lists->count()+3 }}" class="text-center text-zinc-500">{{ __('لا توجد وحدات بيع مفعلة لهذا الصنف.') }}</td></tr>@endforelse
+ </tbody></table></div>
+ @if($editingListId&&$editingUnitId)<div class="rounded-xl border p-4 grid gap-3 md:grid-cols-2"><flux:input wire:model="overrideAmount" type="number" step="0.0001" :label="__('سعر الوحدة في القائمة (اتركه فارغًا للحذف)')"/><flux:input wire:model="minimumPrice" type="number" step="0.0001" min="0" :label="__('الحد الأدنى لسعر البيع')"/><flux:input wire:model="overrideReason" :label="__('سبب التغيير')" required/><div></div><flux:input wire:model="overrideFrom" type="date" :label="__('ساري من')"/><flux:input wire:model="overrideTo" type="date" :label="__('ساري إلى')"/><div class="md:col-span-2 flex justify-end"><flux:button variant="primary" wire:click="saveOverride" wire:target="saveOverride" wire:loading.attr="disabled"><span wire:loading.remove wire:target="saveOverride">{{__('حفظ السعر')}}</span><span wire:loading wire:target="saveOverride">{{__('جارٍ الحفظ…')}}</span></flux:button></div></div>@endif
+</section>

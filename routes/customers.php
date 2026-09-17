@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Modules\Catalog\Models\ProductUnit;
 use App\Modules\Customer\Actions\ApproveLoyaltyAdjustmentAction;
 use App\Modules\Customer\Actions\CreateCustomerAction;
 use App\Modules\Customer\Actions\CreateCustomerGroupAction;
@@ -32,8 +33,8 @@ use App\Modules\Customer\Models\PartyWalletAdjustment;
 use App\Modules\Customer\Models\PartyWalletLedger;
 use App\Modules\Customer\Models\ProductWalletAdjustment;
 use App\Modules\Customer\Models\ProductWalletLedger;
-use App\Modules\Customer\Support\CustomerPolicy;
 use App\Modules\Customer\Support\CustomerBalance;
+use App\Modules\Customer\Support\CustomerPolicy;
 use App\Modules\Customer\Support\PartyWalletBalance;
 use App\Modules\Customer\Support\PhoneNormalizer;
 use App\Modules\Customer\Support\ProductWalletBalance;
@@ -44,6 +45,10 @@ use App\Modules\Platform\Models\ApprovalRecord;
 use App\Modules\Platform\Models\City;
 use App\Modules\Platform\Models\Governorate;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Pricing\Actions\AssignCustomerPriceListAction;
+use App\Modules\Pricing\Actions\SaveCustomerProductPriceAction;
+use App\Modules\Pricing\Models\PriceList;
+use App\Modules\Pricing\Services\PriceListResolver;
 use App\Modules\Retail\Models\Sale;
 use App\Support\DataExchange\ImportTemplateFactory;
 use App\Support\DataExchange\MasterDataDocument;
@@ -386,7 +391,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $customer = Customer::query()->visibleTo($user)->whereKey($customerId)->where('status', 'active')->firstOrFail();
         $store = Store::query()->visibleTo($user)->with('company')->where('status', 'active')->find($customer->created_store_id)
             ?? $sellingStore($user)->load('company');
-        $customer->load(['scopes.store', 'scopes.branch', 'group.parent', 'governorate', 'city']);
+        $customer->load(['scopes.store', 'scopes.branch', 'group.parent', 'governorate', 'city', 'priceList']);
         $historyIds = Customer::query()->where(fn ($query) => $query->whereKey($customer->id)->orWhere('merged_into_id', $customer->id))->pluck('id');
         $consents = collect();
         if ($user->can('customers.sensitive')) {
@@ -421,8 +426,19 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         if ($availableCredit !== null && bccomp($availableCredit, '0', 4) < 0) {
             $availableCredit = '0.0000';
         }
+        $priceLists = PriceList::query()->where('company_id', $store->company_id)->where('status', 'active')->orderBy('list_number')->get();
+        $specialPrices = $customer->specialPrices()->with(['product', 'productUnit.unit'])->latest('id')->limit(50)->get();
+        $normalList = $customer->priceList ?: app(PriceListResolver::class)->listForOutlet($store);
+        $specialPrices->each(function ($special) use ($normalList): void {
+            try {
+                $special->setAttribute('normal_customer_price', app(PriceListResolver::class)->resolveForUnit($special->product, $special->productUnit, $normalList)->finalPrice);
+            } catch (Throwable) {
+                $special->setAttribute('normal_customer_price', null);
+            }
+        });
+        $sellingUnits = ProductUnit::query()->with(['product', 'unit'])->where('is_sale_unit', true)->whereHas('product', fn ($query) => $query->sellable())->orderBy('product_id')->limit(100)->get();
 
-        return view('pages.customers.show', compact('customer', 'store', 'sales', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities', 'currencyCode', 'arInvoices', 'arOutstanding', 'unappliedCredit', 'currentBalance', 'availableCredit'));
+        return view('pages.customers.show', compact('customer', 'store', 'sales', 'partyBookings', 'balance', 'dueExpiry', 'adjustments', 'consents', 'productWalletBalance', 'partyWalletBalance', 'groupOptions', 'governorates', 'cities', 'currencyCode', 'arInvoices', 'arOutstanding', 'unappliedCredit', 'currentBalance', 'availableCredit', 'priceLists', 'specialPrices', 'sellingUnits'));
     })->middleware('can:customers.view')->name('customers.show');
 
     Route::put('customers/{customerId}', function (Request $request, int $customerId, UpdateCustomerAction $action) use ($sellingStore) {
@@ -458,6 +474,33 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         return to_route('customers.show', $saved)->with('success', __('Customer profile updated.'));
     })->middleware('can:customers.edit')->name('customers.update');
+
+    Route::post('customers/{customerId}/pricing/list', function (Request $request, int $customerId, AssignCustomerPriceListAction $action) {
+        $data = $request->validate(['price_list_id' => ['nullable', 'integer']]);
+        $customer = Customer::query()->visibleTo($request->user())->whereKey($customerId)->where('status', 'active')->firstOrFail();
+        $list = filled($data['price_list_id'] ?? null) ? PriceList::query()->findOrFail((int) $data['price_list_id']) : null;
+        $action->execute($request->user(), $customer, $list);
+
+        return back()->with('success', __('تم تحديث نوع سعر العميل.'));
+    })->middleware('can:pricing_lists.assign')->name('customers.pricing.list');
+
+    Route::post('customers/{customerId}/pricing/special', function (Request $request, int $customerId, SaveCustomerProductPriceAction $action) {
+        $data = $request->validate(['product_unit_id' => ['required', 'integer'], 'price' => ['required', 'decimal:0,4', 'gt:0'], 'reason' => ['required', 'string', 'max:2000'], 'effective_from' => ['nullable', 'date'], 'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from']]);
+        $customer = Customer::query()->visibleTo($request->user())->whereKey($customerId)->where('status', 'active')->firstOrFail();
+        $unit = ProductUnit::query()->with('product')->findOrFail((int) $data['product_unit_id']);
+        $action->execute($request->user(), $customer, $unit->product, $unit, (string) $data['price'], (string) $data['reason'], $data['effective_from'] ?? null, $data['effective_to'] ?? null);
+
+        return back()->with('success', __('تم حفظ السعر الخاص للعميل.'));
+    })->middleware('can:pricing_lists.overrides')->name('customers.pricing.special');
+
+    Route::delete('customers/{customerId}/pricing/special/{specialId}', function (Request $request, int $customerId, int $specialId, SaveCustomerProductPriceAction $action) {
+        $data = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
+        $customer = Customer::query()->visibleTo($request->user())->whereKey($customerId)->where('status', 'active')->firstOrFail();
+        $special = $customer->specialPrices()->whereKey($specialId)->where('status', 'active')->with(['product', 'productUnit'])->firstOrFail();
+        $action->execute($request->user(), $customer, $special->product, $special->productUnit, null, (string) $data['reason']);
+
+        return back()->with('success', __('تم إنهاء السعر الخاص مع الاحتفاظ بالتاريخ.'));
+    })->middleware('can:pricing_lists.overrides')->name('customers.pricing.special.expire');
 
     Route::post('customers/{customerId}/consents', function (Request $request, int $customerId, RecordCustomerConsentAction $action) use ($sellingStore) {
         /** @var User $user */

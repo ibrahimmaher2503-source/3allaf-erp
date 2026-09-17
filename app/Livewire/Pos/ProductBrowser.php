@@ -12,6 +12,7 @@ use App\Modules\Inventory\Models\StockBalance;
 use App\Modules\Pricing\Services\EffectivePriceResolver;
 use App\Modules\Retail\Actions\PosCartAction;
 use App\Modules\Retail\Support\PosContextResolver;
+use App\Support\UserSafeError;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -109,7 +110,7 @@ final class ProductBrowser extends Component
             $this->selectedVariantId = null;
             $this->quantity = '1';
         } catch (\Throwable $exception) {
-            $this->addError('selection', \App\Support\UserSafeError::message($exception));
+            $this->addError('selection', UserSafeError::message($exception));
         }
     }
 
@@ -145,11 +146,12 @@ final class ProductBrowser extends Component
         }
         $products = $query->get();
         $simpleIds = $products->where('has_variations', false)->pluck('id');
-        $simplePrices = $store ? $prices->resolveForStore($simpleIds->all(), $store->id) : collect();
+        $customerId = request()->session()->get('pos.customer_id');
+        $simplePrices = $store ? $prices->resolveForStore($simpleIds->all(), $store->id, customerId: $customerId ? (int) $customerId : null) : collect();
         $simpleStock = $store ? StockBalance::query()->where('store_id', $store->id)->whereIn('product_id', $simpleIds)->get()->keyBy('product_id') : collect();
         $familyIds = $products->where('has_variations', true)->pluck('id');
         $familyVariants = Product::query()->whereIn('parent_product_id', $familyIds)->where('status', 'active')->get(['id', 'parent_product_id']);
-        $variantPrices = $store ? $prices->resolveForStore($familyVariants->pluck('id')->all(), $store->id) : collect();
+        $variantPrices = $store ? $prices->resolveForStore($familyVariants->pluck('id')->all(), $store->id, customerId: $customerId ? (int) $customerId : null) : collect();
         $familyRanges = $familyVariants->groupBy('parent_product_id')->map(function ($variants) use ($variantPrices): ?object {
             $amounts = $variants->map(fn (Product $variant): mixed => $variantPrices->get($variant->id)?->amount)->filter()->values();
 
@@ -164,7 +166,7 @@ final class ProductBrowser extends Component
         if ($this->openFamilyId && $store) {
             $drawer = Product::query()->with(['images.attachment', 'familyOptionGroups.values', 'variants' => fn ($q) => $q->with(['images.attachment', 'barcodes', 'variantValues.group', 'variantValues.value'])->orderBy('variant_sort_order')])->find($this->openFamilyId);
             if ($drawer) {
-                $drawerPrices = $prices->resolveForStore($drawer->variants->pluck('id')->all(), $store->id);
+                $drawerPrices = $prices->resolveForStore($drawer->variants->pluck('id')->all(), $store->id, customerId: $customerId ? (int) $customerId : null);
                 $drawerStock = StockBalance::query()->where('store_id', $store->id)->whereIn('product_id', $drawer->variants->pluck('id'))->get()->keyBy('product_id');
                 foreach ($drawer->familyOptionGroups as $group) {
                     foreach ($group->values as $value) {
