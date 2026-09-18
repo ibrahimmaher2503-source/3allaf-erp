@@ -1,4 +1,21 @@
 {
+    "Archive :code? It will be unavailable for new transactions, while all history remains unchanged.": "هل تريد أرشفة الصنف :code؟ لن يكون متاحًا للمعاملات الجديدة، مع الاحتفاظ بكل سجلاته السابقة.",
+    "Archive :code? It will be unavailable for new transactions.": "هل تريد أرشفة الصنف :code؟ لن يكون متاحًا للمعاملات الجديدة.",
+    "Archive product": "أرشفة الصنف",
+    "Delete permanently": "حذف نهائي",
+    "No operational or historical dependency was found. Permanent deletion removes only this product and its non-historical catalog configuration.": "لا توجد معاملات أو سجلات تاريخية مرتبطة بالصنف. الحذف النهائي يزيل الصنف وإعداداته غير التاريخية فقط.",
+    "Permanently delete dependency-free product :code? This cannot be undone.": "هل تريد حذف الصنف :code نهائيًا؟ لا توجد سجلات مرتبطة به، ولا يمكن التراجع عن الحذف.",
+    "Product archived. Historical and operational records remain unchanged.": "تمت أرشفة الصنف، مع الاحتفاظ بسجلاته التاريخية والتشغيلية دون تغيير.",
+    "Product: :code — :name": "الصنف: :code — :name",
+    "Safe product removal": "أرشفة الصنف أو حذفه بأمان",
+    "This product has :count operational or historical dependencies. It can only be archived; every dependency remains intact.": "هذا الصنف مرتبط بـ :count سجلًا تشغيليًا أو تاريخيًا. يمكن أرشفته فقط، مع الاحتفاظ بجميع السجلات المرتبطة به.",
+    "Purchase unit": "وحدة الشراء",
+    "Conversion factor": "وزن الوحدة / معامل التحويل",
+    "Choose a purchase unit, enter its quantity and price. Stock is received in the base unit only after invoice approval.": "اختار وحدة الشراء، ثم أدخل عدد الوحدات وسعر الوحدة الواحدة. المخزون يزيد بالوحدة الأساسية بعد اعتماد فاتورة الاستلام فقط.",
+    "Price per selected unit": "سعر وحدة الشراء",
+    "Cost per base unit": "تكلفة الوحدة الأساسية",
+    "Base quantity": "الكمية للمخزون",
+    "Select an active purchase unit for this product.": "اختر وحدة شراء نشطة ومسموحًا بها لهذا الصنف.",
     "No active lookup values are available.": "لا توجد قيم بحث نشطة متاحة.",
     "Optional catalog content stays on this product card.": "تبقى بيانات الكتالوج الاختيارية في بطاقة المنتج هذه.",
     "Product web & SEO": "خيارات متقدمة",
@@ -236,7 +253,7 @@
     "Choose product": "اختر منتجًا",
     "Product status": "حالة المنتج",
     "All product statuses": "جميع حالات المنتجات",
-    "Review wallet policy": "مراجعة سياسة المحافظ",
+    "Review wallet policy": "مراجعة إعدادات المحفظة",
     "Key": "المفتاح",
     "All required setup steps are complete": "اكتملت جميع خطوات الإعداد المطلوبة",
     "Review the saved definitions before opening daily operations.": "راجع التعريفات المحفوظة قبل بدء العمليات اليومية.",
@@ -374,7 +391,7 @@
     ":count active filter|:count active filters": ":count مفعل فلتر|:count مفعل filters",
     ":count loyalty expiry entries posted.": "تم ترحيل عدد :count حركة انتهاء صلاحية ولاء.",
     ":count reconciled metric|:count reconciled metrics": "تم تسوية :count مؤشر|تم تسوية :count مؤشرات",
-    ":count row in the selected scope|:count rows in the selected scope": ":count row في the selected scope|:count rows في the selected scope",
+    ":count row in the selected scope|:count rows in the selected scope": "{1} صف واحد ضمن النطاق المحدد|[2,*] :count صفًا ضمن النطاق المحدد",
     ":count selected": ":count محدد",
     ":count visible records": ":count سجل ظاهر",
     ":label must be a valid decimal with up to :scale decimal places.": ":label must be a صحيح decimal مع أعلى إلى :scale decimal places.",
@@ -586,12 +603,12 @@
     "All bookings": "الكل حجوزات",
     "All brands": "كل العلامات",
     "All categories": "كل الفئات",
-    "All customers": "الكل العملاء",
+    "All customers": "كل العملاء",
     "All events": "كل الأحداث",
     "All genders": "كل الأنواع",
     "All orders": "الكل طلبات",
-    "All party statuses": "الكل الحفلة statuses",
-    "All payment methods": "الكل الدفع methods",
+    "All party statuses": "جميع حالات الحفلات",
+    "All payment methods": "جميع طرق الدفع",
     "All product types": "كل أنواع المنتجات",
     "All products": "كل الأصناف",
     "All suppliers": "كل الموردين",
@@ -602,13 +619,13 @@
     "All source types": "كل أنواع المصادر",
     "All states": "كل الحالات",
     "All status": "الكل الحالة",
-    "All stores": "الكل المخازن",
+    "All stores": "كل المخازن ومنافذ البيع",
     "All unapproved tax rates, payment rules, numbering policies, currency settings, and printer templates carry explicit local TBD values. Production policy decisions remain blocked until owner sign-off.": "تحمل معدلات الضرائب وقواعد الدفع وسياسات الترقيم وإعدادات العملة وقوالب الطباعة غير المعتمدة قيمًا محلية واضحة قيد التحديد. تبقى قرارات الإنتاج معلقة حتى اعتماد المالك.",
     "All visible branches": "كل الفروع الظاهرة",
-    "All visible customer records": "الكل visible العميل records",
-    "All visible customers": "الكل visible العملاء",
+    "All visible customer records": "جميع سجلات العملاء المتاحة",
+    "All visible customers": "جميع العملاء المتاحين",
     "All visible stores": "كل المتاجر الظاهرة",
-    "All visible users": "الكل visible users",
+    "All visible users": "جميع المستخدمين المتاحين",
     "Allocate barcode": "تخصيص باركود",
     "Allow Negative Stock (DEC-012 default: Blocked)": "السماح بالمخزون السالب (الافتراضي DEC-012: محظور)",
     "Allow fractional quantity": "السماح بالكمية الكسرية",
@@ -689,24 +706,24 @@
     "Approved and pending asset events will appear here.": "معتمد و قيد الانتظار أصل events will appear هنا.",
     "Approved by": "معتمد بواسطة",
     "Approved discount": "معتمد خصم",
-    "Approved discount value": "معتمد خصم القيمة",
-    "Approved financial records": "معتمد financial records",
+    "Approved discount value": "قيمة الخصم المعتمد",
+    "Approved financial records": "السجلات المالية المعتمدة",
     "Approved financial settings": "الإعدادات المالية المعتمدة",
     "Approved for the configured Local/Dev pricing workflow.": "معتمد لـ the configured local/dev pricing workflow.",
-    "Approved invoice value": "معتمد فاتورة القيمة",
-    "Approved invoices": "معتمد فواتير",
-    "Approved lifecycle states": "معتمد lifecycle states",
+    "Approved invoice value": "قيمة الفواتير المعتمدة",
+    "Approved invoices": "الفواتير المعتمدة",
+    "Approved lifecycle states": "حالات دورة العمل المعتمدة",
     "Approved movement reversed with a linked corrective document.": "معتمد movement reversed مع a linked corrective مستند.",
     "Approved numbering and print settings are required; approval limits remain optional until the owner decides them.": "إعدادات الترقيم والطباعة المعتمدة مطلوبة؛ وتظل حدود الاعتماد اختيارية حتى يحددها المالك.",
     "Approved open price": "معتمد فتح السعر",
-    "Approved order value": "معتمد طلب القيمة",
-    "Approved orders, invoices, and returns": "معتمد طلبات, فواتير, و returns",
+    "Approved order value": "قيمة أوامر الشراء المعتمدة",
+    "Approved orders, invoices, and returns": "أوامر الشراء والفواتير والمرتجعات المعتمدة",
     "Approved price": "معتمد السعر",
     "Approved purchase invoice": "معتمد فاتورة مشتريات",
     "Approved purchase invoices": "معتمد فواتير المشتريات",
-    "Approved purchasing documents": "معتمد المشتريات مستندات",
-    "Approved return documents": "معتمد return مستندات",
-    "Approved return value": "معتمد return القيمة",
+    "Approved purchasing documents": "مستندات المشتريات المعتمدة",
+    "Approved return documents": "مستندات المرتجعات المعتمدة",
+    "Approved return value": "قيمة المرتجعات المعتمدة",
     "Approved sale": "معتمد عملية البيع",
     "Approved shift variance": "عجز/زيادة الوردية المعتمد",
     "Approved source artifacts": "مصادر وملفات معتمدة",
@@ -736,7 +753,7 @@
     "Asset Events": "أحداث الأصول",
     "Asset and consumable separation": "فصل الأصل عن المواد الاستهلاكية",
     "Asset checked out.": "أصل checked خارج.",
-    "Asset checkout and return": "أصل checkout و return",
+    "Asset checkout and return": "تسليم الأصل وإرجاعه",
     "Asset code": "أصل كود",
     "Asset condition and maintenance events will appear here when available.": "أصل condition و maintenance events will appear هنا متى available.",
     "Asset event approved.": "أصل event معتمد.",
@@ -745,15 +762,15 @@
     "Asset history": "أصل history",
     "Asset history is complete through inspection.": "أصل history is مكتمل through inspection.",
     "Asset inspection recorded.": "أصل inspection recorded.",
-    "Asset issues": "أصل issues",
+    "Asset issues": "مشكلات الأصول",
     "Asset register": "أصل register",
     "Asset reservation created.": "أصل reservation created.",
     "Asset reservations & checkout": "حجوزات الأصول والتسليم",
-    "Asset reservations and calendar": "أصل reservations و calendar",
+    "Asset reservations and calendar": "حجوزات الأصول والتقويم",
     "Asset returned for inspection.": "أصل returned لـ inspection.",
     "Asset, party/source, reason, assessment, responsible user, final status, and evidence rules remain PENDING; no event is created.": "تبقى قواعد الأصل ومصدر الحفلة والسبب والتقييم والمستخدم المسؤول والحالة النهائية والأدلة معلقة؛ لا يتم إنشاء حدث.",
     "Assets": "أصول",
-    "Assets available": "أصول available",
+    "Assets available": "الأصول المتاحة",
     "Assets reserved": "أصول محجوزة",
     "Assign an active POS selling store to": "تعيين متجر بيع نشط لنطاق",
     "Assign only approved roles and approved branch or store scope.": "عيّن الأدوار المعتمدة ونطاق الفرع أو المتجر المعتمد فقط.",
@@ -903,7 +920,7 @@
     "CSV rows": "صفوف CSV",
     "Cache": "ذاكرة التخزين المؤقت",
     "Cache Policy": "سياسة التخزين المؤقت",
-    "Calculated from recorded wallet entries": "محسوب من قيود المحفظة المسجلة",
+    "Calculated from recorded wallet entries": "محسوب من حركات المحفظة المسجلة، وليس من حساب المديونية",
     "Cancel": "إلغاء",
     "Cancel Edit": "إلغاء التعديل",
     "Cancel Order": "إلغاء الطلب",
@@ -963,7 +980,7 @@
     "Cash movement recorded.": "تم تسجيل حركة النقدية.",
     "Cash movements": "حركات النقدية",
     "Cash payable": "النقدية المستحقة",
-    "Cash refund record": "سجل مرتجع نقدي",
+    "Cash refund record": "رد مبلغ نقدي",
     "Cash residual": "المتبقي النقدي",
     "Cash rounding": "تقريب النقدية",
     "Cash rounding denomination": "فئة تقريب النقدية",
@@ -1028,21 +1045,21 @@
     "Children": "الأطفال",
     "Children and sensitive fields": "الأطفال والحقول الحساسة",
     "Children data purpose scope": "نطاق غرض بيانات الأطفال",
-    "Choose Gift Receipt": "Choose gift إيصال",
+    "Choose Gift Receipt": "اختر الإيصال بدون أسعار",
     "Choose Party store": "Choose الحفلة المخزن",
-    "Choose a completed sale to review and select its eligible lines.": "Choose a اكتمل عملية البيع إلى review و select its eligible سطور.",
+    "Choose a completed sale to review and select its eligible lines.": "اختر عملية بيع مكتملة لمراجعتها وتحديد البنود المؤهلة.",
     "Choose a priced active product. Barcode scanner input can use the same field later.": "اختر منتجًا نشطًا له سعر معتمد. يمكن استخدام الحقل نفسه لإدخال الماسح لاحقًا.",
-    "Choose a sale": "Choose a عملية البيع",
+    "Choose a sale": "اختر عملية بيع",
     "Choose active product": "Choose مفعل الصنف",
     "Choose customer": "Choose العميل",
     "Choose file": "اختيار ملف",
-    "Choose item from the selected source": "Choose صنف من the selected source",
+    "Choose item from the selected source": "اختار الصنف من المصدر المختار",
     "Choose line": "Choose سطر",
     "Choose method": "Choose الطريقة",
     "Choose no parent for a root category. Server validation rejects self-parenting and descendant cycles.": "اختر بدون أصل لإنشاء تصنيف رئيسي. يرفض الخادم التصنيف كأصل لنفسه أو لأحد أبنائه.",
-    "Choose one source only: the completed sale or its active Gift Receipt. A return is not complete until inspection, approval, settlement, and stock disposition are recorded.": "Choose one source only: the اكتمل عملية البيع أو its مفعل gift إيصال. a return is ليس مكتمل until inspection, اعتماد, settlement, و stock disposition are recorded.",
+    "Choose one source only: the completed sale or its active Gift Receipt. A return is not complete until inspection, approval, settlement, and stock disposition are recorded.": "اختر مصدرًا واحدًا: فاتورة بيع مكتملة أو إيصالها بدون أسعار. لا يكتمل المرتجع إلا بعد الفحص والاعتماد وتسوية المبلغ وتحديد مصير البضاعة.",
     "Choose retail or party activity.": "Choose التجزئة أو الحفلة activity.",
-    "Choose sale": "Choose عملية البيع",
+    "Choose sale": "اختر فاتورة البيع",
     "Choose the source before entering or allocating the identity.": "اختر المصدر قبل إدخال الهوية أو تخصيصها.",
     "Classification and type": "التصنيف والنوع",
     "Clear": "مسح",
@@ -1090,7 +1107,7 @@
     "Complete the required steps before opening operations": "أكمل الخطوات الإلزامية قبل بدء التشغيل",
     "Completed and immutable.": "اكتمل و immutable.",
     "Completed return settlements": "اكتمل return settlements",
-    "Completed sale": "بيعة مكتملة",
+    "Completed sale": "عملية بيع مكتملة",
     "Completeness, referential integrity, uniqueness, and sampled field-by-field checks must pass before any next stage or opening-stock action.": "يجب نجاح اكتمال البيانات وسلامة المراجع والتفرد وفحص العينات حقلًا بحقل قبل أي مرحلة لاحقة أو إجراء للمخزون الافتتاحي.",
     "Composite": "مركب",
     "Composite type boundary": "حدود النوع المركب",
@@ -1215,7 +1232,7 @@
     "Create operating order": "إنشاء operating طلب",
     "Create product card": "إنشاء بطاقة منتج",
     "Create product identity": "إنشاء هوية منتج",
-    "Create source-linked return documents; the original sale is never edited.": "إنشاء source-linked return مستندات; the original عملية البيع is never edited.",
+    "Create source-linked return documents; the original sale is never edited.": "أنشئ مرتجعًا مرتبطًا بفاتورة البيع الأصلية؛ لا يتم تعديل الفاتورة الأصلية.",
     "Create the first asset to start the availability calendar and history.": "إنشاء the الأول أصل إلى البداية the availability calendar و history.",
     "Create typed offers that are printable and shareable, with no stock, payment, reservation, wallet, or accounting effect.": "إنشاء typed offers ذلك are printable و shareable, مع لا stock, الدفع, reservation, محفظة, أو accounting effect.",
     "Create user": "إنشاء المستخدم",
@@ -1270,7 +1287,7 @@
     "Customer master, privacy & history": "سجل العملاء والخصوصية والتاريخ",
     "Customer policy settings saved. Owner approval is still required before publishing a policy.": "تم حفظ إعدادات سياسات العملاء. ما زال اعتماد المسؤول مطلوبًا قبل نشر السياسة.",
     "Customer price": "سعر العميل",
-    "Customer profile": "ملف العميل",
+    "Customer profile": "بيانات العميل",
     "Customer profile created.": "العميل profile created.",
     "Customer profile updated.": "العميل profile updated.",
     "Customer profiles merged with history preserved.": "العميل profiles merged مع history preserved.",
@@ -1281,7 +1298,7 @@
     "Customer settings": "إعدادات العملاء",
     "Customer sources": "العميل sources",
     "Customer value": "قيمة العملاء",
-    "Customer wallet": "العميل محفظة",
+    "Customer wallet": "محفظة العميل",
     "Customer, child, and privacy": "العميل والطفل والخصوصية",
     "Customer, party, and asset workflows": "مسارات العملاء والحفلات والأصول",
     "DEC-038 grants no catalog cost-field capability in the current local matrix, so cost is omitted from this view.": "لا تمنح DEC-038 صلاحية لحقل التكلفة في مصفوفة المحلية الحالية، لذلك لا تظهر التكلفة في هذه الوجهة.",
@@ -1337,7 +1354,7 @@
     "Depreciation and correction": "الاستهلاك والتصحيح",
     "Depreciation history": "سجل الإهلاك",
     "Depreciation, damage, inspection, loss, and maintenance events in your authorized scope.": "Depreciation, damage, inspection, loss, و maintenance events في your authorized scope.",
-    "Derived balance": "Derived الرصيد",
+    "Derived balance": "رصيد المحفظة الحالي",
     "Description": "الوصف",
     "Descriptions and key points": "الأوصاف والنقاط الأساسية",
     "Destination, encryption, retention, restore rehearsal in isolation, RPO/RTO, recovery owner, and reconciliation evidence remain pending; no backup is created.": "تبقى الوجهة والتشفير والاحتفاظ وتجربة الاستعادة في بيئة معزولة وRPO/RTO ومالك الاستعادة وأدلة المطابقة معلقة؛ لا يتم إنشاء نسخة احتياطية.",
@@ -1384,7 +1401,7 @@
     "Document sequence saved successfully.": "تم حفظ تسلسل المستند بنجاح.",
     "Document sequence submitted for independent approval.": "تم إرسال تسلسل المستند لاعتماد مستقل.",
     "Document status": "مستند الحالة",
-    "Documented asset and stock alerts for your authorized scope. Every alert keeps a permission-checked source link.": "Documented أصل و stock alerts لـ your authorized scope. every alert keeps a permission-checked source link.",
+    "Documented asset and stock alerts for your authorized scope. Every alert keeps a permission-checked source link.": "تنبيهات المخزون والأصول ضمن صلاحياتك، مع رابط مباشر للمستند أو السجل المسبب للتنبيه.",
     "Documents": "مستندات",
     "Documents in the selected range": "مستندات في the selected range",
     "Don't have an account?": "لا تملك حساباً؟",
@@ -1563,7 +1580,7 @@
     "Export job center": "تصدير job center",
     "Export ledger": "تصدير دفتر الأستاذ",
     "Export requested. It will appear in the export job center.": "تم طلب التصدير، وسيظهر في مركز مهام التصدير.",
-    "Export visible statement": "تصدير visible statement",
+    "Export visible statement": "تصدير كشف حركات المحفظة",
     "Exports": "التصديرات",
     "Exports are permission-aware, formula-safe, queued for background generation, and audited on request, generation, and download.": "Exports are permission-aware, formula-safe, queued لـ background generation, و audited على request, generation, و تحميل.",
     "Failed": "فشل",
@@ -1595,7 +1612,7 @@
     "Final invoice and receipt": "الفاتورة النهائية والإيصال",
     "Final readiness checklist": "قائمة جاهزية الإغلاق",
     "Final receipt": "نهائي إيصال",
-    "Final sales value": "نهائي المبيعات القيمة",
+    "Final sales value": "القيمة النهائية للمبيعات",
     "Final settlements will appear here when the workflow is available.": "نهائي settlements will appear هنا متى the workflow is available.",
     "Final total": "الإجمالي النهائي",
     "Final-close boundary:": "حدود الإغلاق النهائي:",
@@ -1615,7 +1632,7 @@
     "First launch setup": "إعداد أول تشغيل",
     "Float Adjustment": "تسوية رصيد الافتتاح",
     "Follow bookings, invoices, payments, operating activity, and outstanding balances in one view.": "Follow حجوزات, فواتير, المدفوعات, operating activity, و outstanding balances في one عرض.",
-    "For an exchange, add every replacement line below. Any difference requires an active payment method when the approved return is completed.": "لـ an exchange, إضافة every replacement سطر below. أي difference requires an مفعل الدفع الطريقة متى the معتمد return is اكتمل.",
+    "For an exchange, add every replacement line below. Any difference requires an active payment method when the approved return is completed.": "في الاستبدال، أضف الأصناف البديلة أدناه. إذا وُجد فرق مبلغ، يلزم اختيار طريقة دفع فعّالة عند إكمال المرتجع المعتمد.",
     "Forgot password": "نسيت كلمة المرور",
     "Forgot your password?": "نسيت كلمة المرور؟",
     "Format and numbering": "التنسيق والترقيم",
@@ -1652,10 +1669,10 @@
     "Gift Card voided.": "تم إلغاء كارت الهدايا.",
     "Gift Cards": "بطاقات الهدايا",
     "Gift Cards and Gift Receipts": "بطاقات الهدايا وإيصالات الهدايا",
-    "Gift Receipt issued without prices.": "Gift إيصال issued بدون prices.",
+    "Gift Receipt issued without prices.": "تم إصدار إيصال هدية بدون أسعار.",
     "Gift Receipt policy values are configurable from Settings, but no source sale lines or receipt references are loaded until eligibility, privacy, numbering, and format are approved.": "يمكن تخصيص سياسات إيصال الهدية من الإعدادات، لكن لا يتم تحميل أسطر بيع أو مراجع إيصال حتى اعتماد الأهلية والخصوصية والترقيم والتنسيق.",
-    "Gift Receipts": "إيصالات الهدايا",
-    "Gift Receipts show item identity and quantity only. They never include price, discount, tax, total, or hidden price metadata.": "Gift إيصالات إظهار صنف identity و الكمية only. they never include السعر, خصم, الضريبة, الإجمالي, أو hidden السعر metadata.",
+    "Gift Receipts": "إيصالات استلام الهدايا بدون أسعار",
+    "Gift Receipts show item identity and quantity only. They never include price, discount, tax, total, or hidden price metadata.": "إيصالات الهدايا بتعرض بيانات الصنف والكمية بس، ومبتعرضش السعر أو الخصم أو الضريبة أو الإجمالي أو أي بيانات سعر مخفية.",
     "Gift instruments": "أدوات الهدايا",
     "Give this passkey a name to help you identify it later.": "امنح مفتاح المرور اسمًا ليسهل التعرف عليه لاحقًا.",
     "Global": "عام",
@@ -1666,8 +1683,8 @@
     "Goods receipts and purchase invoices will appear here after the order is received.": "Goods إيصالات و فواتير المشتريات will appear هنا after the طلب is received.",
     "Granted": "ممنوح",
     "Gross": "الإجمالي",
-    "Gross sales": "الإجمالي المبيعات",
-    "Gross sales less approved discounts": "الإجمالي المبيعات أقل معتمد خصومات",
+    "Gross sales": "إجمالي المبيعات",
+    "Gross sales less approved discounts": "إجمالي المبيعات بعد خصم الخصومات المعتمدة",
     "Gross subtotal": "الإجمالي قبل الخصم",
     "Grouped form fields": "حقول النموذج المجمعة",
     "Guided tour": "جولة إرشادية",
@@ -1747,7 +1764,7 @@
     "Inspection findings": "نتائج الفحص",
     "Inspection findings are required.": "Inspection findings are مطلوب.",
     "Inspection notes": "Inspection ملاحظات",
-    "Inspection notes / evidence reference": "Inspection ملاحظات / evidence reference",
+    "Inspection notes / evidence reference": "ملاحظات الفحص / مرجع الإثبات",
     "Inspection outcome": "نتيجة الفحص",
     "Installable Shell": "غلاف قابل للتثبيت",
     "Insufficient stock for one or more sale lines.": "Insufficient stock لـ one أو المزيد عملية البيع سطور.",
@@ -1787,6 +1804,11 @@
     "Invoice or checkout reference": "فاتورة أو checkout reference",
     "Invoice settings": "إعدادات الفواتير",
     "Purchase invoices": "فواتير الشراء",
+    "Add at least one active supplier return reason before saving a return.": "أضف سببًا نشطًا واحدًا على الأقل لمرتجعات المورد قبل حفظ المرتجع.",
+    "Open return settings": "فتح إعدادات المرتجعات",
+    "Cancel purchase invoice and reverse its effects": "إلغاء فاتورة الشراء وعكس آثارها",
+    "This cancels the approved invoice, reverses its stock receipt, and restores the previous product costs. It cannot be undone here.": "سيُلغي هذا الفاتورة المعتمدة، ويعكس إيصال المخزون، ويعيد تكاليف المنتجات السابقة. لا يمكن التراجع عنه من هنا.",
+    "Confirm invoice reversal": "تأكيد إلغاء الفاتورة وعكس آثارها",
     "Supplier returns": "مرتجعات الموردين",
     "Purchase invoice readiness": "جاهزية فواتير الشراء",
     "Review the decisions and blockers that must be resolved before enabling purchase invoice and receiving workflows.": "راجع القرارات والبيانات المطلوبة قبل تشغيل فواتير الشراء والاستلام.",
@@ -1801,7 +1823,7 @@
     "Invoice subtotal": "فاتورة الإجمالي الفرعي",
     "Invoice tax": "ضريبة الفاتورة",
     "Invoice tax selection changed at POS.": "فاتورة الضريبة selection changed at pos.",
-    "Invoice total": "فاتورة الإجمالي",
+    "Invoice total": "إجمالي الفاتورة",
     "Invoice transition completed.": "فاتورة transition اكتمل.",
     "Invoice, booking, or customer": "فاتورة, حجز, أو العميل",
     "Invoice/Gift Receipt validation, tenant/store scope, quantity, condition, approval, and settlement remain PENDING.": "التحقق من الفاتورة/إيصال الهدية ونطاق المستأجر/المتجر والكمية والحالة والاعتماد والتسوية ما زالت معلقة.",
@@ -1809,16 +1831,16 @@
     "Invoices linked to selected bookings": "فواتير linked إلى selected حجوزات",
     "Issue": "صرف/إصدار",
     "Issue Gift Card": "إصدار كارت هدايا",
-    "Issue Gift Receipt": "Issue gift إيصال",
+    "Issue Gift Receipt": "إصدار إيصال هدية",
     "Issue a card to create its first immutable ledger entry.": "Issue a card إلى إنشاء its الأول immutable دفتر الأستاذ entry.",
     "Issue and actual consumption": "الإصدار والاستهلاك الفعلي",
-    "Issue and reprint a privacy-safe receipt linked to a completed sale. Prices never leave the server-side return calculation.": "Issue و reprint a privacy-safe إيصال linked إلى a اكتمل عملية البيع. prices never leave the server-side return calculation.",
+    "Issue and reprint a privacy-safe receipt linked to a completed sale. Prices never leave the server-side return calculation.": "اطبع إيصالًا يوضح الأصناف والكميات فقط ليقدمه مستلم الهدية عند الاستبدال أو الإرجاع، بدون أي أسعار أو بيانات دفع.",
     "Issue card": "إصدار كارت",
     "Issue consumable": "صرف مستهلكات",
     "Issue from Party store": "Issue من الحفلة المخزن",
-    "Issue from completed sale": "Issue من اكتمل عملية البيع",
-    "Issue one from an approved completed sale. The printable output is intentionally price-free.": "Issue one من an معتمد اكتمل عملية البيع. the printable output is intentionally السعر-free.",
-    "Issue price-free Gift Receipt": "Issue السعر-free gift إيصال",
+    "Issue from completed sale": "إصدار إيصال استلام هدية من عملية بيع مكتملة",
+    "Issue one from an approved completed sale. The printable output is intentionally price-free.": "أصدر إيصال تسليم من عملية بيع مكتملة ومعتمدة. النسخة المطبوعة بدون أسعار عمدًا.",
+    "Issue price-free Gift Receipt": "إصدار إيصال استلام هدية بدون أسعار",
     "Issue, actual, controlled additions/removals, operator evidence, and completion rules remain PENDING; no issue is posted.": "تبقى قواعد الإصدار والاستهلاك الفعلي والإضافات/الإزالات المنضبطة ودليل المشغل والإكمال معلقة؛ لا يتم تسجيل إصدار.",
     "Issue, redeem, and close cards through an append-only balance ledger.": "Issue, redeem, و إغلاق cards through an append-only الرصيد دفتر الأستاذ.",
     "Issued": "مُصدر",
@@ -1869,11 +1891,11 @@
     "Line type": "سطر نوع",
     "Last price": "آخر سعر شراء",
     "Line/receipt rounding, cash denomination rounding, and split-payment residual rules are unresolved.": "قواعد تقريب السطر أو الإيصال وتقريب فئات النقد والمتبقي عند تقسيم الدفع لم تحسم.",
-    "Lines": "سطور",
+    "Lines": "عدد البنود",
     "Lines and original cost": "سطور و original التكلفة",
     "Linked Store": "المتجر المرتبط",
     "Linked Store (Optional)": "المتجر المرتبط (اختياري)",
-    "Load eligible lines": "Load eligible سطور",
+    "Load eligible lines": "تحميل البنود المؤهلة",
     "Loading": "جارٍ التحميل",
     "Loading brands...": "جارٍ تحميل العلامات التجارية...",
     "Loading catalog...": "جارٍ تحميل الفهرس...",
@@ -1971,7 +1993,7 @@
     "Managed device enrollment, branch/store binding, printer/scanner models, bridges, templates, safe failure, and browser evidence remain pending.": "يبقى تسجيل الأجهزة المُدارة وربط الفرع/المتجر ونماذج الطابعات/الماسحات والجسور والقوالب والفشل الآمن وأدلة المتصفح معلقًا.",
     "Manager approval is recorded and will be revalidated at checkout.": "المدير اعتماد is recorded و will be revalidated at checkout.",
     "Manager approval is required when the requested price differs from the reference by more than :percent%.": "المدير اعتماد is مطلوب متى the requested السعر differs من the reference بواسطة المزيد than :percent%.",
-    "Manager review": "المدير review",
+    "Manager review": "مراجعة المدير",
     "Manager variance review": "مراجعة الفرق بواسطة المدير",
     "Manifest & Static Service Worker": "البيان وService Worker الثابت",
     "Manual / Other": "يدوي / أخرى",
@@ -2050,7 +2072,7 @@
     "Net sales before tax": "الصافي المبيعات before الضريبة",
     "Net sales divided by invoices": "الصافي المبيعات divided بواسطة فواتير",
     "Net sales including tax": "الصافي المبيعات including الضريبة",
-    "Net sales less completed refunds": "الصافي المبيعات أقل اكتمل المرتجعات",
+    "Net sales less completed refunds": "صافي المبيعات بعد خصم المبالغ المستردة المكتملة",
     "Network": "شبكة",
     "Network / IP": "الشبكة / IP",
     "Never (Continuous)": "أبدًا (مستمر)",
@@ -2072,7 +2094,7 @@
     "New quotation": "جديد عرض سعر",
     "New record": "سجل جديد",
     "New reservations will appear here after they pass the conflict check.": "جديد reservations will appear هنا after they pass the conflict check.",
-    "New return or exchange": "جديد return أو exchange",
+    "New return or exchange": "إنشاء مرتجع بيع أو استبدال",
     "New supplier return": "مرتجع مورد جديد",
     "New supplier return draft": "مسودة مرتجع مورد جديدة",
     "New user": "مستخدم جديد",
@@ -2093,7 +2115,7 @@
     "No Gift Card": "لا gift card",
     "No Gift Cards yet": "لا توجد بطاقات هدايا بعد",
     "No Gift Receipt references yet": "لا توجد مراجع إيصالات هدايا بعد",
-    "No Gift Receipts yet": "لا gift إيصالات yet",
+    "No Gift Receipts yet": "لسه مفيش إيصالات هدايا",
     "No Goods Receipts or Purchase Invoices": "لا توجد إيصالات استلام أو فواتير شراء",
     "No KPI, report, export artifact, alert, or financial figure is calculated in this readiness slice.": "لا يتم حساب KPI أو تقرير أو ملف تصدير أو تنبيه أو رقم مالي في شريحة الجاهزية هذه.",
     "No PDF, Excel, CSV, download, artifact storage, audit export, redaction, or audit mutation is enabled in this readiness slice.": "لا يتم تفعيل PDF أو Excel أو CSV أو التنزيل أو تخزين الملفات أو تصدير التدقيق أو التنقيح أو تعديل سجل التدقيق في شريحة الجاهزية هذه.",
@@ -2225,7 +2247,7 @@
     "No results": "لا توجد نتائج",
     "No return mutation is enabled": "لا يتم تفعيل أي تغيير على المرتجع",
     "No return/exchange records yet": "لا توجد سجلات مرتجعات/استبدال بعد",
-    "No returns yet": "لا returns yet",
+    "No returns yet": "لا توجد مرتجعات بيع بعد",
     "No review items are available yet.": "لا تتوفر عناصر للمراجعة بعد.",
     "No role assigned": "لا يوجد دور مُسند",
     "No sales match the selected filters.": "لا المبيعات match the selected filters.",
@@ -2253,7 +2275,7 @@
     "No value is defaulted. An unset required value blocks the related financial action explicitly.": "لا تُفترض أي قيمة تلقائيًا. وتمنع القيمة المطلوبة غير المضبوطة الإجراء المالي المرتبط بها بوضوح.",
     "No variants or balances": "بدون متغيرات أو أرصدة",
     "No visible events match the current filters.": "لا توجد أحداث ظاهرة تطابق عوامل التصفية الحالية.",
-    "No wallet entries yet": "لا توجد حركات في المحفظة بعد",
+    "No wallet entries yet": "لا توجد حركات محفظة مسجلة",
     "Non-posting offer value": "Non-posting offer القيمة",
     "Non-posting offers": "عروض بدون ترحيل",
     "Non-sellable": "غير قابل للبيع",
@@ -2290,7 +2312,7 @@
     "On hand": "على hand",
     "On hand less reserved quantity": "الكمية الفعلية بعد خصم المحجوز",
     "Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.": "بعد حذف حسابك، سيتم حذف جميع موارده وبياناته نهائيًا. أدخل كلمة المرور لتأكيد رغبتك في حذف الحساب نهائيًا.",
-    "One dependable workspace for daily TOY & JOY operations.": "مساحة عمل موثوقة لعمليات TOY & JOY اليومية.",
+    "One dependable workspace for daily TOY & JOY operations.": "مساحة عمل موثوقة لعمليات 3allaf اليومية.",
     "One discount may apply to an amount; replacement and limits require the pending POSF-04 decision.": "يمكن تطبيق خصم واحد على المبلغ؛ ويتطلب الاستبدال والحدود قرار POSF-04 المعلق.",
     "One or more non-critical local services are reporting a degraded state.": "تبلغ خدمة محلية غير حرجة واحدة أو أكثر عن حالة متدهورة.",
     "One trusted view of operational performance, reconciled to the source records behind every number.": "One trusted عرض من operational performance, reconciled إلى the source records behind every number.",
@@ -2330,7 +2352,7 @@
     "Only approved transfers can be dispatched.": "Only معتمد transfers can be dispatched.",
     "Only approved, partially received, or received purchase orders can be closed.": "Only معتمد, partially received, أو received purchase طلبات can be مغلق.",
     "Only approved, source-linked purchasing history is included.": "يظهر هنا سجل المشتريات المعتمد والمرتبط بمصدره فقط.",
-    "Only checked lines are copied. Prices and payment details remain suppressed.": "Only checked سطور are copied. prices و الدفع details remain suppressed.",
+    "Only checked lines are copied. Prices and payment details remain suppressed.": "البنود المحددة بس هي اللي بتتنسخ. الأسعار وتفاصيل الدفع بتفضل مخفية.",
     "Only draft adjustments can be submitted.": "Only مسودة adjustments can be submitted.",
     "Only draft inventory documents can be edited.": "مسودات المخزن فقط هي اللي ممكن تتعدل.",
     "Only draft or submitted invoices can be cancelled.": "Only مسودة أو submitted فواتير can be cancelled.",
@@ -2367,7 +2389,7 @@
     "Only the assigned stock counter can record this count.": "Only the assigned stock counter can record هذا count.",
     "Only the entered amount is redeemed; any remaining balance stays on the card.": "Only the entered المبلغ is redeemed; أي remaining الرصيد stays على the card.",
     "Only transfers under difference review can be resolved.": "التحويلات اللي تحت مراجعة الفروقات بس هي اللي ممكن تتسوى.",
-    "Open": "مفتوح",
+    "Open": "فتح",
     "Open Full Guide": "فتح الدليل الكامل",
     "Open Gift Cards": "فتح بطاقات الهدايا",
     "Open Gift Receipts": "فتح إيصالات الهدايا",
@@ -2444,7 +2466,7 @@
     "Optional cost impact, approval limits, SoD, and finance separation remain PENDING; no amount is calculated or posted.": "يبقى أثر التكلفة الاختياري وحدود الاعتماد وفصل المهام وفصل المالية معلقًا؛ لا يتم حساب أو ترحيل مبلغ.",
     "Optional local context; no secrets": "سياق محلي اختياري؛ بدون أسرار",
     "Optional operational cost": "اختياري operational التكلفة",
-    "Or active Gift Receipt": "أو مفعل gift إيصال",
+    "Or active Gift Receipt": "أو إيصال بدون أسعار ساري",
     "Or confirm with password": "أو التأكيد باستخدام كلمة المرور",
     "Or, return to": "أو العودة إلى",
     "Order": "الترتيب",
@@ -2459,7 +2481,7 @@
     "Original payment to reverse": "Original الدفع إلى reverse",
     "Original price": "السعر الأصلي",
     "Original sale": "Original عملية البيع",
-    "Original tender reversal record": "سجل عكس حركة الدفع الأصلية",
+    "Original tender reversal record": "رد المبلغ بطريقة الدفع الأصلية",
     "Original unit cost": "تكلفة الوحدة الأصلية",
     "Other": "آخر",
     "Other Party charge": "آخر الحفلة charge",
@@ -2523,6 +2545,8 @@
     "Page Not Found": "الصفحة غير موجودة",
     "Pagination and drilldown": "الصفحات والتفصيل",
     "Paid": "مدفوع",
+    "Partially paid": "مدفوع جزئيًا",
+    "Unpaid": "غير مدفوع",
     "Paper Size": "حجم الورق",
     "Parent": "الأصل",
     "Parent / level": "الأصل / المستوى",
@@ -2549,7 +2573,7 @@
     "Party Wallet adjustments require a party source document.": "محفظة الحفلات adjustments require a الحفلة source مستند.",
     "Party Wallet aggregate balance does not reconcile with its ledger sequence.": "محفظة الحفلات aggregate الرصيد does ليس reconcile مع its دفتر الأستاذ sequence.",
     "Party Wallet and credit separation": "فصل محفظة الأطراف والائتمان",
-    "Party Wallet balance": "محفظة الحفلات الرصيد",
+    "Party Wallet balance": "رصيد محفظة الحفلات",
     "Party Wallet balance-after does not reconcile at ledger entry :id.": "محفظة الحفلات الرصيد-after does ليس reconcile at دفتر الأستاذ entry :id.",
     "Party Wallet balance-before does not reconcile at ledger entry :id.": "محفظة الحفلات الرصيد-before does ليس reconcile at دفتر الأستاذ entry :id.",
     "Party Wallet correction approved.": "محفظة الحفلات correction معتمد.",
@@ -2568,7 +2592,7 @@
     "Party booking and working invoice created.": "الحفلة حجز و working فاتورة created.",
     "Party booking and working invoice policies": "سياسات حجوزات الحفلات والفاتورة العاملة",
     "Party booking confirmed.": "الحفلة حجز confirmed.",
-    "Party bookings": "الحفلة حجوزات",
+    "Party bookings": "حجوزات الحفلات",
     "Party bookings and invoices will appear here when the workflow is available.": "الحفلة حجوزات و فواتير will appear هنا متى the workflow is available.",
     "Party consumable issued from the Party store.": "الحفلة consumable issued من the الحفلة المخزن.",
     "Party consumable quantity must be positive.": "الحفلة consumable الكمية must be positive.",
@@ -2582,7 +2606,7 @@
     "Party identity and scope": "الحفلة identity و scope",
     "Party invoice finalized and closed.": "فاتورة حفلة finalized و مغلق.",
     "Party invoice work queue": "فاتورة حفلة work queue",
-    "Party invoices": "فواتير حفلات",
+    "Party invoices": "فواتير الحفلات",
     "Party invoices and balances": "فواتير حفلات و balances",
     "Party line description, quantity, and price are invalid.": "الحفلة سطر الوصف, الكمية, و السعر are غير صحيح.",
     "Party line price must be a non-negative decimal.": "الحفلة سطر السعر must be a non-negative decimal.",
@@ -2797,7 +2821,7 @@
     "Product Wallet adjustment rejected and audited.": "محفظة المنتجات adjustment مرفوض و audited.",
     "Product Wallet adjustment submitted for approval.": "محفظة المنتجات adjustment submitted لـ اعتماد.",
     "Product Wallet aggregate balance does not reconcile with its ledger sequence.": "محفظة المنتجات aggregate الرصيد does ليس reconcile مع its دفتر الأستاذ sequence.",
-    "Product Wallet balance": "محفظة المنتجات الرصيد",
+    "Product Wallet balance": "رصيد محفظة المنتجات",
     "Product Wallet balance-after does not reconcile at ledger entry :id.": "محفظة المنتجات الرصيد-after does ليس reconcile at دفتر الأستاذ entry :id.",
     "Product Wallet balance-before does not reconcile at ledger entry :id.": "محفظة المنتجات الرصيد-before does ليس reconcile at دفتر الأستاذ entry :id.",
     "Product Wallet correction approved.": "محفظة المنتجات correction معتمد.",
@@ -2868,7 +2892,7 @@
     "Purchase invoice settings are not available in this workspace yet.": "إعدادات فواتير الشراء غير متاحة في مساحة العمل هذه حاليًا.",
     "Purchase invoice submitted for approval.": "تم إرسال فاتورة الشراء للاعتماد.",
     "Purchase invoice updated.": "تم تحديث فاتورة الشراء.",
-    "Purchase invoice value": "فاتورة مشتريات القيمة",
+    "Purchase invoice value": "قيمة فواتير المشتريات",
     "Purchase order approved.": "Purchase طلب معتمد.",
     "Purchase order copy": "نسخة من أمر الشراء",
     "Purchase order value": "Purchase طلب القيمة",
@@ -2877,7 +2901,7 @@
     "Purchasing": "المشتريات",
     "Purchasing reports": "تقارير المشتريات",
     "Purchasing sources": "المشتريات sources",
-    "Purchasing value": "المشتريات القيمة",
+    "Purchasing value": "قيمة المشتريات",
     "Purpose": "الغرض",
     "Purpose and access boundary for child/birthday fields.": "حدود الغرض والوصول لحقول الطفل/تاريخ الميلاد.",
     "Purpose categories that may be captured for customer data.": "فئات الأغراض التي يمكن تسجيلها لبيانات العملاء.",
@@ -2887,7 +2911,7 @@
     "Quantity": "الكمية",
     "Quantity must be a valid decimal with up to 6 places.": "الكمية must be a صحيح decimal مع أعلى إلى 6 places.",
     "Quantity must be greater than zero.": "الكمية must be greater than zero.",
-    "Quarantine to the damaged store": "Quarantine إلى the damaged المخزن",
+    "Quarantine to the damaged store": "العزل في مخزن التالف",
     "Queue expiry and retry": "انتهاء الطابور وإعادة المحاولة",
     "Queued": "في قائمة الانتظار",
     "Quotation and proposal policies": "سياسات عروض الأسعار والمقترحات",
@@ -3002,7 +3026,7 @@
     "Rental asset identity": "هوية أصل التأجير",
     "Rental asset register": "سجل الأصول المؤجرة",
     "Rental asset reports": "تقارير الأصول المؤجرة",
-    "Rental asset status": "تأجير أصل الحالة",
+    "Rental asset status": "حالة أصول التأجير",
     "Rental assets & calendar": "الأصول والتقويم",
     "Rental assets and reservations will appear here when available.": "تأجير أصول و reservations will appear هنا متى available.",
     "Rental assets are separate from consumable stock. Reservations change availability only, and event costs are operational history, not a general-ledger posting.": "تأجير أصول are separate من consumable stock. reservations change availability only, و event costs are operational history, ليس a عام-دفتر الأستاذ posting.",
@@ -3014,9 +3038,9 @@
     "Replace discount": "استبدال الخصم",
     "Replace the existing discount? The previous discount will be removed.": "Replace the existing خصم? the السابق خصم will be removed.",
     "Replaced by a new main product image.": "Replaced بواسطة a جديد main الصنف image.",
-    "Replacement lines": "Replacement سطور",
+    "Replacement lines": "البنود البديلة",
     "Replacement product": "Replacement الصنف",
-    "Replacement stock leaves the selling store only when this return is completed.": "Replacement stock leaves the فرع البيع only متى هذا return is اكتمل.",
+    "Replacement stock leaves the selling store only when this return is completed.": "المخزون البديل بيخرج من مخزن البيع بس وقت إكمال المرتجع ده.",
     "Replacing an existing discount requires a reason.": "Replacing an existing خصم requires a السبب.",
     "Report": "تقرير",
     "Report categories": "فئات التقارير",
@@ -3226,7 +3250,7 @@
     "Review unique asset identity, consumable separation, availability states, reservations, checkout, return, condition, approval, audit, and print prerequisites without creating an asset or calendar allocation.": "راجع هوية الأصل الفريد وفصل المواد الاستهلاكية وحالات التوفر والحجوزات والتسجيل للخارج والإرجاع والحالة والاعتماد والتدقيق والطباعة دون إنشاء أصل أو تخصيص تقويمي.",
     "Review validation scenarios, evidence, and approvals.": "Review validation scenarios, evidence, و اعتمادات.",
     "Review validation scenarios, evidence, issues, reconciliation, and sign-off.": "Review validation scenarios, evidence, issues, تسوية/مطابقة, و sign-إيقاف.",
-    "Review wallet entries, sources, amounts, and balances.": "راجع قيود المحفظة ومصادرها ومبالغها وأرصدتها.",
+    "Review wallet entries, sources, amounts, and balances.": "راجع كل حركة ومصدرها والمبلغ والرصيد قبلها وبعدها.",
     "Reviewer-authorized total": "Reviewer-authorized الإجمالي",
     "Revoke": "إلغاء الصلاحية",
     "Revoke this evidence file?": "هل تريد إلغاء ملف الدليل هذا؟",
@@ -3263,11 +3287,11 @@
     "SKU": "رمز SKU",
     "Safe Deposit": "إيداع بالخزينة الآمنة",
     "Safe shared layout format without business totals or fake monetary figures.": "تنسيق تخطيط مشترك آمن دون إجماليات أعمال أو أرقام مالية وهمية.",
-    "Sale": "البيع",
+    "Sale": "بيع",
     "Sale #:id": "بيع رقم :id",
     "Sale :number": "عملية البيع :number",
     "Sale completed successfully.": "تم إتمام البيع بنجاح.",
-    "Sale documents": "عملية البيع مستندات",
+    "Sale documents": "مستندات المبيعات",
     "Sale lines": "عملية البيع سطور",
     "Sale suspended. Resume code: :code": "تم تعليق البيع. رمز الاستئناف: :code",
     "Sales": "المبيعات",
@@ -3383,7 +3407,7 @@
     "Select brand :code": "تحديد العلامة التجارية :code",
     "Select category :code": "Select فئة :كود",
     "Select destination store": "اختر المتجر الوجهة",
-    "Select eligible lines": "Select eligible سطور",
+    "Select eligible lines": "اختر البنود المؤهلة",
     "Select method if required": "Select الطريقة إذا مطلوب",
     "Select original payment": "Select original الدفع",
     "Select page": "تحديد الصفحة",
@@ -3457,7 +3481,7 @@
     "Shift opened.": "تم فتح الوردية بنجاح.",
     "Shift opening": "فتح الوردية",
     "Shift sources": "وردية sources",
-    "Shift variance": "وردية عجز/زيادة",
+    "Shift variance": "فرق الوردية",
     "Shifts": "الورديات",
     "Shifts & cash movements": "الورديات وحركات الخزينة",
     "Show feedback": "عرض التغذية الراجعة",
@@ -3483,11 +3507,11 @@
     "Source and approval": "Source و اعتماد",
     "Source and destination stores must be different.": "يجب أن يكون المتجر المصدر مختلفًا عن المتجر الوجهة.",
     "Source and scope boundary": "حدود المصدر والنطاق",
-    "Source completed sale": "Source اكتمل عملية البيع",
+    "Source completed sale": "فاتورة البيع الأصلية",
     "Source detail": "تفاصيل المصدر",
     "Source eligibility": "أهلية المصدر",
     "Source invoice": "فاتورة المصدر",
-    "Source line": "Source سطر",
+    "Source line": "الصنف المرتجع من المستند",
     "Source line ID": "Source سطر id",
     "Source lineage and scope": "سلالة المصدر والنطاق",
     "Source reconciliation": "مطابقة المصادر",
@@ -3511,7 +3535,7 @@
     "Standard": "قياسي",
     "Standard approved price": "سعر قياسي معتمد",
     "Start Interactive Tour": "بدء الجولة التفاعلية",
-    "Start from a completed sale or a valid Gift Receipt.": "البداية من a اكتمل عملية البيع أو a صحيح gift إيصال.",
+    "Start from a completed sale or a valid Gift Receipt.": "ابدأ بفاتورة بيع مكتملة أو إيصال بدون أسعار ساري.",
     "Start here": "ابدأ من هنا",
     "Start time": "البداية الوقت",
     "Starts": "يبدأ",
@@ -3624,10 +3648,10 @@
     "System Settings Baseline (TSK-005)": "خط أساس إعدادات النظام (TSK-005)",
     "System health refreshed.": "تم تحديث صحة النظام.",
     "TBD": "قيد التحديد",
-    "TOY & JOY Phase 1 operational platform": "منصة TOY & JOY التشغيلية للمرحلة الأولى",
-    "TOY & JOY home": "الصفحة الرئيسية لـ TOY & JOY",
-    "TOY & JOY operational workspace": "مساحة العمل التشغيلية لـ TOY & JOY",
-    "TOY & JOY operations": "عمليات TOY & JOY",
+    "TOY & JOY Phase 1 operational platform": "منصة 3allaf التشغيلية للمرحلة الأولى",
+    "TOY & JOY home": "الصفحة الرئيسية لـ 3allaf",
+    "TOY & JOY operational workspace": "مساحة العمل التشغيلية لـ 3allaf",
+    "TOY & JOY operations": "عمليات 3allaf",
     "TSK-008": "TSK-008",
     "TSK-010 local identity foundation": "أساس هوية TSK-010 المحلي",
     "TSK-025 Shift Readiness": "جاهزية الورديات TSK-025",
@@ -4175,7 +4199,7 @@
     "View recovery codes": "عرض رموز الاسترداد",
     "Visible active drawers": "الأدراج النشطة الظاهرة",
     "Visible customer population": "Visible العميل population",
-    "Visible entries": "القيود الظاهرة",
+    "Visible entries": "عدد الحركات المسجلة",
     "Visible only with cost permission": "Visible only مع التكلفة permission",
     "Visual analysis": "التحليل المرئي",
     "Void": "ملغى",
@@ -4183,11 +4207,11 @@
     "Walk-in": "Walk-في",
     "Wallet amounts must be non-zero decimals with up to four places.": "محفظة amounts must be non-zero decimals مع أعلى إلى four places.",
     "Wallet balances must be decimal values with up to four places.": "محفظة balances must be decimal values مع أعلى إلى four places.",
-    "Wallet entries will appear after an approved source is recorded.": "ستظهر قيود المحفظة بعد تسجيل مصدر معتمد.",
-    "Wallet history": "سجل المحفظة",
+    "Wallet entries will appear after an approved source is recorded.": "لم يُسجّل أي قيد في هذه المحفظة بعد. الرصيد الظاهر لا يعني أن مديونية العميل تساوي صفرًا.",
+    "Wallet history": "حركات المحفظة",
     "Wallet ledger": "محفظة دفتر الأستاذ",
     "Wallet policy is not configured": "محفظة policy is ليس configured",
-    "Wallet policy settings": "محفظة policy settings",
+    "Wallet policy settings": "إعدادات المحفظة",
     "Wallet policy values": "قيم سياسات المحافظ",
     "Wallets": "المحافظ",
     "Warehouse": "مخزن",
@@ -5086,7 +5110,7 @@
     ,"Pricing Workspace": "مساحة التسعير"
     ,"Print A4 Document": "طباعة مستند A4"
     ,"Printer Type": "نوع الطابعة"
-    ,"Product": "الصنف"
+    ,"Product": "المنتج"
     ,"Product Masters": "سجلات المنتجات"
     ,"Purchase Invoices": "فواتير المشتريات"
     ,"Purchase Orders": "أوامر الشراء"
@@ -5672,7 +5696,7 @@
     ,"A non-integral product quantity was found. Correct the source data before continuing.": "عُثر على كمية منتج غير صحيحة كوحدة كاملة. صحّح البيانات المصدر قبل المتابعة."
     ,"Opening inventory reversal":"عكس المخزون الافتتاحي","Transfer dispatch":"إرسال تحويل","Transfer receipt":"استلام تحويل","Inventory entry":"إدخال مخزون","Inventory exit":"إخراج مخزون","Inventory adjustment":"تسوية مخزون","Inventory reversal":"عكس حركة مخزون","Count reconciliation":"مطابقة جرد","Retail sale":"بيع تجزئة","Retail return":"مرتجع بيع","Damaged retail return":"مرتجع بيع تالف","Retail exchange out":"صرف استبدال بيع","Party consumable issue":"صرف مستهلك حفلة","Party consumable return":"إرجاع مستهلك حفلة","Unknown movement":"حركة غير معروفة"
     ,"Nothing is loaded until you search. Selected products and print settings remain while you continue searching.":"لن تُحمّل أي منتجات قبل البحث. تبقى المنتجات المحددة وإعدادات الطباعة محفوظة أثناء البحث.","Scan a barcode and press Enter to select its exact product immediately.":"امسح الباركود واضغط Enter لتحديد المنتج المطابق فورًا.","Selected products":"المنتجات المحددة","Label copies":"عدد نسخ الملصق","Load more":"تحميل المزيد","This product cannot be printed until it has an active barcode.":"لا يمكن طباعة هذا المنتج حتى تتم إضافة باركود نشط.","Product search could not be completed. Try again.":"تعذر إكمال بحث المنتجات. حاول مرة أخرى.","These active products have no positive base consumer selling price. Add a positive base price to make them immediately sellable.":"هذه المنتجات النشطة ليس لها سعر بيع أساسي موجب للمستهلك. أضف سعرًا موجبًا لتصبح قابلة للبيع فورًا.","No selling price":"لا يوجد سعر بيع","Product quantity exceeds the allowed limit.":"تتجاوز كمية المنتج الحد المسموح.","Product has no positive selling price for this store.":"لا يوجد للمنتج سعر بيع موجب في هذا المتجر.","The selected SKU has no positive selling price for this store.":"لا يوجد لرمز SKU المحدد سعر بيع موجب في هذا المتجر.","The Product Card base consumer price is immediately sellable. Optional active price lists override it only when applicable. Cost changes never rewrite sale prices.":"سعر المستهلك الأساسي في بطاقة المنتج قابل للبيع فورًا. تتجاوزه قوائم الأسعار النشطة الاختيارية فقط عند انطباقها. لا تعيد تغييرات التكلفة كتابة سعر البيع."
-    ,"Basic Data":"البيانات الأساسية","Basic Data Overview":"نظرة عامة على البيانات الأساسية","Essentials":"الأساسيات","Operational Readiness":"الجاهزية التشغيلية","Audit logs":"سجل التدقيق","Audit export is unavailable until an administrator approves and configures a positive export row limit.":"تصدير سجل التدقيق غير متاح حتى يعتمد المسؤول حدًا موجبًا لعدد صفوف التصدير ويضبطه.","Other audit event":"حدث تدقيق آخر","Other source record":"سجل مصدر آخر","Other audit category":"فئة تدقيق أخرى","Source record ID":"معرّف سجل المصدر","Store created":"تم إنشاء المخزن / منفذ البيع","Store updated":"تم تحديث المخزن / منفذ البيع","Store archived":"تمت أرشفة المخزن / منفذ البيع","Store status changed":"تغيرت حالة المخزن / منفذ البيع","Branch point of sale mapped":"تم ربط منفذ بيع بالفرع","Branch point of sale mapping":"ربط منفذ البيع بالفرع","Branch created":"تم إنشاء الفرع","Branch updated":"تم تحديث الفرع","Branch archived":"تمت أرشفة الفرع","Branch status changed":"تغيرت حالة الفرع","Payment method created":"تم إنشاء طريقة الدفع","Payment method updated":"تم تحديث طريقة الدفع","Local settings updated":"تم تحديث الإعدادات المحلية","Cash drawer created":"تم إنشاء درج النقدية","Cash drawer updated":"تم تحديث درج النقدية","Cash drawer archived":"تمت أرشفة درج النقدية","Cash drawer status changed":"تغيرت حالة درج النقدية","User authorization updated":"تم تحديث صلاحيات المستخدم","Role permissions updated":"تم تحديث صلاحيات الدور","Product created":"تم إنشاء المنتج","Product updated":"تم تحديث المنتج","Product status changed":"تغيرت حالة المنتج","Category created":"تم إنشاء التصنيف","Category updated":"تم تحديث التصنيف","Brand created":"تم إنشاء العلامة التجارية","Brand updated":"تم تحديث العلامة التجارية","Supplier created":"تم إنشاء المورد","Supplier updated":"تم تحديث المورد","Supplier activated":"تم تفعيل المورد","Supplier deactivated":"تم تعطيل المورد","Approval requested":"طُلب الاعتماد","Approval approved":"تم الاعتماد","Approval rejected":"رُفض الاعتماد","Approval cancelled":"أُلغي الاعتماد","Approval withdrawn":"سُحب طلب الاعتماد","Approval expired":"انتهت صلاحية طلب الاعتماد","Attachment stored":"تم حفظ المرفق","Attachment linked":"تم ربط المرفق","Attachment accessed":"تم الوصول إلى المرفق","Attachment revoked":"تم إلغاء المرفق","Sale finalized":"تم اعتماد البيع","Shift opened":"تم فتح الوردية","Shift close submitted":"تم تقديم إغلاق الوردية","Cash movement recorded":"تم تسجيل حركة نقدية","Price proposal created":"تم إنشاء مقترح السعر","Price proposal submitted":"تم تقديم مقترح السعر","Price version approved":"تم اعتماد إصدار السعر","Price version rejected":"رُفض إصدار السعر","Store":"مخزن / منفذ بيع","Payment method":"طريقة دفع","Company":"شركة","Branch":"فرع","Cash drawer":"درج نقدية","User":"مستخدم","Role":"دور","Product":"منتج","Category":"تصنيف","Brand":"علامة تجارية","Supplier":"مورد","Audit log":"سجل تدقيق","Approval record":"سجل اعتماد","Printer profile":"ملف طابعة","Document sequence":"تسلسل مستند","Tax setting":"إعداد ضريبي","Master data":"البيانات الأساسية","Platform":"المنصة","Security":"الأمان","Inventory":"المخزون","Purchasing":"المشتريات","Pricing":"التسعير","Retail":"التجزئة","Customers":"العملاء","Parties":"الحفلات"
+    ,"Basic Data":"البيانات الأساسية","Basic Data Overview":"نظرة عامة على البيانات الأساسية","Essentials":"الأساسيات","Operational Readiness":"الجاهزية التشغيلية","Audit logs":"سجل التدقيق","Audit export is unavailable until an administrator approves and configures a positive export row limit.":"تصدير سجل التدقيق غير متاح حتى يعتمد المسؤول حدًا موجبًا لعدد صفوف التصدير ويضبطه.","Other audit event":"حدث تدقيق آخر","Other source record":"سجل مصدر آخر","Other audit category":"فئة تدقيق أخرى","Source record ID":"معرّف سجل المصدر","Store created":"تم إنشاء المخزن / منفذ البيع","Store updated":"تم تحديث المخزن / منفذ البيع","Store archived":"تمت أرشفة المخزن / منفذ البيع","Store status changed":"تغيرت حالة المخزن / منفذ البيع","Branch point of sale mapped":"تم ربط منفذ بيع بالفرع","Branch point of sale mapping":"ربط منفذ البيع بالفرع","Branch created":"تم إنشاء الفرع","Branch updated":"تم تحديث الفرع","Branch archived":"تمت أرشفة الفرع","Branch status changed":"تغيرت حالة الفرع","Payment method created":"تم إنشاء طريقة الدفع","Payment method updated":"تم تحديث طريقة الدفع","Local settings updated":"تم تحديث الإعدادات المحلية","Cash drawer created":"تم إنشاء درج النقدية","Cash drawer updated":"تم تحديث درج النقدية","Cash drawer archived":"تمت أرشفة درج النقدية","Cash drawer status changed":"تغيرت حالة درج النقدية","User authorization updated":"تم تحديث صلاحيات المستخدم","Role permissions updated":"تم تحديث صلاحيات الدور","Product created":"تم إنشاء المنتج","Product updated":"تم تحديث المنتج","Product status changed":"تغيرت حالة المنتج","Category created":"تم إنشاء التصنيف","Category updated":"تم تحديث التصنيف","Brand created":"تم إنشاء العلامة التجارية","Brand updated":"تم تحديث العلامة التجارية","Supplier created":"تم إنشاء المورد","Supplier updated":"تم تحديث المورد","Supplier activated":"تم تفعيل المورد","Supplier deactivated":"تم تعطيل المورد","Approval requested":"طُلب الاعتماد","Approval approved":"تم الاعتماد","Approval rejected":"رُفض الاعتماد","Approval cancelled":"أُلغي الاعتماد","Approval withdrawn":"سُحب طلب الاعتماد","Approval expired":"انتهت صلاحية طلب الاعتماد","Attachment stored":"تم حفظ المرفق","Attachment linked":"تم ربط المرفق","Attachment accessed":"تم الوصول إلى المرفق","Attachment revoked":"تم إلغاء المرفق","Sale finalized":"تم اعتماد البيع","Shift opened":"تم فتح الوردية","Shift close submitted":"تم تقديم إغلاق الوردية","Cash movement recorded":"تم تسجيل حركة نقدية","Price proposal created":"تم إنشاء مقترح السعر","Price proposal submitted":"تم تقديم مقترح السعر","Price version approved":"تم اعتماد إصدار السعر","Price version rejected":"رُفض إصدار السعر","Store":"مخزن / منفذ بيع","Payment method":"طريقة دفع","Company":"شركة","Branch":"فرع","Cash drawer":"درج نقدية","User":"مستخدم","Role":"دور","Product": "المنتج","Category":"تصنيف","Brand":"علامة تجارية","Supplier":"مورد","Audit log":"سجل تدقيق","Approval record":"سجل اعتماد","Printer profile":"ملف طابعة","Document sequence":"تسلسل مستند","Tax setting":"إعداد ضريبي","Master data":"البيانات الأساسية","Platform":"المنصة","Security":"الأمان","Inventory":"المخزون","Purchasing":"المشتريات","Pricing":"التسعير","Retail":"التجزئة","Customers":"العملاء","Parties":"الحفلات"
     ,"Warehouses & Sales Outlets":"المخازن ومنافذ البيع","Incomplete data":"بيانات غير مكتملة","Sales outlet and cash drawer":"منفذ البيع ودرج النقدية","Your authorized sales outlet is :outlet.":"منفذ البيع المصرح لك هو :outlet.","Select the exact authorized sales outlet before opening the shift.":"اختر منفذ البيع المصرح به بدقة قبل فتح الوردية.","I confirm this sales outlet and its stock source for the shift.":"أؤكد منفذ البيع هذا ومصدر مخزونه للوردية.","No active cash drawer is assigned to you.":"لا يوجد درج نقدية نشط مرتبط بمنفذ بيع مصرح لك به. راجع المسؤول.","Transfer blocked by open count session :session.":"التحويل محظور بسبب جلسة الجرد المفتوحة :session.","Unknown barcode or product identifier. Search by product name, code, or model number.":"باركود أو معرّف منتج غير معروف. ابحث باسم المنتج أو الكود أو رقم الموديل.","Not counted is not zero. Confirm zero explicitly or record a contribution.":"غير معدود لا يعني صفرًا. أكد الصفر صراحة أو سجل مساهمة عد.","Stock count session report":"تقرير جلسة الجرد","Opening book quantity":"رصيد الدفتر الافتتاحي","Physical counted quantity":"الكمية المعدودة فعليًا","In-session movements":"حركات أثناء الجلسة","Normalized closing quantity":"الكمية الختامية المطَبّعة","Final surplus / shortage":"الفائض / العجز النهائي","Counter / approver":"القائم بالعد / المعتمد","Not counted":"غير معدود","Count session created. Review its scope and open it when the team is ready.":"تم إنشاء جلسة الجرد. راجع نطاقها وافتحها عند جاهزية الفريق.","Count session opened with immutable location snapshots.":"فُتحت جلسة الجرد مع لقطات ثابتة لكل موقع.","Quantity added. Updated counted total: :total":"أضيفت الكمية. إجمالي العد المحدث: :total","Product/location count marked complete.":"تم تأكيد اكتمال عد المنتج/الموقع.","Recount requested with history preserved.":"طُلبت إعادة العد مع حفظ السجل.","Count session cancelled and transfer locks released.":"أُلغيت جلسة الجرد وتحررت قيود التحويل.","Showing :from–:to of :total locations":"عرض :from–:to من :total موقعًا"
     ,"Linked Sales Outlet":"منفذ البيع المرتبط","Unlinked":"غير مرتبط"
     ,"The selected cash drawer has an invalid company, branch, or store configuration. Ask an administrator to correct the drawer before opening a shift.":"إعداد الشركة أو الفرع أو منفذ البيع لدرج النقدية المحدد غير صالح. اطلب من مسؤول النظام تصحيح إعداد الدرج قبل فتح الوردية."
@@ -6209,4 +6233,229 @@
     ,"No customer sales in the selected period": "لا توجد مبيعات للعميل خلال الفترة المحددة"
     ,"Most Purchased Products": "أكثر الأصناف شراءً"
     ,"No customer product sales in the selected period": "لا توجد مبيعات أصناف للعميل خلال الفترة المحددة"
+    ,"Authoritative payment rows": "سجلات الدفع المعتمدة"
+    ,"Average cost": "متوسط التكلفة"
+    ,"Average invoice value": "متوسط قيمة الفاتورة"
+    ,"Balance due": "الرصيد المستحق"
+    ,"Before discounts and tax": "قبل الخصومات والضريبة"
+    ,"Bookings in the selected range": "الحجوزات خلال الفترة المحددة"
+    ,"Compare approved purchasing documents and values across orders, invoices, and returns.": "قارن مستندات وقيم المشتريات المعتمدة بين أوامر الشراء والفواتير والمرتجعات."
+    ,"Completed return settlements": "تسويات المرتجعات المكتملة"
+    ,"Cost impact": "أثر التكلفة"
+    ,"Create Excel export": "إنشاء ملف Excel"
+    ,"Create PDF export": "إنشاء ملف PDF"
+    ,"Created in the selected range": "أُنشئ خلال الفترة المحددة"
+    ,"Current scoped quantity": "الكمية الحالية ضمن النطاق"
+    ,"Currently open in scope": "المفتوح حاليًا ضمن النطاق"
+    ,"Customer activity": "نشاط العملاء"
+    ,"Customer sources": "مصادر بيانات العملاء"
+    ,"Damage, depreciation, and history": "التلف والإهلاك والسجل"
+    ,"Damaged, maintenance, or lost": "تالف أو تحت الصيانة أو مفقود"
+    ,"Documents in the selected range": "المستندات خلال الفترة المحددة"
+    ,"Drawer movements": "حركات درج النقدية"
+    ,"Each source section is bounded to 50 rows for responsive review and safe export preparation.": "يعرض كل قسم من المصدر 50 صفًا كحد أقصى لضمان سرعة المراجعة وتجهيز التصدير بأمان."
+    ,"Every displayed total comes from the authoritative source records under this exact filter set.": "كل إجمالي معروض مصدره السجلات المعتمدة ضمن مجموعة الفلاتر الحالية."
+    ,"Export center": "مركز التصدير"
+    ,"Export job center": "مركز مهام التصدير"
+    ,"Exports are permission-aware, formula-safe, queued for background generation, and audited on request, generation, and download.": "تراعي عمليات التصدير الصلاحيات وتحمي من صيغ الجداول، وتُنشأ في الخلفية مع تسجيل الطلب والإنشاء والتنزيل."
+    ,"Follow bookings, invoices, payments, operating activity, and outstanding balances in one view.": "تابع الحجوزات والفواتير والمدفوعات والنشاط التشغيلي والأرصدة المستحقة في شاشة واحدة."
+    ,"Gift Card status and use": "حالة بطاقات الهدايا واستخدامها"
+    ,"Inventory quantity composition": "توزيع كميات المخزون"
+    ,"Invoices linked to selected bookings": "الفواتير المرتبطة بالحجوزات المحددة"
+    ,"Issued value in range": "القيمة المُصدرة خلال الفترة"
+    ,"linked invoices": "فواتير مرتبطة"
+    ,"Loyalty earn and redeem": "اكتساب نقاط الولاء واستبدالها"
+    ,"Monitor asset availability, reservations, returns, condition issues, and controlled cost history.": "تابع إتاحة الأصول وحجوزاتها وإرجاعها وحالتها وسجل تكلفتها وفق الصلاحيات."
+    ,"Net after refunds": "الصافي بعد الاستردادات"
+    ,"Net before tax": "الصافي قبل الضريبة"
+    ,"Net sales before tax": "صافي المبيعات قبل الضريبة"
+    ,"Net sales divided by invoices": "صافي المبيعات مقسومًا على عدد الفواتير"
+    ,"Net sales including tax": "صافي المبيعات شامل الضريبة"
+    ,"New in range": "الجدد خلال الفترة"
+    ,"No export jobs yet.": "لا توجد مهام تصدير حتى الآن."
+    ,"No matching source rows in this report range.": "لا توجد سجلات مصدر مطابقة خلال فترة التقرير."
+    ,"Non-posting offer value": "قيمة عروض الأسعار غير المُرحّلة"
+    ,"On hand": "الرصيد الفعلي"
+    ,"One trusted view of operational performance, reconciled to the source records behind every number.": "عرض موثوق للأداء التشغيلي، مطابق لسجلات المصدر التي تستند إليها كل قيمة."
+    ,"Other unclosed": "أخرى غير مغلقة"
+    ,"Outstanding invoice balance": "رصيد الفواتير المستحق"
+    ,"Party balance due": "الرصيد المستحق للحفلات"
+    ,"Party invoices and balances": "فواتير الحفلات وأرصدتها"
+    ,"Party operating orders and consumables": "أوامر تشغيل الحفلات والمواد الاستهلاكية"
+    ,"Party outstanding balance": "الرصيد المستحق للحفلات"
+    ,"Party payments on account": "مدفوعات الحفلات على الحساب"
+    ,"Party pipeline": "مراحل تشغيل الحفلات"
+    ,"Party sources": "مصادر بيانات الحفلات"
+    ,"Party wallet kept separate": "محفظة الحفلات منفصلة"
+    ,"Party Wallet statement": "كشف محفظة الحفلات"
+    ,"Payment method collection": "التحصيل حسب طريقة الدفع"
+    ,"Payments collected": "المدفوعات المحصلة"
+    ,"Private, scoped, bounded PDF and Excel artifacts expire automatically and are downloadable only by their requester.": "ملفات PDF وExcel خاصة ومحددة النطاق والحجم، وتنتهي صلاحيتها تلقائيًا ولا يستطيع تنزيلها إلا مقدم الطلب."
+    ,"Product Wallet statement": "كشف محفظة المنتجات"
+    ,"Purchase order value": "قيمة أوامر الشراء"
+    ,"Purchasing sources": "مصادر بيانات المشتريات"
+    ,"Ready for reservation": "جاهز للحجز"
+    ,"Redeemed value in range": "القيمة المستبدلة خلال الفترة"
+    ,"Report dates must be valid calendar dates.": "يجب إدخال تواريخ صحيحة للتقرير."
+    ,"Report ranges are limited to 366 days.": "الحد الأقصى لفترة التقرير هو 366 يومًا."
+    ,"Retail wallet kept separate": "محفظة التجزئة منفصلة"
+    ,"Review customer growth, loyalty movement, wallet balances, and Gift Card exposure without mixing their ledgers.": "راجع نمو العملاء وحركات الولاء وأرصدة المحافظ وبطاقات الهدايا دون خلط دفاترها."
+    ,"Reviewer-authorized total": "الإجمالي المتاح للمراجع المخوّل"
+    ,"Run an export from a reconciled report.": "اطلب التصدير من تقرير تمت مطابقته."
+    ,"Sales financial breakdown": "التوزيع المالي للمبيعات"
+    ,"Scoped asset register": "سجل الأصول ضمن النطاق"
+    ,"See shift status and approved variance signals while preserving reviewer-only financial visibility.": "راجع حالات الورديات وفروقها المعتمدة مع قصر البيانات المالية على المراجعين المخولين."
+    ,"Shift sources": "مصادر بيانات الورديات"
+    ,"Stock on hand": "الرصيد الفعلي للمخزون"
+    ,"Stock value": "قيمة المخزون"
+    ,"Supplier and last purchase prices": "المورد وآخر أسعار الشراء"
+    ,"Supplier return value": "قيمة مرتجعات الموردين"
+    ,"Tax captured on selected sales": "الضريبة المسجلة على المبيعات المحددة"
+    ,"The report start must be before its end.": "يجب أن يسبق تاريخ بداية التقرير تاريخ نهايته."
+    ,"The selected :label is not available.": "الخيار المحدد في :label غير متاح."
+    ,"The selected report module is not available.": "قسم التقرير المحدد غير متاح."
+    ,"The selected report status is not available.": "حالة التقرير المحددة غير متاحة."
+    ,"Track quantity composition, availability, movement activity, and permission-controlled valuation.": "تابع توزيع الكميات والإتاحة وحركات المخزون والتقييم الخاضع للصلاحيات."
+    ,"Unclosed shifts": "الورديات غير المغلقة"
+    ,"Understand sales value, discount pressure, tax, collections, and refunds for the selected operating scope.": "راجع قيمة المبيعات والخصومات والضريبة والتحصيلات والاستردادات ضمن النطاق التشغيلي المحدد."
+    ,"Upcoming parties": "الحفلات القادمة"
+    ,"Uses the current authorized filters and reconciles to the report detail and source totals.": "يستخدم الفلاتر المصرح بها حاليًا ويتطابق مع تفاصيل التقرير وإجماليات المصدر."
+    ,"Valid until": "صالح حتى"
+    ,"Visible customer population": "العملاء المتاحون ضمن النطاق"
+    ,"Visible only with cost permission": "يظهر فقط لمن لديه صلاحية عرض التكلفة"
+    ,"CSV": "CSV"
+    ,"PDF": "PDF"
+    ,"Export dataset": "مجموعة بيانات التصدير"
+    ,"Format": "الصيغة"
+    ,"Generated time": "وقت الإنشاء"
+    ,"Request export": "طلب التصدير"
+    ,"Requested filters": "الفلاتر المطلوبة"
+    ,"brand": "العلامة التجارية"
+    ,"category": "الفئة"
+    ,"character": "الشخصية"
+    ,"colour": "اللون"
+    ,"customer": "العميل"
+    ,"gender": "الفئة المستهدفة"
+    ,"payment method": "طريقة الدفع"
+    ,"product": "المنتج"
+    ,"Shift status": "حالة الوردية"
+    ,"supplier": "المورد"
+    ,"The end date must be on or after the start date.": "يجب أن يكون تاريخ النهاية مساويًا لتاريخ البداية أو بعده."
+    ,"The selected date is invalid.": "التاريخ المحدد غير صحيح."
+    ,"The selected filter is invalid.": "الفلتر المحدد غير صحيح."
+    ,"The selected report direction is not available.": "اتجاه ترتيب التقرير المحدد غير متاح."
+    ,"The selected report sort is not available.": "ترتيب التقرير المحدد غير متاح."
+    ,"The selected reporting period may not exceed 366 days.": "لا يجوز أن تتجاوز فترة التقرير 366 يومًا."
+    ,"The selected store is outside your access scope.": "المتجر المحدد خارج نطاق صلاحياتك."
+    ,"Products and barcodes": "المنتجات والباركودات"
+    ,"Customers and groups": "العملاء والمجموعات"
+    ,"Suppliers and groups": "الموردون والمجموعات"
+    ,"Purchase invoices and receiving": "فواتير الشراء والاستلام"
+    ,"Opening inventory": "المخزون الافتتاحي"
+    ,"Inventory movements": "حركات المخزون"
+    ,"Create a data export": "إنشاء تصدير بيانات"
+    ,"Choose one dataset and the exact operating scope. The generated file stays private to your account.": "اختر مجموعة بيانات واحدة وحدد نطاق التشغيل بدقة. يظل الملف الناتج خاصًا بحسابك."
+    ,"Create :format export": "إنشاء ملف :format"
+    ,"Remove filter: :filter": "إزالة الفلتر: :filter"
+    ,"Sales report navigation": "التنقل بين تقارير المبيعات"
+    ,"All reports": "كل التقارير"
+    ,"Choose the period and optional filters. Every section and export uses the same scope.": "اختر الفترة والفلاتر الاختيارية. تستخدم كل الأقسام وعمليات التصدير النطاق نفسه."
+    ,"Choose the period, product, category, or selling unit. Every row keeps its historical unit.": "اختر الفترة أو المنتج أو الفئة أو وحدة البيع. يحتفظ كل صف بوحدته التاريخية."
+    ,"Your export requests": "طلبات التصدير الخاصة بك"
+    ,"Ready files can be viewed or downloaded until their expiry time.": "يمكن عرض الملفات الجاهزة أو تنزيلها حتى انتهاء صلاحيتها."
+    ,"Reports & exports": "التقارير والتصدير"
+    ,"Back to reports": "العودة إلى التقارير"
+    ,"Requested": "وقت الطلب"
+    ,"View error": "عرض الخطأ"
+    ,"All authorized scope": "كل النطاق المصرح به"
+    ,"Expired": "منتهي الصلاحية"
+    ,"Not ready yet": "غير جاهز بعد"
+    ,"Generated": "تاريخ الإنشاء"
+    ,"Period": "الفترة"
+    ,"Filters and scope": "الفلاتر والنطاق"
+    ,"Key performance indicators": "مؤشرات الأداء الرئيسية"
+    ,"Payment method summary": "ملخص طرق الدفع"
+    ,"Collected": "المحصل"
+    ,"Bounded detail": "تفاصيل محدودة"
+    ,"No matching source rows.": "لا توجد سجلات مصدر مطابقة."
+    ,"All Statuses": "جميع الحالات"
+    ,"Products and Barcodes": "المنتجات والباركودات"
+    ,"Approved sales": "المبيعات المعتمدة"
+    ,"Asc": "تصاعدي"
+    ,"Desc": "تنازلي"
+    ,":count row|:count rows": "{1} صف واحد|[2,*] :count صفًا"
+    ,"final value": "القيمة النهائية"
+    ,"Feed store operations": "عمليات محل الأعلاف"
+    ,"Record credit settlements, expenses, treasury accounts, and inventory batches.": "تحصيل العملاء وسداد الموردين والمصروفات وإدارة حسابات الخزينة ودفعات المخزون."
+    ,"Customer receipt": "تحصيل من عميل"
+    ,"Apply one receipt to several approved invoices, or leave it as customer credit.": "اختر العميل، اكتب المبلغ، ثم اضغط حفظ التحصيل. يمكنك توزيع المبلغ على الفواتير المستحقة عند الحاجة."
+    ,"Select customer": "اختر العميل"
+    ,"Collection store": "منفذ التحصيل"
+    ,"Select payment method": "اختر طريقة الدفع"
+    ,"Cash account": "حساب الخزينة"
+    ,"Required for cash receipts": "اختر حساب الاستلام عند التحصيل النقدي"
+    ,"Cash account help": "هذا هو الحساب الذي سيستقبل المبلغ أو يخرج منه، مثل خزينة المحل أو البنك أو المحفظة."
+    ,"Currency (automatic)": "العملة (تلقائية)"
+    ,"Currency is set automatically": "تُحدد من إعدادات المتجر، ولا تحتاج إلى كتابتها كل مرة."
+    ,"Approved invoices to allocate (optional)": "توزيع التحصيل على الفواتير (اختياري)"
+    ,"Suggest oldest first": "وزّع تلقائيًا: الأقدم أولًا"
+    ,"No approved outstanding customer invoices.": "لا توجد فواتير معتمدة مستحقة على العميل."
+    ,"Select a customer to load outstanding invoices.": "اختر العميل ومنفذ التحصيل، واكتب المبلغ، ثم اضغط «وزّع تلقائيًا» لعرض الفواتير المستحقة."
+    ,"Allocation total": "إجمالي المبلغ الموزع"
+    ,"Unapplied customer credit": "الرصيد الدائن غير الموزع"
+    ,"Payment evidence reference": "مرجع إثبات الدفع"
+    ,"Record receipt": "حفظ التحصيل"
+    ,"Supplier payment": "سداد لمورد"
+    ,"Allocate one payment across approved purchase invoices. Supplier advances are not supported.": "وزّع السداد على فواتير المشتريات المعتمدة. لا يمكن تسجيل دفعة مقدمة للمورد."
+    ,"Select company": "اختر الشركة"
+    ,"Required for cash payments": "مطلوب عند السداد النقدي"
+    ,"No approved outstanding supplier invoices.": "لا توجد فواتير معتمدة مستحقة للمورد."
+    ,"Select a supplier to load outstanding invoices.": "اختر المورد ثم اضغط «توزيع مقترح» لعرض الفواتير المستحقة."
+    ,"Allocation total must equal payment amount": "يجب أن يساوي إجمالي التوزيع مبلغ السداد"
+    ,"Record payment": "تسجيل السداد"
+    ,"Expense": "تسجيل مصروف"
+    ,"Approved expenses post an append-only treasury transaction when an account is selected.": "عند اختيار حساب خزينة، يُسجّل المصروف المعتمد كحركة مالية غير قابلة للتعديل."
+    ,"Expense category": "تصنيف المصروف"
+    ,"Required for cash expenses": "مطلوب للمصروف النقدي"
+    ,"Record expense": "تسجيل المصروف"
+    ,"General treasury account": "حساب خزينة جديد"
+    ,"Create a separate store treasury, bank, or wallet account.": "أضف حسابًا مستقلًا لخزينة المحل أو البنك أو المحفظة الإلكترونية."
+    ,"Bank": "بنك"
+    ,"Electronic wallet": "محفظة إلكترونية"
+    ,"Inventory batch": "دفعة مخزون جديدة"
+    ,"Batches carry identity and dates only; their stock is derived from stock movements.": "سجّل رقم الدفعة وتواريخها. تتحدد كميتها من حركات المخزون، وليس من هذا النموذج."
+    ,"Tracked product": "الصنف المتتبع بالدفعات"
+    ,"Batch number": "رقم الدفعة"
+    ,"Production date": "تاريخ الإنتاج"
+    ,"Expiry date": "تاريخ انتهاء الصلاحية"
+    ,"Create batch": "إنشاء الدفعة"
+    ,"Recent settlements": "أحدث التحصيلات والمدفوعات"
+    ,"No customer receipts yet.": "لا توجد تحصيلات من العملاء بعد."
+    ,"No supplier payments yet.": "لا توجد مدفوعات للموردين بعد."
+    ,"Recent treasury and inventory activity": "أحدث حركات الخزينة ودفعات المخزون"
+    ,"No treasury transactions yet.": "لا توجد حركات خزينة بعد."
+    ,"No inventory batches yet.": "لا توجد دفعات مخزون بعد."
+    ,"Cash customer": "نقدي"
+    ,"Credit customer": "آجل"
+    ,"Cash and credit customer": "نقدي وآجل"
+    ,"Additional details": "تفاصيل إضافية"
+    ,"Zero stock item": "صنف رصيده صفر"
+    ,"Low stock item": "صنف رصيده منخفض"
+    ,"Unpriced product": "صنف بدون سعر"
+    ,"A product has no on-hand quantity in this store.": "الصنف لا يوجد له رصيد متاح في هذا المنفذ."
+    ,"A product is at or below its reorder threshold.": "رصيد الصنف وصل لحد إعادة الطلب أو أقل."
+    ,"The canonical base consumer selling price is missing or not positive.": "سعر البيع الأساسي المعتمد غير موجود أو غير أكبر من صفر."
+    ,"Accounts Payable / Supplier Account": "حساب المورد والمبالغ المستحقة"
+    ,"Payable is derived from approved purchase invoices, returns, allocations, and approved adjustments.": "الرصيد المستحق بيتحسب من فواتير الشراء المعتمدة والمرتجعات والتسويات والتعديلات المعتمدة."
+    ,"Pay Supplier / سداد مورد": "سداد حساب المورد"
+    ,"Pay supplier": "سداد حساب المورد"
+    ,"Edit supplier master": "تعديل المورد"
+    ,"Current payable": "المبلغ المستحق حاليًا"
+    ,"Outstanding invoices": "الفواتير المتبقية"
+    ,"Paid amount": "المبلغ المدفوع"
+    ,"Due date": "تاريخ الاستحقاق"
+    ,"Payment status": "حالة السداد"
+    ,"Purchase invoice": "فاتورة مشتريات"
+    ,"A browser-based operational platform for retail, inventory, customers, and point of sale, built with clear controls and traceable workflows.": "منصة تشغيل عبر المتصفح للمبيعات والمخزون والعملاء ونقطة البيع، بضوابط واضحة وعمليات قابلة للتتبع."
+    ,"Customer and inventory workflows": "عمليات العملاء والمخزون"
 }

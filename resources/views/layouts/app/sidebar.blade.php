@@ -16,8 +16,11 @@
     .app-navigation__chevron { color: #aebfce; }
     .app-navigation__item { color: #cbd8e3; }
     .app-navigation__item:hover, .app-navigation__group summary:hover, .app-navigation__rail-link:hover { background: rgb(255 255 255 / .08); color: #f5f9fc; }
-    .app-navigation__item.is-active { background: rgb(20 184 166 / .2); color: #f7fffe; box-shadow: inset 3px 0 #2dd4bf; }
-    [dir=rtl] .app-navigation__item.is-active { box-shadow: inset -3px 0 #2dd4bf; }
+    .app-navigation__item.is-active { background: color-mix(in srgb, var(--color-primary) 24%, transparent) !important; color: #f7fffe; box-shadow: inset 3px 0 var(--color-primary); }
+    [dir=rtl] .app-navigation__item.is-active { box-shadow: inset -3px 0 var(--color-primary); }
+    .app-navigation__group.is-active > summary { background: color-mix(in srgb, var(--color-primary) 15%, transparent) !important; }
+    .app-sidebar :focus-visible { outline-color: var(--color-primary) !important; }
+    .app-company-context__dot { background: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent); }
     .app-navigation__rail-link { color: #d5e0e9; }
     .app-navigation__rail-link.is-active { color: #f7fffe !important; }
     .app-navigation__nested summary, .app-navigation__subcategory summary { display: flex; min-height: 44px; cursor: pointer; list-style: none; align-items: center; gap: .65rem; border-radius: .75rem; padding: .55rem .75rem; color: #cbd8e3; font-size: .875rem; font-weight: 650; }
@@ -50,7 +53,7 @@
     $contextName = $contextStore ? ($isArabic ? $contextStore->name_ar : $contextStore->name_en) : ($isArabic ? 'كل المتاجر المصرح بها' : 'All authorized stores');
     $companyStore = $contextStore ?? $contextStores->first();
     $company = $companyStore?->company;
-    $companyName = $company ? ($isArabic ? $company->name_ar : $company->name_en) : config('app.name');
+    $companyName = config('app.name', '3allaf | علاف');
     $unreadNotifications = $actor->unreadNotifications()->count();
 @endphp
 <flux:sidebar
@@ -92,7 +95,6 @@
         </div>
         <button type="button" class="app-topbar__search" x-data x-on:click="$dispatch('open-navigation-search')" aria-label="{{ app()->isLocale('ar-EG') ? 'دوّر سريع في النظام' : ($isArabic ? 'بحث سريع في النظام' : 'Quick system search') }}"><flux:icon.magnifying-glass class="size-5" /><span>{{ app()->isLocale('ar-EG') ? 'ادوّر عن شاشة أو إجراء' : ($isArabic ? 'ابحث عن شاشة أو إجراء' : 'Search screens and actions') }}</span><kbd dir="ltr">Ctrl K</kbd></button>
         <div class="app-topbar__actions">
-            @if($contextStores->count() > 1)<flux:dropdown position="bottom" align="end"><flux:button variant="ghost" class="app-topbar__context hidden min-h-11 xl:inline-flex" icon="building-storefront" icon-trailing="chevron-down" aria-label="{{ $isArabic ? 'موقع العمل الحالي' : 'Current work location' }}: {{ $contextName }}">{{ $contextName }}</flux:button><flux:menu><div class="px-3 py-2"><strong class="block text-xs">{{ $isArabic ? 'موقع العمل الحالي' : 'Current work location' }}</strong><span class="text-xs text-text-muted">{{ app()->isLocale('ar-EG') ? 'يؤثر في طرق العرض الداعمة للنطاق ولا يغير ملكية العمليات.' : ($isArabic ? 'يؤثر في طرق العرض الداعمة للنطاق ولا يغير ملكية العمليات.' : 'Filters supported views; transaction ownership is unchanged.') }}</span></div><flux:menu.separator /><form method="POST" action="{{ route('platform.work-context') }}">@csrf<input type="hidden" name="store_id" value=""><flux:menu.item as="button" type="submit" icon="squares-2x2" class="w-full">{{ $isArabic ? 'كل المتاجر المصرح بها' : 'All authorized stores' }}</flux:menu.item></form>@foreach($contextStores as $availableStore)<form method="POST" action="{{ route('platform.work-context') }}">@csrf<input type="hidden" name="store_id" value="{{ $availableStore->id }}"><flux:menu.item as="button" type="submit" icon="building-storefront" class="w-full">{{ $availableStore->code }} · {{ $isArabic ? $availableStore->name_ar : $availableStore->name_en }}</flux:menu.item></form>@endforeach</flux:menu></flux:dropdown>@elseif($contextStores->count() === 1)<span class="app-topbar__context hidden xl:inline-flex" aria-label="{{ $isArabic ? 'موقع العمل الحالي' : 'Current work location' }}: {{ $contextName }}"><flux:icon.building-storefront class="size-4" /><span>{{ $contextName }}</span></span>@endif
             <flux:dropdown position="bottom" align="end">
                 <flux:tooltip content="{{ app()->isLocale('ar-EG') ? 'إنشاء سريع' : ($isArabic ? 'إنشاء سريع' : 'Quick create') }}" position="bottom"><flux:button variant="ghost" square icon="plus" aria-label="{{ app()->isLocale('ar-EG') ? 'إنشاء سريع' : ($isArabic ? 'إنشاء سريع' : 'Quick create') }}" /></flux:tooltip>
                 <flux:menu>

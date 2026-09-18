@@ -28,7 +28,7 @@
     @endphp
 
     <header class="center">
-        <h1>{{ $shift->store?->company?->name_en ?: $shift->company_name_en_snapshot ?: 'TOY & JOY' }}</h1>
+        <h1>{{ $shift->store?->company?->name_en ?: $shift->company_name_en_snapshot ?: '3allaf' }}</h1>
         <p>{{ $storeName ?: $shift->store_code_snapshot }}</p>
         <p class="small">{{ __('Shift closing receipt') }} · {{ $shift->closing_document_number }}</p>
     </header>

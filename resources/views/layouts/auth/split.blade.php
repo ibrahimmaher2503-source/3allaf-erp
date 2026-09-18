@@ -14,7 +14,7 @@
                     <span class="flex h-10 w-10 items-center justify-center rounded-md">
                         <x-app-logo-icon class="me-2 h-7 fill-current text-white" />
                     </span>
-                    {{ config('app.name', 'TOY & JOY') }}
+                    {{ config('app.name', '3allaf | علاف') }}
                 </a>
 
                 @php
@@ -35,7 +35,7 @@
                             <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
                         </span>
 
-                        <span class="sr-only">{{ config('app.name', 'TOY & JOY') }}</span>
+                        <span class="sr-only">{{ config('app.name', '3allaf | علاف') }}</span>
                     </a>
                     {{ $slot }}
                 </div>

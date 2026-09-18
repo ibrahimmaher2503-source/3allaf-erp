@@ -18,7 +18,9 @@ return [
         ['route' => 'sales.index', 'permission' => 'pos_sales.view', 'icon' => 'presentation-chart-line', 'label' => ['ar' => 'نظرة عامة على المبيعات', 'en' => 'Sales overview']],
         ['route' => 'pos', 'permission' => 'pos_sales.view', 'icon' => 'shopping-cart', 'label' => ['ar' => 'نقطة البيع', 'en' => 'Point of sale']],
         ['route' => 'sales.invoices', 'permission' => 'pos_sales.view', 'icon' => 'document-text', 'label' => ['ar' => 'فواتير المبيعات', 'en' => 'Sales invoices']],
+        ['route' => 'returns.index', 'permission' => 'returns.view', 'icon' => 'arrow-uturn-left', 'label' => ['ar' => 'مرتجعات البيع والاستبدال', 'en' => 'Sales returns & exchanges']],
         ['route' => 'customers.groups.index', 'permission' => 'customers.view', 'icon' => 'rectangle-stack', 'label' => ['ar' => 'مجموعات العملاء', 'en' => 'Customer groups']],
+        ['route' => 'customers.index', 'permission' => 'customers.view', 'icon' => 'users', 'label' => ['ar' => 'العملاء', 'en' => 'Customers']],
         ['route' => 'pos.shift', 'permission' => 'shifts_cash_movements.view', 'icon' => 'banknotes', 'label' => ['ar' => 'الورديات والتحصيل', 'en' => 'Shifts & collections']],
     ]],
     ['key' => 'inventory', 'icon' => 'archive-box', 'label' => ['ar' => 'المنتجات والمخزون', 'en' => 'Products & inventory'], 'items' => [
@@ -42,7 +44,7 @@ return [
         ['route' => 'parties.invoices.index', 'permission' => 'party_bookings_invoices.view', 'icon' => 'document-text', 'label' => ['ar' => 'فواتير ومدفوعات الحفلات', 'en' => 'Party invoices & payments']],
         ['route' => 'parties.orders.index', 'permission' => 'party_operating_orders_consumables.view', 'icon' => 'clipboard-document-list', 'label' => ['ar' => 'أوامر التشغيل', 'en' => 'Operating orders']],
     ]],
-    ['key' => 'assets', 'icon' => 'building-office-2', 'label' => ['ar' => 'الأصول والتأجير', 'en' => 'Assets & rental'], 'items' => [
+    ['key' => 'assets', 'enabled' => false, 'icon' => 'building-office-2', 'label' => ['ar' => 'الأصول والتأجير', 'en' => 'Assets & rental'], 'items' => [
         ['route' => 'party.assets.index', 'parameters' => ['mode' => 'dashboard'], 'permission' => 'rental_assets.view', 'icon' => 'chart-bar-square', 'label' => ['ar' => 'نظرة عامة على الأصول', 'en' => 'Assets overview']],
         ['route' => 'party.assets.index', 'parameters' => ['mode' => 'catalog'], 'permission' => 'rental_assets.view', 'icon' => 'archive-box', 'label' => ['ar' => 'سجل الأصول', 'en' => 'Asset catalog']],
         ['route' => 'party.assets.index', 'parameters' => ['mode' => 'calendar'], 'permission' => 'rental_assets.view', 'icon' => 'calendar-days', 'label' => ['ar' => 'الإتاحة والحجوزات', 'en' => 'Availability & reservations']],
@@ -53,6 +55,8 @@ return [
         ['route' => 'feed-store.operations', 'permission' => 'access-feed-store-operations', 'icon' => 'calculator', 'label' => ['ar' => 'عمليات محل الأعلاف', 'en' => 'Feed store operations']],
         ['route' => 'reports.sales-summary', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'pos_sales.view', 'pos_sales.payment_view'], 'icon' => 'chart-bar-square', 'label' => ['ar' => 'ملخص المبيعات', 'en' => 'Sales Summary']],
         ['route' => 'reports.sales-by-product', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'pos_sales.view', 'pos_sales.payment_view'], 'icon' => 'cube', 'label' => ['ar' => 'المبيعات حسب الصنف', 'en' => 'Sales by Product']],
+        ['route' => 'reports.stock-movement', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'inventory_stock_card.view'], 'icon' => 'list-bullet', 'label' => ['ar' => 'كارت حركة الصنف', 'en' => 'Stock Movement Card']],
+        ['route' => 'reports.inventory-valuation', 'permission' => 'dashboard_reports.view', 'permissions' => ['dashboard_reports.view', 'inventory_stock_card.view', 'inventory_stock_card.cost_view'], 'icon' => 'calculator', 'label' => ['ar' => 'تقييم المخزون', 'en' => 'Inventory Valuation']],
         ['route' => 'reports.index', 'permission' => 'dashboard_reports.view', 'icon' => 'squares-2x2', 'label' => ['ar' => 'مركز التقارير والتصدير', 'en' => 'Reports and Export Center']],
     ]],
     ['key' => 'administration', 'icon' => 'cog-6-tooth', 'label' => ['ar' => 'الإدارة والإعدادات', 'en' => 'Administration & settings'], 'items' => [

@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>
-    {{ filled($title ?? null) ? __($title).' - '.config('app.name', 'TOY & JOY') : config('app.name', 'TOY & JOY') }}
+    {{ filled($title ?? null) ? __($title).' - '.config('app.name', '3allaf | علاف') : config('app.name', '3allaf | علاف') }}
 </title>
 
 <link rel="icon" href="/favicon.ico" sizes="any">

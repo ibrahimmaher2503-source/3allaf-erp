@@ -497,3 +497,11 @@ Remaining P1: authenticated browser UAT and resolution of 27 non-passing histori
 - Dedicated MariaDB `rajeh_r1_sales_reports_20260917` passed 9 focused tests/61 assertions, 15 linked regression tests/53 assertions, real CSV/XLSX/PDF generation, and direct duplicate/scope/integrity checks.
 - Authenticated Arabic and English browser UAT passed for both report pages and customer analysis, including filter/drilldown/empty states, sidebar destinations, export request, 390px mobile layout with no page overflow, and zero console warnings/errors.
 - No migration was required. Targeted Pint, changed PHP syntax, locale JSON parsing, targeted compiled-Blade syntax, route discovery, and diff hygiene passed. No full suite, production action, deployment, release, push, or tag occurred.
+
+# 2026-09-18 — R2 Inventory Reports
+
+- Added permission-scoped Stock Movement Card and Inventory Valuation As Of Date destinations with direct sidebar links and valuation-to-card drilldown.
+- Reused posted stock movements, immutable quantity/cost snapshots, Cairo cutoffs, authorized store scope, the existing export job, and existing movement indexes. No R2 schema migration was needed.
+- Dedicated MariaDB passed 4 focused tests/20 assertions and 9 linked inventory tests/45 assertions. Six real CSV/XLSX/PDF artifacts generated successfully and were removed after verification.
+- Direct integrity audits reported zero balance, duplicate, orphan, transfer-release, purchase/sales-return, negative-balance, conversion, cost-snapshot, and float/double violations on the reviewed R1 dataset.
+- Authenticated Arabic and English browser UAT passed both report pages and sidebar destinations. Mobile/tablet visual acceptance was not performed. No production, deployment, release, commit, push, or tag occurred.

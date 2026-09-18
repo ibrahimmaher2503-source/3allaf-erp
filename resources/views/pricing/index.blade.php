@@ -312,14 +312,25 @@ new #[Title('Pricing Workspace')] class extends Component
     }
 };
 ?>
-<x-app.page :title="str_starts_with(app()->getLocale(), 'ar') ? 'التسعير' : 'Pricing workspace'" :description="str_starts_with(app()->getLocale(), 'ar') ? 'إدارة الأسعار الفعالة والنسخ المجدولة والاعتمادات والاستثناءات ضمن المتاجر المصرح بها.' : 'Manage effective prices, schedules, approvals, and exceptions across authorized stores.'" :breadcrumbs="str_starts_with(app()->getLocale(), 'ar') ? 'التسعير' : 'Pricing'" max-width="7xl" class="pricing-screen" data-pricing-mode="{{ $mode }}">
-    @php($modeTitles = ['workspace' => str_starts_with(app()->getLocale(), 'ar') ? 'نظرة عامة' : 'Overview', 'versions' => str_starts_with(app()->getLocale(), 'ar') ? 'قوائم ونسخ الأسعار' : 'Price lists & versions', 'unpriced' => str_starts_with(app()->getLocale(), 'ar') ? 'منتجات بلا سعر' : 'Unpriced products', 'history' => str_starts_with(app()->getLocale(), 'ar') ? 'سجل التغييرات' : 'Change history'])
+@php
+    $pt = static fn (string $ar, string $en): string => str_starts_with(app()->getLocale(), 'ar') ? $ar : $en;
+    $modeTitles = ['workspace' => $pt('نظرة عامة على التسعير', 'Pricing overview'), 'versions' => $pt('مقترحات وإصدارات الأسعار', 'Price proposals and versions'), 'unpriced' => $pt('أصناف تحتاج سعر بيع', 'Products needing a selling price'), 'history' => $pt('سجل تغييرات الأسعار', 'Price change history')];
+    $priceStateHelp = [
+        'draft' => $pt('لم يُرسل للمراجعة، لا يغيّر سعر البيع.', 'Not submitted for review; does not change selling prices.'),
+        'submitted' => $pt('ينتظر قرار المراجع، لم يُطبّق بعد.', 'Awaiting a reviewer decision; not applied yet.'),
+        'approved' => $pt('معتمد، تطبيقه مرتبط بفترة السريان ونطاق القائمة.', 'Approved; application depends on validity dates and list scope.'),
+        'rejected' => $pt('مرفوض، لا يُطبّق في البيع.', 'Rejected; not applied to sales.'),
+        'superseded' => $pt('استُبدل بإصدار أحدث، محفوظ للرجوع إليه.', 'Replaced by a newer version; retained as history.'),
+        'cancelled' => $pt('ملغى، لا يُطبّق في البيع.', 'Cancelled; not applied to sales.'),
+    ];
+@endphp
+<x-app.page :title="$modeTitles[$mode]" :description="$mode === 'versions' ? $pt('راجع تغييرات أسعار البيع لكل صنف وموقع، وتابعها من المسودة حتى الاعتماد وفترة السريان.', 'Review selling-price changes by product and location, from draft through approval and validity dates.') : $pt('تابع أسعار البيع وقوائم الأسعار واعتماداتها ضمن المواقع المصرح بها.', 'Manage selling prices, price lists and approvals within authorized locations.')" :breadcrumbs="$pt('التسعير', 'Pricing')" max-width="7xl" class="pricing-screen" data-pricing-mode="{{ $mode }}">
     <x-slot:actions><x-tables.resource-toolbar filter-target="pricing-filters">@can('pricing_labels.create')<flux:button variant="subtle" wire:click="openImportForm" icon="arrow-up-tray">{{ str_starts_with(app()->getLocale(), 'ar') ? 'استيراد CSV' : 'Import CSV' }}</flux:button><flux:button variant="primary" wire:click="openProposalForm" icon="plus">{{ str_starts_with(app()->getLocale(), 'ar') ? 'مقترح سعر جديد' : 'New price proposal' }}</flux:button>@endcan</x-tables.resource-toolbar></x-slot:actions>
     <div class="space-y-5">
-    <div class="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">{{ $modeTitles[$mode] }}</h1>
-            <flux:text class="mt-1 max-w-3xl">{{ __('The Product Card base consumer price is immediately sellable. Optional active price lists override it only when applicable. Cost changes never rewrite sale prices.') }}</flux:text>
+            <h2 class="text-base font-bold">{{ $pt('متى يتغيّر سعر البيع؟', 'When does the selling price change?') }}</h2>
+            <p class="mt-1 max-w-3xl text-sm text-text-muted">{{ $pt('حفظ المقترح لا يغيّر السعر. أرسله للمراجعة ثم الاعتماد، وراجع فترة سريانه. سعر بطاقة المنتج يظل الأساس، وتغيّر تكلفة الشراء لا يغيّر سعر البيع تلقائيًا.', 'Saving a proposal does not change prices. Submit it for review and approval, then check its validity dates. The product-card price remains the base; purchase-cost changes do not automatically change selling prices.') }}</p>
         </div>
         <flux:button href="{{ route('pricing.labels') }}" variant="subtle" icon="printer" wire:navigate>{{ str_starts_with(app()->getLocale(), 'ar') ? 'ملصقات الأسعار' : 'Price labels' }}</flux:button>
     </div>
@@ -334,15 +345,19 @@ new #[Title('Pricing Workspace')] class extends Component
         @endforeach
     </nav>
 
-    <div id="pricing-filters" class="scroll-mt-24 grid gap-3 rounded-2xl border border-border bg-surface p-4 md:grid-cols-2 min-w-0 xl:grid-cols-[minmax(12rem,1.5fr)_repeat(4,minmax(8.5rem,1fr))_auto]">
-        <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="{{ __('Search list, item code, or product') }}" />
+    <section id="pricing-filters" class="scroll-mt-24 min-w-0 rounded-xl border border-border bg-surface p-4" aria-labelledby="pricing-filter-heading">
+        <h2 id="pricing-filter-heading" class="mb-3 text-sm font-bold">{{ $pt('ابحث وحدد الإصدارات المطلوبة', 'Find the versions you need') }}</h2>
+        <div class="grid items-end gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :label="$pt('الصنف أو كود القائمة', 'Product or price-list code')" placeholder="{{ __('Search list, item code, or product') }}" />
         <flux:select wire:model.live="storeFilter" :label="str_starts_with(app()->getLocale(), 'ar') ? 'موقع العمل' : 'Work location'"><option value="all">{{ str_starts_with(app()->getLocale(), 'ar') ? 'كل المتاجر' : 'All stores' }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</option>@endforeach</flux:select>
-        @if($mode !== 'unpriced')<flux:select wire:model.live="statusFilter" :label="__('Status')"><option value="all">{{ __('All states') }}</option>@foreach (PriceVersionState::cases() as $state)<option value="{{ $state->value }}">{{ __(ucfirst($state->value)) }}</option>@endforeach</flux:select>@else<div></div>@endif
+        @if($mode !== 'unpriced')<flux:select wire:model.live="statusFilter" :label="$pt('مرحلة الاعتماد', 'Approval stage')"><option value="all">{{ __('All states') }}</option>@foreach (PriceVersionState::cases() as $state)<option value="{{ $state->value }}">{{ UiLabel::status($state->value) }}</option>@endforeach</flux:select>@endif
         <flux:input wire:model.live="effectiveFrom" type="date" :label="str_starts_with(app()->getLocale(), 'ar') ? 'ساري من' : 'Effective from'" />
         <flux:input wire:model.live="effectiveTo" type="date" :label="str_starts_with(app()->getLocale(), 'ar') ? 'ساري حتى' : 'Effective to'" />
         <flux:select wire:model.live="perPage" :label="str_starts_with(app()->getLocale(), 'ar') ? 'حجم الصفحة' : 'Page size'"><option value="12">12</option><option value="24">24</option><option value="48">48</option></flux:select>
         <flux:button wire:click="resetFilters" variant="ghost" icon="arrow-path">{{ str_starts_with(app()->getLocale(), 'ar') ? 'إعادة ضبط' : 'Reset' }}</flux:button>
-    </div>
+        </div>
+        <p class="mt-3 text-xs text-text-muted">{{ $pt('التواريخ تعرض الإصدارات التي تتقاطع فترة سريانها مع النطاق المحدد.', 'Dates filter versions whose validity periods overlap the selected range.') }}</p>
+    </section>
 
     @if($mode === 'workspace')<x-pricing.dashboard :dashboard="$dashboard" />@endif
 
@@ -367,26 +382,27 @@ new #[Title('Pricing Workspace')] class extends Component
     @endif
 
     @if(in_array($mode, ['workspace', 'versions', 'history'], true))
-    <x-tables.data-panel :title="$mode === 'history' ? __('Price change history') : __('Price versions')" :description="__('Review proposed and approved prices by product and store.')">
+    <x-tables.data-panel :title="$mode === 'history' ? __('Price change history') : __('Price versions')" :description="$pt('كل سطر يوضح إصدارًا وسعره وموقع تطبيقه وفترة سريانه ومرحلة اعتماده.', 'Each row shows a version, its price, target location, validity dates and approval stage.')">
         <table class="data-table responsive-resource-table min-w-full text-start text-sm">
-                <thead><tr><th scope="col"><button type="button" wire:click="sortBy('id')" class="font-semibold">{{ __('Version') }}</button></th><th scope="col">{{ __('Product / location') }}</th><th scope="col">{{ __('Amount') }}</th><th scope="col">{{ __('Source') }}</th><th scope="col"><button type="button" wire:click="sortBy('approved_at')" class="font-semibold">{{ __('State') }}</button></th><th scope="col">{{ __('Actions') }}</th></tr></thead>
+                <thead><tr><th scope="col"><button type="button" wire:click="sortBy('id')" class="font-semibold">{{ $pt('القائمة والإصدار', 'List and version') }}</button></th><th scope="col">{{ __('Product / location') }}</th><th scope="col">{{ $pt('سعر البيع المقترح', 'Proposed selling price') }}</th><th scope="col">{{ __('Source') }}</th><th scope="col">{{ $pt('فترة سريان السعر', 'Price validity') }}</th><th scope="col"><button type="button" wire:click="sortBy('approved_at')" class="font-semibold">{{ $pt('مرحلة الاعتماد', 'Approval stage') }}</button></th><th scope="col">{{ __('Actions') }}</th></tr></thead>
                 <tbody>
                     @forelse ($versions as $version)
                         @php($line = $version->lines->first())
                         <tr wire:key="price-version-{{ $version->id }}" class="align-top">
-                            <td data-primary><div class="font-semibold text-text-primary">{{ $version->priceList->code }} · v{{ $version->version }}</div><div class="text-xs text-text-muted">{{ optional($version->effective_from)->format('Y-m-d H:i') ?: __('Immediate') }}</div></td>
+                            <td data-primary><div class="font-semibold text-text-primary">{{ $version->priceList->code }}</div><div class="text-xs text-text-muted">{{ $pt('إصدار رقم', 'Version') }} {{ $version->version }}</div></td>
                             <td data-label="{{ __('Product / location') }}"><div class="font-medium">{{ $line?->product?->item_code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $line?->product?->name_ar : $line?->product?->name_en }}</div><div class="text-xs text-text-muted">{{ $line?->store?->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $line?->store?->name_ar : $line?->store?->name_en }}</div></td>
                             <td data-label="{{ __('Amount') }}" class="font-semibold"><x-money :amount="$line?->amount" /></td>
                             <td data-label="{{ __('Source') }}"><div>{{ $version->source_type === 'product_card' ? __('Product price') : __(str_replace('_', ' ', ucfirst($version->source_type))) }}</div><div class="text-xs text-text-muted">{{ $version->source_reference ?: '—' }}</div></td>
-                            <td data-label="{{ __('State') }}"><x-status.badge :status="$version->state->value" /><div class="mt-1 text-xs text-text-muted">{{ $version->approvalRecord ? __('Approval') . ': ' . UiLabel::status($version->approvalRecord->approval_state->value) : __('No approval yet') }}</div></td>
+                            <td data-label="{{ $pt('فترة سريان السعر', 'Price validity') }}"><div>{{ $pt('من', 'From') }}: <span dir="ltr">{{ $version->effective_from?->format('Y-m-d H:i') ?: $pt('فور الاعتماد', 'On approval') }}</span></div><div class="mt-1 text-xs text-text-muted">{{ $pt('حتى', 'Until') }}: <span dir="ltr">{{ $version->effective_to?->format('Y-m-d H:i') ?: $pt('بدون تاريخ انتهاء', 'No end date') }}</span></div></td>
+                            <td data-label="{{ __('State') }}"><x-status.badge :status="$version->state->value" /><div class="mt-1 text-xs text-text-muted">{{ $version->approvalRecord ? __('Approval') . ': ' . UiLabel::status($version->approvalRecord->approval_state->value) : __('No approval yet') }}</div><p class="mt-2 max-w-xs text-xs text-text-muted">{{ $priceStateHelp[$version->state->value] ?? '' }}</p></td>
                             <td data-label="{{ __('Actions') }}" class="space-y-2">
-                                @can('pricing_labels.view')<x-actions.button semantic="history" :label="__('Compare history')" wire:click="openDiff({{ $version->id }})">{{ __('Compare history') }}</x-actions.button>@endcan
-                                @can('pricing_labels.submit') @if ($version->state === PriceVersionState::Draft)<flux:button size="sm" wire:click="submitProposal({{ $version->id }})">{{ __('Submit') }}</flux:button>@endif @endcan
-                                @can('pricing_labels.approve') @if ($version->state === PriceVersionState::Submitted)<x-actions.button semantic="approve" :label="__('Approve')" wire:click="approveProposal({{ $version->id }})">{{ __('Approve') }}</x-actions.button><flux:input size="sm" wire:model="rejectionReason" placeholder="{{ __('Rejection reason if rejecting') }}" /><x-actions.button semantic="reject" :label="__('Reject')" wire:click="rejectProposal({{ $version->id }})">{{ __('Reject') }}</x-actions.button>@endif @endcan
+                                @can('pricing_labels.view')<x-actions.button semantic="history" :label="$pt('مقارنة الإصدارات', 'Compare versions')" wire:click="openDiff({{ $version->id }})">{{ $pt('مقارنة الإصدارات', 'Compare versions') }}</x-actions.button>@endcan
+                                @can('pricing_labels.submit') @if ($version->state === PriceVersionState::Draft)<flux:button size="sm" wire:loading.attr="disabled" wire:target="submitProposal" wire:click="submitProposal({{ $version->id }})">{{ $pt('إرسال السعر للمراجعة', 'Submit price for review') }}</flux:button>@endif @endcan
+                                @can('pricing_labels.approve') @if ($version->state === PriceVersionState::Submitted)<x-actions.button semantic="approve" :label="$pt('اعتماد هذا السعر', 'Approve this price')" wire:click="approveProposal({{ $version->id }})">{{ $pt('اعتماد هذا السعر', 'Approve this price') }}</x-actions.button><details class="rounded-lg border border-border p-2"><summary class="cursor-pointer text-xs font-semibold">{{ $pt('رفض المقترح مع ذكر السبب', 'Reject proposal with a reason') }}</summary><div class="mt-2 space-y-2"><flux:input size="sm" wire:model="rejectionReason" placeholder="{{ __('Rejection reason if rejecting') }}" /><x-actions.button semantic="reject" :label="__('Reject')" wire:click="rejectProposal({{ $version->id }})">{{ __('Reject') }}</x-actions.button></div></details>@endif @endcan
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6"><x-state.empty :title="__('No price versions yet.')" :description="__('Create a price proposal to begin the approval workflow.')" /></td></tr>
+                        <tr><td colspan="7"><x-state.empty :title="__('No price versions yet.')" :description="__('Create a price proposal to begin the approval workflow.')" /></td></tr>
                     @endforelse
                 </tbody>
             </table>

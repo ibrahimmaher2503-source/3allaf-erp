@@ -9,11 +9,11 @@
     <body class="min-h-screen bg-white text-zinc-950 antialiased dark:bg-zinc-950 dark:text-white">
         <div class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 sm:px-8 lg:px-12">
             <header class="flex min-h-20 items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
-                <a href="{{ route('home') }}" aria-label="{{ __('TOY & JOY home') }}" class="flex items-center gap-3">
+                <a href="{{ route('home') }}" aria-label="{{ __('3allaf home') }}" class="flex items-center gap-3">
                     <span class="flex size-9 items-center justify-center rounded-lg bg-teal-700 text-white">
                         <x-app-logo-icon class="size-5" />
                     </span>
-                    <span class="text-sm font-bold tracking-wide">{{ config('app.name', 'TOY & JOY') }}</span>
+                    <span class="text-sm font-bold tracking-wide">{{ config('app.name', '3allaf | علاف') }}</span>
                 </a>
 
                 <nav aria-label="{{ __('Account navigation') }}" class="flex items-center gap-2">
@@ -38,13 +38,13 @@
             <main class="grid flex-1 items-center gap-14 py-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(22rem,0.9fr)] lg:py-24">
                 <section class="max-w-3xl">
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">
-                        {{ __('TOY & JOY operations') }}
+                        {{ __('3allaf operations') }}
                     </p>
                     <h1 class="mt-5 text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-                        {{ __('One dependable workspace for daily TOY & JOY operations.') }}
+                        {{ __('One dependable workspace for daily 3allaf operations.') }}
                     </h1>
                     <p class="mt-6 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-                        {{ __('A browser-based operational platform for retail, inventory, customers, point of sale, and party services, built with clear controls and traceable workflows.') }}
+                        {{ __('A browser-based operational platform for retail, inventory, customers, and point of sale, built with clear controls and traceable workflows.') }}
                     </p>
 
                     <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -70,7 +70,7 @@
                         @foreach ([
                             __('Daily retail sales and payments'),
                             __('Inventory and purchasing visibility'),
-                            __('Customer, party, and asset workflows'),
+                            __('Customer and inventory workflows'),
                             __('Arabic RTL and English LTR direction support'),
                         ] as $item)
                             <li class="flex items-start gap-3 px-6 py-4 text-sm text-zinc-700 dark:text-zinc-200">
@@ -87,7 +87,7 @@
             </main>
 
             <footer class="border-t border-zinc-200 py-6 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                {{ __('TOY & JOY operational workspace') }}
+                {{ __('3allaf operational workspace') }}
             </footer>
         </div>
 

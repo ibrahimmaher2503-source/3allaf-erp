@@ -131,21 +131,7 @@ final class CreateCustomerAction
                     );
                 }
 
-                $children = $data['children'] ?? [];
-                if ($children !== []) {
-                    if (! is_array($children)) {
-                        throw new InvalidArgumentException(__('Customer children must be an array.'));
-                    }
-                    $childAction = app(SaveCustomerChildAction::class);
-                    foreach (array_values($children) as $child) {
-                        if (! is_array($child)) {
-                            throw new InvalidArgumentException(__('Each child profile must be an object.'));
-                        }
-                        $childAction->execute($actor, $customer, $store, $child, null, 'profile_create');
-                    }
-                }
-
-                return $customer->fresh(['scopes', 'consents', 'children']);
+                return $customer->fresh(['scopes', 'consents']);
             }, 5);
         } catch (UniqueConstraintViolationException $exception) {
             $existing = Customer::query()->where('idempotency_key', $idempotencyKey)->first();

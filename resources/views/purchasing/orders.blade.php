@@ -163,8 +163,10 @@ new #[Title('Purchase Orders')] class extends Component
         foreach ($order->lines as $line) {
             $this->lineItems[] = [
                 'product_id' => (string) $line->product_id,
-                'quantity_ordered' => (float) $line->quantity_ordered,
-                'unit_cost' => (float) $line->unit_cost,
+                'product_unit_id' => $line->product_unit_id ? (string) $line->product_unit_id : '',
+                'conversion_factor' => $line->conversion_factor_snapshot ?? '1.000000',
+                'quantity_ordered' => (string) ($line->entered_quantity ?? $line->quantity_ordered),
+                'unit_cost' => (string) ($line->entered_unit_price ?? $line->unit_cost),
                 'notes' => $line->notes ?: '',
                 'price_source' => 'saved_draft_cost',
                 'price_date' => '',
@@ -258,13 +260,37 @@ new #[Title('Purchase Orders')] class extends Component
     public function selectOrderProduct(int $index, int $productId, SupplierProductPrice $prices): void
     {
         abort_unless(filled($this->orderForm['supplier_id']), 422, __('Select a supplier before adding products.'));
-        $product = Product::query()->sellable()->findOrFail($productId);
+        $product = Product::query()->sellable()->with('productUnits.unit')->findOrFail($productId);
         $price = $prices->resolve($product, (int) $this->orderForm['supplier_id']);
+        $purchaseUnits = $product->productUnits->filter(fn ($unit) => $unit->is_purchase_unit && $unit->unit?->status === 'active');
+        $unit = $purchaseUnits->firstWhere('is_base_unit', true) ?? $purchaseUnits->first();
         $this->lineItems[$index]['product_id'] = (string) $product->id;
-        $this->lineItems[$index]['unit_cost'] = $price['unit_cost'] ?? '';
+        $this->lineItems[$index]['product_unit_id'] = $unit ? (string) $unit->id : '';
+        $this->lineItems[$index]['conversion_factor'] = $unit?->conversion_factor ?? '1.000000';
+        $this->lineItems[$index]['unit_cost'] = $price['unit_cost'] === null ? '' : bcmul((string) $price['unit_cost'], (string) ($unit?->conversion_factor ?? '1'), 4);
         $this->lineItems[$index]['price_source'] = $price['price_source'];
         $this->lineItems[$index]['price_date'] = $price['price_date'] ?? '';
         $this->lineItems[$index]['price_currency'] = $price['price_currency'] ?? '';
+    }
+
+    public function changeOrderUnit(int $index): void
+    {
+        $line = $this->lineItems[$index] ?? null;
+        abort_unless(is_array($line), 422);
+        $unit = \App\Modules\Catalog\Models\ProductUnit::query()->with('unit')
+            ->where('product_id', (int) $line['product_id'])->where('is_purchase_unit', true)
+            ->when(filled($line['product_unit_id'] ?? null), fn ($query) => $query->whereKey((int) $line['product_unit_id']), fn ($query) => $query->where('is_base_unit', true))
+            ->firstOrFail();
+        abort_unless($unit->unit?->status === 'active', 422);
+        $this->lineItems[$index]['product_unit_id'] = (string) $unit->id;
+        $oldFactor = (string) ($line['conversion_factor'] ?? '1');
+        if (preg_match('/^\d+(?:\.\d{1,6})?$/D', $oldFactor) !== 1 || bccomp($oldFactor, '0', 6) <= 0) {
+            $oldFactor = '1';
+        }
+        if (preg_match('/^\d+(?:\.\d{1,4})?$/D', (string) ($line['unit_cost'] ?? '')) === 1) {
+            $this->lineItems[$index]['unit_cost'] = bcdiv(bcmul((string) $line['unit_cost'], (string) $unit->conversion_factor, 10), $oldFactor, 4);
+        }
+        $this->lineItems[$index]['conversion_factor'] = (string) $unit->conversion_factor;
     }
 
     public function saveOrder(): void
@@ -278,7 +304,8 @@ new #[Title('Purchase Orders')] class extends Component
             'orderForm.expected_delivery_date' => 'nullable|date|after_or_equal:orderForm.order_date',
             'lineItems' => 'required|array|min:1',
             'lineItems.*.product_id' => 'required|exists:products,id',
-            'lineItems.*.quantity_ordered' => 'required|integer|min:1',
+            'lineItems.*.product_unit_id' => 'nullable|integer|exists:product_units,id',
+            'lineItems.*.quantity_ordered' => 'required|numeric|gt:0|decimal:0,6',
             'lineItems.*.unit_cost' => 'required|numeric|gte:0',
         ]);
 
@@ -296,6 +323,8 @@ new #[Title('Purchase Orders')] class extends Component
             $this->showFormModal = false;
             Flux::toast($this->editingOrderId ? __('Purchase Order updated successfully.') : __('Purchase Order :number created as draft.', ['number' => $order->po_number]), variant: 'success');
             if ($this->createPage) $this->redirectRoute('purchasing.orders', navigate: true);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Flux::toast(\App\Support\UserSafeError::message($e), variant: 'danger');
         }
@@ -304,7 +333,7 @@ new #[Title('Purchase Orders')] class extends Component
     /** @return array<string, int|string> */
     private function emptyOrderLine(): array
     {
-        return ['product_id' => '', 'quantity_ordered' => 1, 'unit_cost' => '', 'notes' => '', 'price_source' => 'none', 'price_date' => '', 'price_currency' => ''];
+        return ['product_id' => '', 'product_unit_id' => '', 'conversion_factor' => '1.000000', 'quantity_ordered' => '1', 'unit_cost' => '', 'notes' => '', 'price_source' => 'none', 'price_date' => '', 'price_currency' => ''];
     }
 
     public function submitOrder(int $id): void
@@ -389,7 +418,7 @@ new #[Title('Purchase Orders')] class extends Component
         $user = auth()->user();
         $suppliers = Supplier::query()->where('status', 'active')->orderBy('name_ar')->get();
         $stores = Store::visibleTo($user)->where('status', 'active')->orderBy('name_ar')->get();
-        $products = Product::query()->sellable()->with(['productSuppliers' => fn($query) => $query->when(filled($this->orderForm['supplier_id']), fn($scope) => $scope->where('supplier_id',(int)$this->orderForm['supplier_id']))])->whereIn('id', collect($this->lineItems)->pluck('product_id')->filter()->map(fn ($id): int => (int) $id))->get();
+        $products = Product::query()->sellable()->with(['productUnits.unit', 'baseProductUnit.unit', 'productSuppliers' => fn($query) => $query->when(filled($this->orderForm['supplier_id']), fn($scope) => $scope->where('supplier_id',(int)$this->orderForm['supplier_id']))])->whereIn('id', collect($this->lineItems)->pluck('product_id')->filter()->map(fn ($id): int => (int) $id))->get();
         $formSubtotal = collect($this->lineItems)->sum(fn (array $item): float => (float) ($item['quantity_ordered'] ?? 0) * (float) ($item['unit_cost'] ?? 0));
 
         if ($this->createPage) {
@@ -804,7 +833,7 @@ new #[Title('Purchase Orders')] class extends Component
                                     <th class="px-3 py-2 text-start">#</th>
                                     <th class="px-3 py-2 text-start">{{ __('Product') }}</th>
                                     <th class="px-3 py-2 text-end">{{ __('Qty') }}</th>
-                                    <th class="px-3 py-2 text-end">{{ __('Unit Cost') }}</th>
+                                    <th class="px-3 py-2 text-end">{{ __('Price per selected unit') }}</th>
                                     <th class="px-3 py-2 text-end">{{ __('Subtotal') }}</th>
                                 </tr>
                             </thead>
@@ -816,8 +845,8 @@ new #[Title('Purchase Orders')] class extends Component
                                             <div class="font-medium text-zinc-900 dark:text-white">{{ str_starts_with(app()->getLocale(), 'ar') ? $line->product->name_ar : ($line->product->name_en ?: $line->product->name_ar) }}</div>
                                             <div class="text-[11px] font-mono text-zinc-500">{{ $line->product->sku ?: $line->product->code }}</div>
                                         </td>
-                                        <td class="px-3 py-2 text-end font-mono"><x-product-quantity :value="$line->quantity_ordered" /></td>
-                                        <td class="px-3 py-2 text-end font-mono">{{ number_format((float) $line->unit_cost, 2) }}</td>
+                                        <td class="px-3 py-2 text-end font-mono"><x-product-quantity :value="$line->entered_quantity ?? $line->quantity_ordered" /> {{ $line->unit_code_snapshot }}<div class="text-xs text-text-muted">{{ __('Base quantity') }}: <x-product-quantity :value="$line->quantity_ordered" /></div></td>
+                                        <td class="px-3 py-2 text-end font-mono">{{ number_format((float) ($line->entered_unit_price ?? $line->unit_cost), 4) }}</td>
                                         <td class="px-3 py-2 text-end font-mono font-semibold">{{ number_format((float) $line->subtotal, 2) }}</td>
                                     </tr>
                                 @endforeach

@@ -20,9 +20,6 @@
                 @can('product_wallet.view')
                     <flux:button href="{{ route('customers.product-wallet', $customer) }}" variant="subtle" icon="wallet">{{ __('Product Wallet') }}</flux:button>
                 @endcan
-                @can('party_wallet.view')
-                    <flux:button href="{{ route('customers.party-wallet', $customer) }}" variant="subtle" icon="briefcase">{{ __('Party Wallet') }}</flux:button>
-                @endcan
                 <flux:button href="{{ route('customers.index') }}" variant="subtle" icon="arrow-left">{{ __('Back to customers') }}</flux:button>
             </div>
         </div>
@@ -128,10 +125,6 @@
                     @include('pages.customers._sales-analysis')
                 @endif
 
-                @if($partyBookings)
-                    <section class="rounded-2xl border border-violet-200 bg-white shadow-sm dark:border-violet-900 dark:bg-zinc-900" aria-labelledby="party-history-heading"><div class="border-b border-violet-100 px-5 py-4 dark:border-violet-900"><flux:heading id="party-history-heading" size="lg">{{ str_starts_with(app()->getLocale(), 'ar') ? 'سجل الحفلات والحجوزات' : 'Party booking history' }}</flux:heading><flux:text class="mt-1 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? 'تظل معاملات الحفلات ومدفوعاتها منفصلة عن مبيعات التجزئة ومحفظة المنتجات.' : 'Party operations and payments remain separate from retail sales and the Product Wallet.' }}</flux:text></div><div class="responsive-resource-table"><table class="data-table data-table--mobile-summary w-full"><thead><tr><th>{{ __('Booking') }}</th><th>{{ str_starts_with(app()->getLocale(), 'ar') ? 'الموعد والمكان' : 'Schedule & venue' }}</th><th>{{ __('Store') }}</th><th>{{ __('Status') }}</th><th class="text-end">{{ str_starts_with(app()->getLocale(), 'ar') ? 'الرصيد' : 'Balance' }}</th></tr></thead><tbody>@forelse($partyBookings as $booking)<tr><td data-label="{{ __('Booking') }}"><a class="font-mono font-semibold text-primary hover:underline" href="{{ route('parties.bookings.show', $booking) }}">{{ $booking->booking_number }}</a></td><td data-label="{{ str_starts_with(app()->getLocale(), 'ar') ? 'الموعد والمكان' : 'Schedule & venue' }}"><div>{{ $booking->party_date?->format('Y-m-d') }} · {{ $booking->starts_at?->format('H:i') }}</div><div class="text-xs text-text-muted">{{ $booking->location }}</div></td><td data-label="{{ __('Store') }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $booking->store?->name_ar : $booking->store?->name_en }}</td><td data-label="{{ __('Status') }}"><x-status.badge :status="$booking->status" /></td><td data-label="{{ str_starts_with(app()->getLocale(), 'ar') ? 'الرصيد' : 'Balance' }}" class="text-end tabular-nums" dir="ltr">{{ number_format((float)($booking->invoice?->balance_due ?? 0), 2) }} {{ $booking->invoice?->currency_code }}</td></tr>@empty<tr><td colspan="5"><x-state.empty :title="str_starts_with(app()->getLocale(), 'ar') ? 'لا يوجد سجل حفلات بعد' : 'No Party history yet'" /></td></tr>@endforelse</tbody></table></div>@if($partyBookings->hasPages())<div class="border-t border-violet-100 px-5 py-4 dark:border-violet-900">{{ $partyBookings->links() }}</div>@endif</section>
-                @endif
-
                 @can('customers.sensitive')
                     <section class="grid gap-6 xl:grid-cols-2">
                         @if(false)<div class="hidden rounded-2xl border border-cyan-200 bg-cyan-50/50 p-5 shadow-sm dark:border-cyan-900 dark:bg-cyan-950/20" aria-hidden="true">
@@ -154,30 +147,6 @@
                                 <div class="flex items-end"><flux:button type="submit" variant="subtle">{{ __('Record consent') }}</flux:button></div>
                             </form>
                         </div>@endif
-                        <div class="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 shadow-sm dark:border-amber-900 dark:bg-amber-950/20">
-                            <flux:heading size="lg">{{ __('Child profiles') }}</flux:heading>
-                            <flux:text class="mt-1 text-sm">{{ __('Purpose-scoped child data is kept separate and is never included in a normal customer export.') }}</flux:text>
-                            <div class="mt-4 space-y-3">
-                                @forelse ($customer->children as $child)
-                                    <div class="rounded-xl border border-amber-100 bg-white/80 p-3 text-sm dark:border-amber-900 dark:bg-zinc-900/70">
-                                        <div class="flex flex-wrap items-start justify-between gap-2"><div><div class="font-semibold">{{ str_starts_with(app()->getLocale(), 'ar') || blank($child->name_en) ? $child->name_ar : $child->name_en }}</div>@if (filled($child->name_en))<div class="mt-1 text-xs text-slate-500" dir="ltr">{{ $child->name_en }}</div>@endif</div><x-status.badge :status="$child->status" /></div>
-                                        <div class="mt-2 text-xs text-slate-500">{{ $child->birth_date?->format('Y-m-d') ?? __('Birth date not recorded') }}</div>
-                                        @if ($child->status === 'active')
-                                            <details class="mt-3"><summary class="cursor-pointer text-xs font-semibold text-cyan-700">{{ __('Edit child profile') }}</summary><form method="POST" action="{{ route('customers.children.update', [$customer, $child]) }}" novalidate class="mt-3 grid gap-3 sm:grid-cols-2">@csrf @method('PATCH')<flux:input name="name_ar" :label="__('Arabic name')" :value="$child->name_ar" required dir="rtl" /><flux:input name="name_en" :label="__('English name (optional)')" :value="$child->name_en" dir="ltr" /><flux:input name="birth_date" :label="__('Birth date (optional)')" :value="$child->birth_date?->format('Y-m-d')" type="date" /><div class="flex items-end"><flux:button type="submit" variant="subtle">{{ __('Save child profile') }}</flux:button></div></form><form method="POST" action="{{ route('customers.children.deactivate', [$customer, $child]) }}" class="mt-2"><button type="submit" class="text-xs font-semibold text-rose-700" onclick="return confirm('{{ __('Deactivate this child profile?') }}')">{{ __('Deactivate child profile') }}</button></form></details>
-                                        @endif
-                                    </div>
-                                @empty
-                                    <x-state.empty :title="__('No child profile recorded.')" :description="__('Child data remains optional and purpose-scoped.')" />
-                                @endforelse
-                            </div>
-                            <form method="POST" action="{{ route('customers.children.store', $customer) }}" novalidate class="mt-5 grid gap-3 sm:grid-cols-2">
-                                @csrf
-                                <flux:input name="name_ar" :label="__('Arabic name')" required dir="rtl" />
-                                <flux:input name="name_en" :label="__('English name (optional)')" dir="ltr" />
-                                <flux:input name="birth_date" :label="__('Birth date (optional)')" type="date" />
-                                <div class="sm:col-span-2 flex justify-end"><flux:button type="submit" variant="subtle">{{ __('Add child profile') }}</flux:button></div>
-                            </form>
-                        </div>
                     </section>
                 @endcan
             </div>
@@ -198,14 +167,6 @@
                         <div class="mt-2 break-all text-3xl font-black tabular-nums" dir="ltr">{{ $productWalletBalance }}</div>
                         <flux:text class="mt-1 text-sm">{{ __('Retail-only derived balance') }}</flux:text>
                         <flux:button class="mt-4 w-full" href="{{ route('customers.product-wallet', $customer) }}" variant="primary">{{ __('Open Product Wallet') }}</flux:button>
-                    </section>
-                @endcan
-                @can('party_wallet.view')
-                    <section class="rounded-2xl border border-violet-200 bg-violet-50/60 p-5 shadow-sm dark:border-violet-900 dark:bg-violet-950/20">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">{{ __('Party Wallet') }}</p>
-                        <div class="mt-2 break-all text-3xl font-black tabular-nums" dir="ltr">{{ $partyWalletBalance }}</div>
-                        <flux:text class="mt-1 text-sm">{{ __('Party-only derived balance') }}</flux:text>
-                        <flux:button class="mt-4 w-full" href="{{ route('customers.party-wallet', $customer) }}" variant="primary">{{ __('Open Party Wallet') }}</flux:button>
                     </section>
                 @endcan
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

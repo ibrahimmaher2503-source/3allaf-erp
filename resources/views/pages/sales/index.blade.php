@@ -38,6 +38,14 @@
             </a>
         </section>
 
+        @if ($dashboard['today_count'] === 0 && $dashboard['approved_count'] > 0)
+            <flux:callout variant="info" icon="information-circle">
+                {{ $isArabic ? 'بطاقات اليوم تعرض الفواتير بتاريخ الاعتماد، وليس تاريخ إنشاء السجل.' : 'Today’s cards use the approval date, not the record creation date.' }}
+                {{ $isArabic ? 'يوجد' : 'There are' }} {{ number_format($dashboard['approved_count']) }} {{ $isArabic ? 'فاتورة معتمدة، وآخر اعتماد كان في' : 'approved invoices; the latest approval was on' }}
+                <span dir="ltr">{{ \Illuminate\Support\Carbon::parse($dashboard['latest_approved_at'])->format('Y-m-d') }}</span>.
+            </flux:callout>
+        @endif
+
         <div class="sales-overview-grid">
             <section class="dashboard-panel sales-overview-grid__trend">
                 <header class="dashboard-panel__header"><div><flux:heading size="lg">{{ $isArabic ? 'اتجاه المبيعات خلال 7 أيام' : 'Seven-day sales trend' }}</flux:heading><flux:text size="sm">{{ $isArabic ? 'القيمة اليومية للفواتير المعتمدة' : 'Daily approved invoice value' }}</flux:text></div><flux:icon.chart-bar class="size-5 text-primary" /></header>
@@ -68,7 +76,12 @@
             <header class="dashboard-panel__header"><div><flux:heading size="lg">{{ $isArabic ? 'المنتجات الأعلى مبيعاً' : 'Top products' }}</flux:heading><flux:text size="sm">{{ $isArabic ? 'آخر سبعة أيام' : 'Last seven days' }}</flux:text></div><flux:icon.trophy class="size-5 text-primary" /></header>
             <div class="dashboard-list">
                 @forelse ($dashboard['top_products'] as $product)
-                    <div class="dashboard-list__row"><div class="min-w-0"><p class="truncate font-semibold">{{ $isArabic ? $product->name_ar : $product->name_en }}</p><p class="text-xs text-text-muted" dir="ltr">{{ $product->item_code }}</p></div><div class="text-end"><p class="font-semibold tabular-nums">{{ $product->units }} {{ $isArabic ? 'وحدة' : 'units' }}</p><x-money :amount="$product->net_total" :currency="$dashboard['currency_code']" class="text-xs text-text-muted" /></div></div>
+                    @php
+                        $quantityParts = explode('.', \App\Support\ProductQuantity::format($product->units));
+                        $quantityParts[0] = preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', $quantityParts[0]);
+                        $displayQuantity = implode('.', $quantityParts);
+                    @endphp
+                    <div class="dashboard-list__row"><div class="min-w-0"><p class="truncate font-semibold">{{ $isArabic ? $product->name_ar : $product->name_en }}</p><p class="text-xs text-text-muted" dir="ltr">{{ $product->item_code }}</p></div><div class="text-end"><p class="text-lg font-semibold tabular-nums" dir="ltr">{{ $displayQuantity }}</p><p class="text-xs text-text-muted">{{ $isArabic ? 'الكمية المباعة بالوحدة الأساسية' : 'Sold quantity · base unit' }}</p><x-money :amount="$product->net_total" :currency="$dashboard['currency_code']" class="text-xs text-text-muted" /></div></div>
                 @empty
                     <x-state.empty :title="app()->isLocale('ar-EG') ? 'مفيش بيانات منتجات للفترة' : ($isArabic ? 'لا توجد بيانات منتجات للفترة' : 'No product activity for this period')" icon="cube" />
                 @endforelse
@@ -94,7 +107,7 @@
                 <tbody>
                     @forelse ($sales as $sale)
                         <tr>
-                            <td data-primary><a class="font-semibold text-primary hover:underline" href="{{ route('sales.show', $sale) }}" wire:navigate>{{ $sale->document_number ?: __('Sale #:id', ['id' => $sale->id]) }}</a><div class="text-xs text-text-muted">{{ $sale->created_at?->format('Y-m-d H:i') }}</div></td>
+                            <td data-primary><a class="font-semibold text-primary hover:underline" href="{{ route('sales.show', $sale) }}" wire:navigate>{{ $sale->document_number ?: __('Sale #:id', ['id' => $sale->id]) }}</a><div class="text-xs text-text-muted">{{ $isArabic ? 'اعتماد' : 'Approved' }}: {{ ($sale->approved_at ?: $sale->created_at)?->format('Y-m-d H:i') }}</div></td>
                             <td data-label="{{ __('Status') }}"><x-status.badge :status="$sale->status" /></td>
                             <td data-label="{{ __('Store') }}">{{ $isArabic ? $sale->store->name_ar : $sale->store->name_en }}</td>
                             <td data-label="{{ __('Cashier') }}">{{ $sale->cashier->name }}</td>

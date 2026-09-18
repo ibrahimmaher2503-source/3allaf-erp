@@ -132,3 +132,16 @@
 
 - The owner explicitly requires cash, unpaid credit, and partially paid POS sales. The Hotfix16 cash-residual rule remains for cash customers; an active credit customer may pay less than the residual in cash and leave the difference in the existing customer AR. Pure credit has no payment method or payment record. Existing credit-limit and approval-time settlement checks remain authoritative.
 - This is a local D3 change only. Browser UAT, production, release, and deployment remain open.
+
+## 2026-09-18 — Retire customer child profiles from operations
+
+- Owner directed removal of child profiles from the system. Customer create/profile UI, customer child write routes, customer listing counts, and customer-create action input are retired locally.
+- Existing `customer_children` records and their model/table remain read-only historical data because party bookings may hold restrictive foreign-key references and audit history must not be corrupted.
+- Irreversible deletion of historical child data, its schema, or party-booking references requires an owner-approved migration, backup, retention decision, and separate I4/D3 verification.
+
+## 2026-09-18 — R2 historical inventory valuation authority
+
+- Posted `stock_movements` are the authoritative historical ledger. Movement quantity is already normalized to the product base unit; `unit_cost`, signed `total_cost`, and outgoing `consumed_cost` are immutable posting-time snapshots.
+- Inventory valuation at a cutoff is `SUM(stock_movements.total_cost)` and historical quantity is `SUM(stock_movements.quantity)` through Cairo end-of-day. Historical unit cost is derived as value divided by quantity when quantity is positive. Current Product or StockBalance average cost must never be substituted.
+- The movement card opening balance is every posted movement before the start boundary; period incoming/outgoing and running balance use deterministic `posted_at, id` order. Transfers report only posted dispatch/receipt movements, so partial receipts and shortages are not fabricated.
+- Existing `(product_id, store_id, posted_at)` and store/date indexes cover the two report paths. No R2 migration or new index is justified by the reviewed plans and dataset.

@@ -25,6 +25,7 @@ use App\Modules\Reporting\Actions\EvaluateAlertsAction;
 use App\Modules\Reporting\Models\Alert;
 use App\Modules\Reporting\Models\ExportJob;
 use App\Modules\Reporting\Queries\ReportSnapshot;
+use App\Modules\Reporting\Queries\InventoryReport;
 use App\Modules\Reporting\Queries\SalesReport;
 use App\Modules\Retail\Models\Sale;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,13 +49,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     };
 
     $reportTitles = [
-        'sales' => __('Sales reports'),
-        'customers' => __('Customer & loyalty reports'),
-        'cash' => __('Cash & shift reports'),
-        'purchasing' => __('Purchasing reports'),
-        'inventory' => __('Inventory reports'),
-        'parties' => __('Party reports'),
-        'assets' => __('Rental asset reports'),
+        'sales' => 'Sales reports',
+        'customers' => 'Customer & loyalty reports',
+        'cash' => 'Cash & shift reports',
+        'purchasing' => 'Purchasing reports',
+        'inventory' => 'Inventory reports',
+        'parties' => 'Party reports',
+        'assets' => 'Rental asset reports',
     ];
 
     $renderReport = function (Request $request, ReportSnapshot $snapshot, ?string $focusedModule = null) use ($reportTitles) {
@@ -84,12 +85,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ? Product::query()->sellable()->with(['parent:id,name_ar,name_en', 'variantValues.group', 'variantValues.value'])->orderBy('item_code')->limit(200)->get(['id', 'item_code', 'name_ar', 'name_en', 'parent_product_id'])
             : collect();
         $categories = ($user->can('products_categories_brands.view') || $user->can('pos_sales.view') || $user->can('inventory_stock_card.view'))
-            ? Category::query()->where('status', 'active')->orderBy('code')->limit(200)->get(['id', 'code', 'name_en'])
+            ? Category::query()->where('status', 'active')->orderBy('code')->limit(200)->get(['id', 'code', 'name_ar', 'name_en'])
             : collect();
         $paymentMethods = $user->can('pos_sales.payment_view')
-            ? PaymentMethod::query()->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_en'])
+            ? PaymentMethod::query()->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en'])
             : collect();
-        $customerColumns = ['id', 'name_en'];
+        $customerColumns = ['id', 'name_ar', 'name_en'];
         if ($user->can('customers.sensitive')) {
             $customerColumns[] = 'phone_display';
         }
@@ -97,21 +98,17 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ? Customer::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->limit(200)->get($customerColumns)
             : collect();
         $suppliers = $user->can('suppliers.view') || $user->can('purchase_orders.view')
-            ? Supplier::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'code', 'name_en'])
+            ? Supplier::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'code', 'name_ar', 'name_en'])
             : collect();
-        $brands = Brand::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_en']);
-        $ages = AgeLabel::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_en']);
-        $characters = Character::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_en']);
-        $colours = Colour::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_en']);
-        $genders = Gender::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_en']);
+        $brands = Brand::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']);
+        $ages = AgeLabel::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']);
+        $characters = Character::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']);
+        $colours = Colour::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']);
+        $genders = Gender::query()->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']);
 
         $reportKey = $focusedModule ?? 'dashboard';
-        $reportTitle = $focusedModule === null ? __('Reports and Export Center') : $reportTitles[$focusedModule];
-        $recentExports = ($user->can('dashboard_reports.export_xlsx') || $user->can('dashboard_reports.export_pdf'))
-            ? ExportJob::query()->where('requested_by', $user->id)->latest('id')->limit(5)->get(['id', 'report_key', 'format', 'status', 'row_count', 'created_at', 'completed_at'])
-            : collect();
-
-        return view('pages.reports.index', compact('report', 'reportKey', 'reportTitle', 'recentExports', 'branches', 'stores', 'users', 'products', 'categories', 'paymentMethods', 'customers', 'suppliers', 'brands', 'ages', 'characters', 'colours', 'genders'));
+        $reportTitle = $focusedModule === null ? __('Reports and Export Center') : __($reportTitles[$focusedModule]);
+        return view('pages.reports.index', compact('report', 'reportKey', 'reportTitle', 'branches', 'stores', 'users', 'products', 'categories', 'paymentMethods', 'customers', 'suppliers', 'brands', 'ages', 'characters', 'colours', 'genders'));
     };
 
     Route::get('reports', fn (Request $request, ReportSnapshot $snapshot) => $renderReport($request, $snapshot))
@@ -135,6 +132,31 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         return view('pages.reports.sales-by-product', ['report' => $report, ...$salesReportOptions($user)]);
     })->middleware(['can:dashboard_reports.view', 'can:pos_sales.view', 'can:pos_sales.payment_view'])->name('reports.sales-by-product');
 
+    Route::get('reports/stock-movement', function (Request $request, InventoryReport $reports) {
+        /** @var User $user */
+        $user = $request->user();
+        $filters = $request->only(['company_id', 'store_id', 'product_id', 'date_from', 'date_to', 'movement_type', 'reference', 'movement_page']);
+        $options = [
+            'stores' => Store::query()->visibleTo($user)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']),
+            'products' => Product::query()->where('status', 'active')->with('baseProductUnit.unit')->orderBy('item_code')->limit(500)->get(['id', 'item_code', 'name_ar', 'name_en', 'unit_of_measure']),
+        ];
+
+        return view('pages.reports.stock-movement', ['report' => filled($filters['product_id'] ?? null) ? $reports->movementCard($user, $filters) : null, 'filters' => $filters, ...$options]);
+    })->middleware(['can:dashboard_reports.view', 'can:inventory_stock_card.view'])->name('reports.stock-movement');
+
+    Route::get('reports/inventory-valuation', function (Request $request, InventoryReport $reports) {
+        /** @var User $user */
+        $user = $request->user();
+        $filters = $request->only(['company_id', 'store_id', 'product_id', 'category_id', 'as_of_date', 'valuation_page']);
+        $options = [
+            'stores' => Store::query()->visibleTo($user)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']),
+            'products' => Product::query()->where('status', 'active')->orderBy('item_code')->limit(500)->get(['id', 'item_code', 'name_ar', 'name_en']),
+            'categories' => Category::query()->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']),
+        ];
+
+        return view('pages.reports.inventory-valuation', ['report' => $reports->valuation($user, $filters), ...$options]);
+    })->middleware(['can:dashboard_reports.view', 'can:inventory_stock_card.view', 'can:inventory_stock_card.cost_view'])->name('reports.inventory-valuation');
+
     foreach ([
         'sales' => 'sales',
         'customers' => 'customers',
@@ -152,7 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         /** @var User $user */
         $user = $request->user();
         $filters = $request->validate([
-            'date_from' => ['nullable', 'date'], 'date_to' => ['nullable', 'date'],
+            'date_from' => ['nullable', 'date'], 'date_to' => ['nullable', 'date'], 'company_id' => ['nullable', 'integer'],
             'branch_id' => ['nullable', 'integer'], 'store_id' => ['nullable', 'integer'],
             'user_id' => ['nullable', 'integer'], 'module' => ['nullable', 'string', 'in:sales,inventory,purchasing,cash,customers,parties,quotations,assets'],
             'supplier_id' => ['nullable', 'integer'], 'customer_id' => ['nullable', 'integer'], 'product_id' => ['nullable', 'integer'],
@@ -164,7 +186,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             'search' => ['nullable', 'string', 'max:100'], 'sort' => ['nullable', 'string', 'in:document,store,cashier,gross,discount,tax,total'], 'direction' => ['nullable', 'string', 'in:asc,desc'],
             'product_unit_id' => ['nullable', 'integer'],
             'customer_group_id' => ['nullable', 'integer'],
-            'dataset' => ['nullable', 'string', 'in:products_barcodes,customers_groups,suppliers_groups,purchase_orders,purchase_invoices_receiving,opening_inventory,inventory_movements,sales_summary,sales_by_product'],
+            'as_of_date' => ['nullable', 'date'], 'movement_type' => ['nullable', 'string', 'max:40'], 'reference' => ['nullable', 'string', 'max:100'],
+            'dataset' => ['nullable', 'string', 'in:products_barcodes,customers_groups,suppliers_groups,purchase_orders,purchase_invoices_receiving,opening_inventory,inventory_movements,sales_summary,sales_by_product,stock_movement,inventory_valuation'],
             'format' => ['required', 'string', 'in:csv,xlsx,pdf'],
         ]);
         $job = $action->execute($user, $filters, $filters['format']);

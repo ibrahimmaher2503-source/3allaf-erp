@@ -48,12 +48,18 @@ final class FeedStoreOperationsController extends Controller
         $companyIds = Store::query()->whereIn('id', $storeIds)->pluck('company_id')->unique();
         $visibleCustomerIds = Customer::query()->visibleTo($actor)->select('customers.id');
 
-        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->with('company')->orderBy('name_ar')->get();
+        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->with([
+            'company',
+            'sellingStoreMappings' => fn ($query) => $query->where('status', 'active'),
+        ])->orderBy('name_ar')->get();
+        $primaryStores = $stores->filter(fn (Store $store): bool => $store->sellingStoreMappings->isNotEmpty());
+        $defaultStore = $primaryStores->count() === 1 ? $primaryStores->first() : null;
         $paymentCompanies = Company::query()->whereIn('id', $companyIds)->where('status', 'active')->orderBy('name_ar')->get();
-        $selectedCustomer = $canCustomerReceipts && $request->integer('customer_id') > 0
-            ? Customer::query()->visibleTo($actor)->where('status', 'active')->find($request->integer('customer_id'))
+        $requestedCustomerId = $request->hasSession() ? (int) $request->old('customer_id', $request->input('customer_id')) : $request->integer('customer_id');
+        $selectedCustomer = $canCustomerReceipts && $requestedCustomerId > 0
+            ? Customer::query()->visibleTo($actor)->where('status', 'active')->find($requestedCustomerId)
             : null;
-        $selectedStore = $selectedCustomer === null ? null : $stores->firstWhere('id', $request->integer('collection_store_id') ?: $selectedCustomer->created_store_id);
+        $selectedStore = $selectedCustomer === null ? null : $stores->firstWhere('id', $request->integer('collection_store_id') ?: $defaultStore?->id ?: $selectedCustomer->created_store_id);
         $customerCurrency = strtoupper((string) ($request->string('currency_code')->value() ?: $selectedStore?->company?->currency_code ?: 'EGP'));
         $sales = $selectedCustomer && $selectedStore
             ? app(CustomerBalance::class)->outstandingInvoices($selectedCustomer, $actor, $selectedStore->company, $customerCurrency)
@@ -82,7 +88,22 @@ final class FeedStoreOperationsController extends Controller
             $proposalError = \App\Support\UserSafeError::message($exception);
         }
 
-        $customers = $canCustomerReceipts ? Customer::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_ar')->limit(100)->get() : collect();
+        $request->validate(['customer_search' => ['nullable', 'string', 'max:100']]);
+        $customerSearch = trim((string) $request->input('customer_search', ''));
+        $customerPhoneSearch = strtr($customerSearch, ['٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4', '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9']);
+        try {
+            $customerPhoneSearch = \App\Modules\Customer\Support\PhoneNormalizer::normalize($customerPhoneSearch);
+        } catch (\InvalidArgumentException) {
+            $customerPhoneSearch = preg_replace('/[^0-9]/', '', $customerPhoneSearch);
+        }
+        $customers = $canCustomerReceipts && $customerSearch !== ''
+            ? Customer::query()->visibleTo($actor)->where('status', 'active')
+                ->where(function ($query) use ($customerSearch, $customerPhoneSearch): void {
+                    $like = '%'.addcslashes($customerSearch, '%_\\').'%';
+                    $query->where('name_ar', 'like', $like)->orWhere('name_en', 'like', $like);
+                    if ($customerPhoneSearch !== '') $query->orWhere('phone_normalized', 'like', '%'.$customerPhoneSearch.'%');
+                })->orderBy('name_ar')->limit(20)->get()
+            : collect();
         if ($selectedCustomer && ! $customers->contains('id', $selectedCustomer->id)) {
             $customers->prepend($selectedCustomer);
         }
@@ -93,9 +114,12 @@ final class FeedStoreOperationsController extends Controller
 
         return view('feed-store.operations', [
             'customers' => $customers,
+            'customerSearch' => $customerSearch,
             'stores' => $canCustomerReceipts ? $stores : collect(),
             'sales' => $sales,
             'selectedCustomer' => $selectedCustomer,
+            'selectedStore' => $selectedStore,
+            'defaultStore' => $defaultStore,
             'selectedSupplier' => $selectedSupplier,
             'selectedCompany' => $selectedCompany,
             'suppliers' => $suppliers,

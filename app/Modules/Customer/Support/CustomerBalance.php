@@ -17,6 +17,27 @@ use Illuminate\Support\Collection;
 
 final class CustomerBalance
 {
+    /** Read-only account totals for one paginated customer list, in authorized stores. */
+    public function summaryForCustomers(array $customerIds, User $actor, string $currencyCode): Collection
+    {
+        abort_unless($actor->can('customers.view') && $actor->can('pos_sales.view') && $actor->can('pos_sales.payment_view'), 403);
+        $customerIds = Customer::query()->visibleTo($actor)->whereIn('id', $customerIds)->pluck('id');
+        $sales = Sale::query()->visibleTo($actor)->whereIn('customer_id', $customerIds)->where('currency_code', $currencyCode)->where('status', 'approved');
+        $totals = (clone $sales)->selectRaw('customer_id, SUM(payable_total) AS total')->groupBy('customer_id')->pluck('total', 'customer_id');
+        $saleIds = (clone $sales)->select('id');
+        $payments = SalePayment::query()->whereIn('sale_id', clone $saleIds)->join('sales', 'sales.id', '=', 'sale_payments.sale_id')->selectRaw('sales.customer_id, SUM(sale_payments.amount) AS total')->groupBy('sales.customer_id')->pluck('total', 'customer_id');
+        $credits = RetailReturn::query()->whereIn('source_sale_id', clone $saleIds)->where('retail_returns.status', 'completed')->join('sales', 'sales.id', '=', 'retail_returns.source_sale_id')->selectRaw('sales.customer_id, SUM(CASE WHEN ar_reduction_value = 0 AND actual_refund_value = 0 THEN settlement_value ELSE ar_reduction_value END) AS total')->groupBy('sales.customer_id')->pluck('total', 'customer_id');
+        $receipts = CustomerReceipt::query()->whereIn('customer_id', $customerIds)->where('currency_code', $currencyCode)->where('status', 'approved')->whereIn('store_id', \App\Modules\Platform\Models\Store::query()->visibleTo($actor)->select('id'))->selectRaw('customer_id, SUM(amount) AS total')->groupBy('customer_id')->pluck('total', 'customer_id');
+        $adjustments = CustomerAccountAdjustment::query()->whereIn('customer_id', $customerIds)->where('status', 'approved')->where(fn ($query) => $query->whereNull('sale_id')->orWhereIn('sale_id', clone $saleIds))->selectRaw('customer_id, SUM(amount) AS total')->groupBy('customer_id')->pluck('total', 'customer_id');
+
+        return $customerIds->mapWithKeys(function ($id) use ($totals, $payments, $credits, $receipts, $adjustments): array {
+            $purchased = (string) ($totals[$id] ?? '0.0000');
+            $paid = bcadd((string) ($payments[$id] ?? 0), (string) ($receipts[$id] ?? 0), 4);
+            $balance = bcadd(bcsub(bcsub($purchased, $paid, 4), (string) ($credits[$id] ?? 0), 4), (string) ($adjustments[$id] ?? 0), 4);
+            return [$id => ['purchased' => $purchased, 'paid' => $paid, 'balance' => $balance]];
+        });
+    }
+
     /** @return numeric-string */
     public function for(Customer $customer, string $currencyCode = 'EGP'): string
     {

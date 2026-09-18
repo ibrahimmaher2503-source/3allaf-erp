@@ -157,7 +157,7 @@ new #[Title('Purchase Invoices')] class extends Component
 
         $order = PurchaseOrder::query()
             ->whereIn('store_id', Store::query()->visibleTo($actor)->select('id'))
-            ->with('lines')
+            ->with(['lines.product', 'lines.productUnit.unit'])
             ->findOrFail($purchaseOrderId);
         abort_unless(in_array($order->status, ['approved', 'partially_received'], true), 422, __('Only approved purchase orders can be received.'));
 
@@ -169,11 +169,19 @@ new #[Title('Purchase Invoices')] class extends Component
                     return null;
                 }
 
+                $factor = (string) ($line->conversion_factor_snapshot ?? '1');
+                $enteredQuantity = bcdiv($remainingQuantity, $factor, 6);
+                $precision = $line->product?->fractional_quantity ? min(6, (int) ($line->productUnit?->unit?->decimal_places ?? 6)) : 0;
+                $useOrderUnit = $line->product_unit_id !== null
+                    && bccomp($enteredQuantity, bcadd($enteredQuantity, '0', $precision), 6) === 0
+                    && bccomp(bcmul($enteredQuantity, $factor, 6), $remainingQuantity, 6) === 0;
+
                 return [
                     'product_id' => (string) $line->product_id,
+                    'product_unit_id' => $useOrderUnit ? (string) $line->product_unit_id : '',
                     'purchase_order_line_id' => (string) $line->id,
-                    'quantity' => $remainingQuantity,
-                    'unit_cost' => (string) $line->unit_cost,
+                    'quantity' => $useOrderUnit ? $enteredQuantity : $remainingQuantity,
+                    'unit_cost' => (string) ($useOrderUnit ? $line->entered_unit_price : $line->unit_cost),
                     'price_source' => 'approved_purchase_order_cost',
                     'price_date' => '',
                     'price_currency' => '',
@@ -1018,13 +1026,13 @@ new #[Title('Purchase Invoices')] class extends Component
     @if ($showTransitionModal)
         <flux:modal wire:model.self="showTransitionModal" class="md:max-w-lg">
             <form wire:submit="executeTransition" class="space-y-5">
-                <flux:heading size="lg">{{ __(ucfirst($transitionType)) }} {{ __('purchase invoice') }}</flux:heading>
-                <flux:text>{{ __('A reason is required and will be written to the audit trail.') }}</flux:text>
+                <flux:heading size="lg">{{ $transitionType === 'reverse' ? __('Cancel purchase invoice and reverse its effects') : __(ucfirst($transitionType)).' '.__('purchase invoice') }}</flux:heading>
+                <flux:text>{{ $transitionType === 'reverse' ? __('This cancels the approved invoice, reverses its stock receipt, and restores the previous product costs. It cannot be undone here.') : __('A reason is required and will be written to the audit trail.') }}</flux:text>
                 <flux:textarea wire:model="transitionReason" :label="__('Reason')" rows="4" required />
                 @error('transitionReason') <flux:text class="text-red-600">{{ $message }}</flux:text> @enderror
                 <div class="flex justify-end gap-2">
                     <flux:button type="button" variant="subtle" wire:click="$set('showTransitionModal', false)">{{ __('Close') }}</flux:button>
-                    <flux:button type="submit" variant="danger">{{ __('Confirm') }}</flux:button>
+                    <flux:button type="submit" variant="danger">{{ $transitionType === 'reverse' ? __('Confirm invoice reversal') : __('Confirm') }}</flux:button>
                 </div>
             </form>
         </flux:modal>

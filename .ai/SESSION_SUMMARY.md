@@ -1292,6 +1292,27 @@
 - **Remaining / boundary:** Authenticated browser UAT and the P0 full-day MariaDB gate remain. No report, production access/change, deployment, release, push, or tag occurred.
 - **Activity:** Code, migration, views, seed data, focused tests, and `.ai` records changed in `codex/p0-9-feed-pricing`. Commit state is recorded at closure; no remote mutation occurred.
 
+## 2026-09-17 — Feed-store operations Arabic UI review
+
+- **Task:** Review and improve the Arabic UI for `/feed-store/operations` without changing financial or inventory behavior.
+- **Work completed:** Reused the common application shell; localized the page title, descriptions, customer-type labels, payment/allocation guidance, expense, treasury-account, inventory-batch, and activity labels in Arabic/Egyptian Arabic and English; localized master names by current locale; bounded long activity panels and made RTL amounts tabular/LTR.
+- **Verification actually run:** Blade compilation and PHP syntax passed; all three locale JSON files parsed; `git diff --check` passed. Authenticated browser verification passed in Arabic/Egyptian Arabic and English on the exact URL, with RTL/LTR shell, bilingual form controls, no visible system error, and responsive two-column-to-stacked layout behavior observed. No form was submitted and no data was changed.
+- **Remaining / boundary:** This is an undeployed V0 UI batch entry. No automated suite, database mutation, production action, release, push, or tag occurred.
+
+## 2026-09-17 — Feed-store operations usability refinement
+
+- **Task:** Reduce first-use friction on `/feed-store/operations` after browser review found the long all-in-one form difficult to navigate.
+- **Work completed:** Added a permission-aware sticky jump bar for customer receipt, supplier payment, expense, treasury account, and inventory batch sections; added scroll anchors; and placed optional reference/evidence/notes fields behind accessible native details controls. No field, action, permission, validation, or business rule was removed.
+- **Verification actually run:** Cleared compiled views, reloaded the authenticated exact URL, confirmed Arabic RTL navigation links and collapsed optional sections in the accessibility tree, clicked the treasury anchor and confirmed the URL hash/visible section, expanded optional details without submitting, then verified the same navigation and controls in English LTR. Browser returned to Arabic. `git diff --check` passed; no automated suite or form submission was run.
+- **Remaining / boundary:** Undeployed V0 UI-only refinement. No route/controller/model/database/financial changes, commit, push, release, or tag occurred.
+
+## 2026-09-17 — Feed-store receipt-flow clarification
+
+- **Task:** Investigate why currency looked repetitive, cash-account terminology was unclear, and customer invoice allocation appeared inactive.
+- **Work completed:** Marked receipt/payment currency as automatic and explained it; added plain-language cash-account help; made the allocation preview button visibly disabled until customer, collection store, and positive amount exist; clarified the required sequence and changed the customer action to `حفظ التحصيل`; added `formnovalidate` so preview allocation bypasses unrelated save-only required fields.
+- **Verification actually run:** Authenticated browser checks on the exact URL confirmed the initial allocation button is disabled, becomes enabled after customer/store/amount selection, and successfully reloads four outstanding invoice allocation rows without creating a receipt. Arabic RTL copy and automatic-currency/cash-account guidance were visible; no save/financial form was submitted. JSON parsing for all three locales and `git diff --check` passed. Browser console had no warning/error entries.
+- **Remaining / boundary:** Undeployed V0 UI/copy/flow clarification only. No route/controller/model/database/financial behavior change, automated suite, commit, push, release, or tag occurred.
+
 ## 2026-09-17 — R1 Sales Reports
 
 - **Task:** Implement and verify R1 Sales Summary, Sales by Product, and customer sales analysis without changing accounting, inventory, or pricing architecture.
@@ -1299,3 +1320,207 @@
 - **Verification actually run:** Dedicated MariaDB `rajeh_r1_sales_reports_20260917` passed 9 focused tests/61 assertions and 15 linked financial regressions/53 assertions, including real CSV/XLSX/PDF generation and direct integrity assertions. Targeted Pint, PHP/compiled-Blade syntax, locale JSON, routes, and diff checks passed. Authenticated Arabic/English browser UAT covered both reports, customer analysis, filters, drilldowns, empty states, sidebar placement, export request, 390px responsive layout, and a clean browser console.
 - **Remaining / boundary:** The full application suite was not run. A broad Blade cache command hung and was stopped; touched views were compiled and checked individually and rendered in the browser. No production access/change, deployment, release, push, or tag occurred.
 - **Activity:** Code, views, focused tests, browser checks, and `.ai` records changed on `codex/r1-sales-reports`. The local commit is recorded at closure; no remote mutation occurred.
+
+## 2026-09-18 — Cross-screen Arabic/UI cleanup
+
+- **Task:** Continue the browser comments for sales overview, gift receipts, alerts, supplier payables, and feed-store operations.
+- **Work completed:** Removed visible currency controls from feed-store operation forms while preserving hidden validated values; hid company selectors when exactly one authorized company is available; removed account currency suffixes from dropdown labels; stopped `/sales` from inheriting a hidden POS work-context store by default; localized mixed Arabic/English gift-receipt, alert, and supplier-payables copy in `ar` and `ar-EG`; localized alert titles/descriptions through the translation layer.
+- **Verification actually run:** Applied focused Blade/route/locale changes and ran locale JSON parsing plus diff hygiene. Browser verification was not completed because this checkout has no `.env`/`APP_KEY`; the temporary local server failed with `MissingAppKeyException` and the browser could not load 8139. No form, database, financial, production, release, commit, or push action occurred.
+- **Remaining / boundary:** Re-open the authenticated local app and verify `/sales`, `/gift-receipts?sale_id=150`, `/alerts`, `/catalog/suppliers`, and `/feed-store/operations` in Arabic and English once the owner-provided local runtime configuration is available. The system-wide primary collection-store behavior remains unchanged because the existing model only supports branch-specific POS mappings and explicitly rejects company-wide primary outlets.
+
+## 2026-09-18 — Cross-screen Arabic/UI cleanup completion
+
+- **Task:** Complete all outstanding browser comments across sales, gift receipts, alerts, supplier payables, feed-store operations, and the branch-primary selling-store control.
+- **Work completed:** Kept currency and the single authorized company implicit in operation forms; defaulted customer collection to the sole active branch-primary selling store; restored the existing audited primary-selling-store modal and displayed its active badge; explained zero daily sales from approval dates; and completed Arabic/Egyptian Arabic supplier, alert, and price-free gift-receipt wording, including payment statuses and invoice-total labels.
+- **Verification actually run:** Restarted only the isolated MariaDB 3307 runtime and local 8139 application using the dedicated `rajeh_r1_sales_reports_20260917` database, authenticated as the local QA administrator, and verified `/sales`, `/gift-receipts?sale_id=150`, `/alerts`, `/catalog/suppliers`, `/feed-store/operations`, and `/admin/stores` in Arabic plus the changed pages in English/LTR. The store mapping modal opened with the correct store/branch and was cancelled; the supplier payable tab displayed localized headings/statuses; operation forms exposed no currency/company controls and selected `MAIN-SALES · Primary`; browser warnings/errors were empty. PHP syntax, locale JSON parsing, compiled-view clearing, and `git diff --check` passed.
+- **Boundary:** No automated suite was run. No receipt, supplier payment, expense, treasury account, inventory batch, gift receipt, or primary-store mapping was submitted. No production access/change, deployment, release, commit, push, or tag occurred. The QA password reset affected only the dedicated local database.
+
+## 2026-09-18 — Hide Party-related UI
+
+- **Task / class:** Owner requested removal of Party-related UI; V0, no release.
+- **Completed:** Hid rental navigation and Party/Rental report navigation, KPIs, sources, detail sections and charts; removed customer Party Wallet actions/cards and booking history; hid Party/Rental permission groups and module options; hid Party/Rental export rows from the current page; removed Party wording from welcome copy with Arabic translations.
+- **Actual verification:** `git diff --check`, navigation PHP syntax and compiled-view clearing passed. Authenticated Arabic QA administrator browser verified no Party/Rental sidebar group, no navigation-search results for حفلات, no Party content on `/reports` after source-detail filtering, and none on `/customers/40`. Role-permissions browser found a 500 from Eloquent Collection `except`; replaced it with `reject`. Recheck is BLOCKED_BY_LOCAL_RUNTIME: 8139 returned ERR_CONNECTION_REFUSED after continuation. Final chart/copy/export rendering and corrected permissions screen are not claimed PASS.
+- **Boundaries / remaining:** No backend/routes/models/data/permission grants changed; direct Party URLs remain available. Export pagination still reflects the unchanged backend dataset. No automated tests, financial submissions, commit, push, production, deployment or release occurred. Resume local runtime for final permissions/export/chart and bilingual welcome checks.
+
+## 2026-09-18 — Rename visible brand to 3allaf
+
+- **Task / class:** Owner requested changing the system display name from TOY & JOY to `3allaf` / `علاف`; V0, UI-only, undeployed.
+- **Completed:** Updated app/sidebar/auth/print/error fallbacks, welcome text, locale values, admin company placeholders, report/export branding, and direct quotation/Party print headers to display `3allaf | علاف`. Internal `toyjoy_*` identifiers, routes, storage paths, database structures, and business behavior were preserved.
+- **Actual verification:** `php artisan view:clear`, Arabic/English locale JSON parsing, `git diff --check`, and `GET http://127.0.0.1:8139/login` returned HTTP 200 with `3allaf` in the response. Full authenticated visual browser verification was not rerun in this branding turn.
+- **Boundaries:** No automated tests, database/data changes, production access, deployment, commit, push, or release occurred.
+
+## 2026-09-18 — Clarify purchase-invoice reversal wording
+
+- **Task / class:** Owner asked what `عكس الفاتورة` means on `/purchasing/invoices`; V0 UI clarification only.
+- **Completed:** Changed the reversal modal to state `إلغاء فاتورة الشراء وعكس آثارها`, added a plain-language explanation covering stock receipt and previous product costs, and changed the confirmation button to `تأكيد إلغاء الفاتورة وعكس آثارها` in Arabic/Egyptian Arabic.
+- **Actual verification:** `php artisan view:clear`, locale JSON parsing, and `git diff --check` passed. No transaction was submitted and no automated suite was run.
+- **Boundaries:** Backend reversal behavior, permissions, accounting, inventory, routes, and database data were not changed; no commit, push, deployment, or release occurred.
+
+## 2026-09-18 — Hide top-bar work-context selector
+
+- **Task / class:** Owner requested removal of the visible `كل المتاجر المصرح بها` selector from the dashboard top bar; V0 UI-only.
+- **Completed:** Hid `.app-topbar__context` while preserving the existing scope calculation and backend work-context implementation.
+- **Actual verification:** `php artisan view:clear` and `git diff --check` passed. No browser interaction was submitted and no automated suite was run.
+- **Boundaries:** No routes, permissions, queries, database values, or business behavior changed; no commit, push, deployment, or release occurred.
+
+## 2026-09-18 — Supplier-return button availability
+
+- **Task / class:** Owner reported that `مرتجع مورد جديد` on `/purchasing/returns` did not respond; V0 UI remediation.
+- **Root cause:** The button had `disabled` bound to the active supplier-return reason catalog. The dedicated local database has zero active `supplier_return_reasons`, so the control could look present while rejecting clicks.
+- **Completed:** Removed the silent disabled state; the button opens the draft form and shows an explicit prerequisite warning plus a Return Settings link when no active reason exists. Server-side validation and action authorization remain unchanged.
+- **Actual verification:** Confirmed the active-reason count is `0`; `php artisan view:clear`, locale JSON parsing, and `git diff --check` passed. No return draft was saved and no automated suite was run.
+- **Boundaries:** No database seed/change, routes, permissions, accounting, inventory, commit, push, deployment, or release occurred.
+
+## 2026-09-18 — Fix dashboard request aed5fa57 query-budget failure
+
+- **Task / class:** Owner provided request ID `aed5fa57-6ec8-41c3-8e29-d361d2c5927e`; V0 performance/remediation.
+- **Root cause:** The dashboard was aborted at 101 queries because the first uncached `InitialSetupStatus` snapshot performed repeated readiness queries before `OperationalDashboardSnapshot` and the application shell finished.
+- **Completed:** Reused readiness counts/booleans, removed duplicate supplier/price readiness evaluation, combined customer-consent policy reads, and removed repeated count/exists pairs. Cold-cache setup plus dashboard measured 86 queries in the local MariaDB runtime; subsequent cache-warm reads are lower.
+- **Actual verification:** Cleared the local application cache, measured the uncached snapshot/dashboard query count, ran `php artisan view:clear`, and ran `git diff --check`. Browser title for `/dashboard` loaded as `لوحة القيادة - 3allaf | علاف`; no new dashboard query-budget log was observed after the fix.
+- **Boundaries:** No business data, routes, permissions, financial/inventory behavior, automated tests, commit, push, deployment, or release changed. A separate later `/reports` query-budget issue remains outside this request.
+
+## 2026-09-18 — Sidebar accent preferences
+
+- **Task / class:** Continue the owner's sidebar appearance report; V0, unreleased.
+- **Completed:** Replaced fixed teal active-item backgrounds, active-section backgrounds, selection edges, focus outlines, and company-context dot with the existing primary accent variable. Updated both the shared Blade styles and CSS source so the current local template and future asset batch use the same preference. The navy sidebar background remains unchanged.
+- **Actual verification:** `git diff --check` passed; the affected sidebar Blade compiled successfully. No automated tests, browser checks, Vite build, database writes, commit, push, deployment, or release occurred.
+- **Remaining:** Visual acceptance is not claimed. Purchase-order units and report request `8160b88a-0816-49bf-b7f7-999330aa2b91` remain separate unfinished work.
+
+## 2026-09-18 — Purchase-order purchase units
+
+- **Task / class:** Owner requested KG/BAG/TON quantities and clearer purchase-order UX. I4 nullable additive schema with sensitive D3 quantity/cost semantics, local only, linked PUR-03–05 / UI-PUR-001/002.
+- **Completed:** Added purchase-unit selector to the full-page order editor, decimal quantity, selected-unit price, factor/base-quantity/base-cost preview and inline errors. Order action validates product ownership, active purchase units and product/unit precision; stores entered quantity/price/factor/code while maintaining base quantity/cost for receipts. Draft edit, details, A4 and PDF expose entered quantities and prices. Receiving carries the original unit when the remaining quantity is exactly representable; otherwise falls back to base quantity without silently losing units. Same-unit invoice calculations reuse the order factor, even after product-card changes. Invoice gross uses entered quantity times entered price rather than a prematurely truncated base unit cost.
+- **Database:** Forward migration 000129 ran only on confirmed dedicated `rajeh_r1_sales_reports_20260917` at 3307. Historical rows remain null and unchanged. Restrictive unit FK and rollback guard protect new history. No full migration chain, fresh/reset or production operation occurred.
+- **Actual verification:** PHP syntax passed for four changed PHP classes and migration. Five affected Blade templates compiled/linted; the new partial initially failed due to mixing inline/block PHP directives and passed after correction. Existing Blaze warnings appeared during full-page compilation. Locale JSON parsing and diff hygiene passed. Rolled-back manual action/calculator diagnostics produced BAG10→KG500/12000, TON2→KG2000/48000, TON0.5→KG500/12000, base cost24; a foreign product unit was rejected. Diagnostic purchase orders/audit/sequence writes were rolled back.
+- **Remaining / activity:** No automated suite, browser check, posted receipt, weighted-cost/return UAT, commit, push, build, release or deployment occurred. Scope-specific verification remains PARTIAL; the unrelated report 500 remains unresolved.
+
+## 2026-09-18 — Customers sidebar destination
+
+- **Task / class:** Owner requested direct access to customers beside customer groups; V0 UI navigation only.
+- **Completed:** Added existing `customers.index` route under Sales & POS directly after Customer groups, using existing `customers.view` permission and Arabic/English labels. No route, scope or authorization behavior changed.
+- **Actual verification:** `config/navigation.php` PHP syntax and `git diff --check` passed. Browser acceptance not performed; no automated tests, database writes, build, commit, push, deployment or release occurred. Added to pending UI batch.
+
+## 2026-09-18 — Distinguish inventory registers
+
+- **Task / class:** Owner requested review and differentiation of `/inventory/balances`, `/inventory/counts`, `/inventory/transfers`; V0 presentation only, linked INV-01–03 / INV-07–09 and TSK-019/020/022.
+- **Root cause:** The shared view exposed identical inventory-wide filters/summary and a movement ledger on focused workflow pages. Count pages also displayed adjustment documents. Filters on counts/transfers submitted to the general inventory route and did not filter their registers.
+- **Completed:** Separate page/document titles, purpose, primary actions, and permission-aware contextual navigation; physical count and transfer flow explanations without color-only differentiation. Show balance filters only on lookup/ledger views; global summary only on overview. Counts display sessions without adjustment documents or ledger. Transfers display source/destination names and every product line with requested/dispatched/received quantities, not just the first item. Register inline receiving/difference forms remain on workflow pages, not the transfer list; count register directs reviewers to the existing review page before reconciliation. Quantities and order/receipt posting are unchanged. Both registers explicitly disclose the existing latest-20 limit.
+- **Actual verification:** Affected Blade compiled and PHP syntax passed; diff hygiene passed. No automated test, browser check, database mutation, asset build, commit, push, production change or release occurred. Added to pending UI batch. Impeccable/product and frontend-design guidance favored task separation over decorative color or new components.
+- **Remaining:** Visual Arabic/English/mobile acceptance is unverified because prior named R1 browser authorization is not generalized. Existing latest-20 register loading and missing server-side register filtering/pagination were not expanded into a query/domain change.
+
+## 2026-09-18 — Visible inventory field boundaries
+
+- **Task / class:** Owner screenshot requested borders around inventory selectors and inputs; V0 presentation only.
+- **Root cause / completed:** Shared native field class specified border color but no border width. Added `border`, explicit light/dark surfaces and text, padding, minimum touch height and a small field shadow once in the shared class. Existing filters, opening-inventory selectors, quantity/cost inputs and reason textareas follow the fix. No behavior, validation, permission, posting or calculation changed.
+- **Actual verification:** Affected Blade compilation/PHP syntax and diff hygiene passed. Browser not checked; no automated tests, database writes, build, commit, push, deployment or release. Recorded in pending UI batch.
+
+## 2026-09-18 — Clarify pricing versions
+
+- **Task / class:** Owner requested clearer `/pricing/versions` UI; V0 presentation only, linked existing TSK-017.
+- **Completed:** Mode-specific page title with Arabic/English copy, removed duplicate title container, explained that drafts/submitted proposals do not change selling prices and approved versions depend on validity/list scope. Labeled filters in a bounded responsive section and clarified overlap-date semantics. Separate validity column includes start/end labels; state descriptions distinguish draft/submitted/approved/rejected/superseded/cancelled without falsely claiming approved means currently active. Submit/approval/comparison actions use explicit labels; rejection fields are in a native disclosure separate from approval. Existing gates and action calls remain unchanged.
+- **Actual verification:** Affected Blade compiled and PHP syntax passed; diff hygiene passed. Existing Blaze warnings observed during compilation. No browser acceptance, automated test, database mutation, build, commit, push, production, deployment or release. Added to pending UI batch.
+
+## 2026-09-18 — Customer profile 500 request 5afa7117
+
+- L2, local only. Exact request 5afa7117-6a31-43d1-9bc9-829108c54563 failed customers.show / customers/40 at query 101 (budget 100).
+- TranslationOverrideLoader performed table-existence checks for every translation group before its existing per-request locale cache. Moved the check into that cached lookup and existing outage catch. No limit, permission, balance or translation-value changes.
+- Manual profile diagnostic: 135 queries before, 72 after, identical rendered length 275912 bytes. Authenticated real HTTP GET on port 8139 returned 200 OK, 277562 bytes, no login redirect. PHP syntax and diff hygiene passed. Temporary diagnostic removed; QA session created no business records.
+- Corrected prior readiness optimization: payment/tax/sequence/printer/category/brand completion again requires active records, not any record. Earlier no-business-rule-change wording did not accurately describe the intermediate optimization; original contract restored.
+- No automated tests, browser control/UAT, build, commit, push, release or production change. Browser visual acceptance unverified. Used bug-investigation and ponytail for shared minimal root-cause fix.
+
+## 2026-09-18 — Customer list prioritizes accounts
+
+- Owner requested purchases and debt rather than residence. Class D3, read-only local account presentation, no release. Changed routes/customers.php, CustomerBalance.php and customer index Blade.
+- Added constant-query paginated summary: approved invoice total, checkout payments plus approved receipts, and signed balance using original approved-return AR reduction/fallback and approved adjustment formulas. Sales/receipts use authorized locations, customer visibility and company currency. Financial columns require customers.view plus pos_sales.view/payment_view, server enforced. No writes, posting or existing calculator changes.
+- Removed residence table column, moved geographic filters into native additional-filters disclosure, preserved filters and stored residence. Added bilingual account headings and account/collection anchor; negative balances explicitly identify customer credit. Summary covers lifetime authorized transactions, not net purchases after returns; help text states this.
+- Manual local diagnostic: 20 account rows, 22 full route/render queries; all 20 signed balances matched existing CustomerBalance::for on unrestricted QA admin dataset. PHP and compiled Blade syntax and diff hygiene passed. Temporary diagnostic removed. No automated tests, browser control/UAT, business-record mutation, build, commit, push, release or production change. Restricted-role, English/mobile and browser visual UAT remain unverified.
+- Minimal UI skill required escalation for missing financial data; feature-development and ponytail kept aggregation bounded and reused existing account semantics.
+
+## 2026-09-18 — Inventory filters and useful movement ledger
+
+- Owner requested unclipped filters and useful ledger on inventory overview, movements and product stock card. V0, one shared Blade file, no release.
+- Replaced oversized six-track minimum-width filter grid with responsive two/three columns and separate full-width wrapping action row. Ledger shows existing eager-loaded product/location names plus codes, product base-unit signed quantity and explicit incoming/outgoing text, known source document type and correctly labeled internal ID, movement/reversal references, creator and split posted date/time. Product name opens existing stock-card route. Unknown source is not incorrectly called opening stock.
+- No query, route, model, permission, stock quantity, cost or posting changes. No guessed document numbers, historical running balances or entered-unit snapshots; those are not present in this loaded movement contract.
+- Actual verification: affected Blade compilation/PHP syntax and diff hygiene passed. No automated tests, browser control/UAT, data mutation, asset build, commit, push or production change. Arabic/English/mobile visual acceptance remains unverified. Added to pending UI batch; minimal UI and ponytail kept the fix presentation-only.
+
+## 2026-09-18 — Product sales report Details opens at detail table
+
+- Owner reported Details not opening. V1 presentation navigation fix in sales-by-product Blade only. Existing query correctly returned 2 lines for product 3 / unit 7 in September period, but detail section was below long summary without link fragment.
+- Details now targets product-detail anchor, preserving period/scope/product-unit and dropping stale detail page. Added back-to-summary link and scroll margin. No routes, queries, permissions or financial calculations changed.
+- Manual reporting query and Blade compile/PHP syntax/diff hygiene passed. Browser click/UAT not performed; diagnosis of perceived non-opening is inferred from correct data and missing anchor, not observed browser interaction. No automated tests, business-data writes, build, commit, push or release. Added to pending batch. Bug-investigation and ponytail kept the fix native and minimal.
+
+## 2026-09-18 — Remove all-stores selector from topbar
+
+- Owner requested removal of overlapping All authorized stores control. V0, shared sidebar layout only: deleted dropdown/single-store topbar markup instead of CSS-only hiding. Preserved sidebar company display and current scope state, routes, queries and authorization.
+- Affected Blade compilation and diff hygiene passed; browser acceptance unverified. No automated tests, database changes, build, commit, push or production release. Added to pending UI batch. Minimal UI skill kept removal presentation-only.
+
+## 2026-09-18 — Remove non-feed detail attributes
+
+- Owner requested removal of non-feed attributes, presumed dynamic database configuration. Source inspection confirmed a hardcoded Blade list of product columns, not configurable attribute rows. No database deletion targets were inferred from that incorrect premise.
+- V0: removed colour/size/character/age/gender/dimensions from selected detail section, retained weight with unit and Arabic/English search keywords. Removed irrelevant badge and renamed section. Data/schema, product forms/imports and requirements preserved; broader schema retirement not attempted.
+- Blade compilation/PHP syntax and diff hygiene passed. Browser acceptance unverified. No automated tests, database mutation, build, commit, push or release. Pending UI batch updated; minimal UI skill kept change focused and data-safe.
+
+## 2026-09-18 — Arabic product detail copy coverage
+
+- Owner reported English text on catalog/products/1. V0 translation only. Scanned literal translation calls in shared product detail: 10 archive/delete warning, confirmation, action and success keys were absent in both ar/ar-EG. Added Arabic translations and matching en entries; retained :code/:name/:count tokens and no-undo/history-retention safeguards.
+- Locale JSON parse, literal coverage (zero missing ar/ar-EG), affected Blade compilation/PHP syntax and diff hygiene passed. Stored bilingual product descriptions/names and technical codes/units were not rewritten or translated as data.
+- No browser acceptance, automated tests, database writes, build, commit, push, deployment or release. Added to pending UI batch. Minimal UI skill kept fix in localization rather than changing behavior.
+
+## 2026-09-18 — Product update 500 request 936defc2
+
+- D3 read-only dependency-query optimization. Exact request 936defc2-2cd5-4e2e-bcc8-24d90c177d4e exceeded budget 100 in ProductDependencyService::inspect during product detail Livewire render. Direct callers: render, RemoveProductAction transaction and Product deleting safeguard.
+- Combined per-foreign-key COUNT queries with UNION ALL while retaining FK discovery, configuration/operational classification, polymorphic/UAT checks and fresh evaluation on every inspection; no stale cached deletion decision. Parent product scope preserved. Three-product diagnostic: 169 queries before / 52 after, every report count and permanent-delete denial identical for IDs 1/3/4.
+- Authenticated read-only GET and no-op Livewire update revealed nested ProductSupplier.supplier hydration lazy-load error after budget fix. Added loadMissing for existing mount relationships before render. Repeated only failed HTTP diagnostic: GET 200, no-op update 200 with one component returned. No removal/archive action invoked; no business records changed.
+- PHP syntax/diff hygiene passed. Temporary diagnostic removed. No automated tests, browser control/UAT, build, commit, push or production release. Bug-investigation and ponytail used for shared root cause and focused adjacent hydration correction.
+
+## 2026-09-18 — Top-selling quantity legibility
+
+- V0 owner requested clearer quantity display. Screenshot 500.000000 represents 500, not five million. Sales dashboard now reuses ProductQuantity::format, groups whole digits without floats and retains significant fractional digits. Explicit base-quantity label replaces generic units; query lacks base unit code, so no KG/TON label or conversion invented.
+- Changed only sales index Blade plus batch/session ledgers. Blade compilation/PHP syntax and diff hygiene passed. No browser acceptance, automated tests, queries/data mutation, build, commit, push or release. Minimal UI skill kept fix presentation-only.
+
+## 2026-09-18 — Sales returns Arabic and task grouping
+
+- V0 owner requested translation, clearer UI and sidebar access to /returns. Mixed copy traced to lang/ar.json, while ar-EG already had Arabic values. Corrected literal page keys using existing Arabic copy, clarified source document/empty states and replaced raw settlement enum rendering with existing translated labels.
+- Added Sales returns & exchanges menu entry under Sales gated by returns.view. Legacy-only returns_exchanges_gift_instruments.view users remain supported by route but are not covered by this stricter menu gate; no authorization framework broadened.
+- Grouped unchanged source/item fields and inspection/settlement fields into two bordered native fieldsets; reason now spans full form, draft warning explains no immediate refund/stock effect, register has review guidance. All sensitive server controls/fields and exchange handling preserved. Existing quantity integer-only behavior and source-line options were not silently expanded into domain/UI logic changes.
+- PHP/compiled Blade syntax, locale JSON parse and diff hygiene passed. No automated tests, browser control/UAT, database writes, build, commit, push or release. Browser/English/mobile and legacy-role menu acceptance remain unverified. Added pending batch. Minimal UI skill kept scope visual/copy/navigation only.
+
+## 2026-09-18 — Readable quantities and dynamic tons in product report
+
+- Owner requested large KG values displayed in tons and redundant decimal zeros removed. V1 view-only in product sales report summary/detail. Known KG quantity absolute >=1000 converts to TON for display, decimal division scale13 retains source returned-quantity precision10; BAG/unknown units unchanged. Whole digits grouped, trailing fractional zeros removed. Existing original selling-unit column and monetary calculations/export remain unchanged, with note that unit price stays per original unit. Historical price now uses existing two-decimal money formatter.
+- Manual local formatting: 500.000000 KG -> 500 KG; 0.0000000000 -> 0 KG; 50000000 KG -> 50,000 TON; 1250.5 KG -> 1.2505 TON; 10 BAG remains BAG; 0.0000000001 KG preserved. Blade compilation/PHP syntax and diff hygiene passed.
+- No automated tests, browser control/UAT, queries/business writes, builds, commit, push or production release. Browser acceptance remains unverified. Added pending batch. Minimal UI skill kept conversion presentation-only rather than changing stored unit snapshots or prices.
+
+## 2026-09-18 — Customer receipt name/phone search
+
+- L2 owner requested finding customers among thousands. Existing selector silently capped initial alphabetical customers at100. Replaced initial listing with server-side name_ar/name_en/normalized primary-phone search (max100 characters), active and visibleTo actor, ordered/limited20; selected authorized customer retained including old input after validation.
+- Reused PhoneNormalizer for complete international/Egyptian numbers; Arabic digits converted and partial digit fallback supported. LIKE metacharacters escaped for names. Customer names show phone in results. Separate ordinary GET search form precedes receipt POST, no new API/JS/dependency; search first instruction and empty/no-match states added. Search GET does not submit receipt fields or CSRF token. Financial recording action unchanged.
+- Manual controller diagnostics: empty search0, known name1, normalized phone1, Arabic-digit phone1 all matched known customer; unmatched query0. PHP/Blade compile syntax and diff hygiene passed. No automated tests, browser control/UAT, business writes, build, commit, push or release. Restricted-role and real UI acceptance unverified. Feature-development and ponytail favored existing scoped query and native form over custom autocomplete infrastructure.
+
+## 2026-09-18 — Customer product wallet task clarity
+
+- V0 owner reported unclear customers/40/product-wallet. Inspected route, ProductWalletBalance and WalletPolicy: independent wallet sum, not customer AR, and company-controlled policy gate. Did not enable policy or invent wallet default limits.
+- Customer product wallet now explains separate ledger and directs purchases/debt/collection to existing customer account anchor. Product view no longer shows Party wallet link. Setup warning compact and explicit about posting unavailable; original diagnostic is available in details. Removed duplicate policy links in blocked state, empty export control, and corrected summary from four tracks to three. Balance uses existing money component; Arabic labels distinguish wallet sum from AR and explain zero wallet does not imply zero debt.
+- PHP compiled Blade syntax, locale JSON parse and diff hygiene passed. No automated tests, browser control/UAT, query/data mutation, build, commit, push or release. Policy/settlement/adjustment server gates and fields preserved. Active-policy settlement form still uses source IDs; replacing that with scoped document selection is a separate logic change not attempted. Added pending batch; minimal UI skill kept change presentation-only.
+
+## 2026-09-18 — Stock count recovery, UX clarification, and child-profile retirement
+
+- D3 root cause fixed: opening a stock count no longer performs one `firstOrCreate` query per product. It snapshots scoped lines with one bulk `insertOrIgnore` per 500 products; partial counts no longer preload the entire catalog.
+- Count setup now uses three explicit steps (location, scope, team), safe defaults, contextual category/supplier inputs, validation summary, and clear next action. Entry removes irrelevant cost/total fields, distinguishes draft/open states, supports decimal physical quantities, confirmed lines, and explicit-zero completion for scoped products.
+- Open, contribution, and line-completion failures now return safe inline feedback instead of the generic 500 page. Draft sessions cannot be submitted from the list before opening.
+- Owner-directed customer child-profile operations were removed from create/profile UI, customer routes, listing count, show loading, and the customer-create action. Historical records/schema remain protected because of possible party-booking FK/audit references; irreversible purge is separately decision-gated.
+- PHP/compiled-Blade syntax passed. Transaction-rolled-back MariaDB diagnostic opened 29 full-count lines in 24 queries and restored original state. Authenticated kernel GET count-create/customer pages returned 200. No automated test, browser control/UAT, persistent business write, commit, push, build, release, or production action.
+
+## 2026-09-18 — R2 Inventory Reports
+
+- Implemented only Stock Movement Card and Inventory Valuation As Of Date. Both are Arabic-first, permission/store scoped, linked from Reports, and export through the existing job/snapshot pipeline.
+- Historical figures are computed from posted movement quantity and signed movement cost snapshots. The card includes opening, incoming, outgoing, closing, deterministic running balance and source context; valuation includes as-of quantity/cost/value, zero/negative exceptions and drilldown.
+- Reused existing permissions, queries/export infrastructure and indexes. Added no R2 migration, package, generic report builder or duplicate exporter.
+- Dedicated MariaDB focused/linked suites passed 13 tests/65 assertions. Six actual export formats passed, direct integrity gates returned zero violations, and authenticated Arabic and English browser UAT passed both pages/sidebar links on port 8139. Mobile/tablet visual acceptance was not performed.
+- No production data was changed. No build, commit, push, deployment, tag or release occurred. Existing unrelated worktree changes were preserved.
+
+## 2026-09-18 — Full local project Git snapshot
+
+- Owner explicitly authorized committing and uploading the entire current project state, including pre-existing user-owned changes.
+- Added only the local MariaDB runtime directory `/.tmp-mariadb-r1/` to `.gitignore`; database engine files are not project source and were not staged.
+- Prepared one local snapshot commit on `codex/r1-sales-reports`. Push remained blocked because the repository has no configured Git remote; no destination was guessed or created.

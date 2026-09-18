@@ -9,6 +9,7 @@ use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Reporting\Models\ExportJob;
 use App\Modules\Reporting\Queries\CentralExportSnapshot;
 use App\Modules\Reporting\Queries\ReportSnapshot;
+use App\Modules\Reporting\Queries\InventoryReport;
 use App\Modules\Reporting\Queries\SalesReport;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -35,7 +36,7 @@ final class GenerateReportExportJob implements ShouldQueue
 
     public function __construct(public readonly int $exportJobId) {}
 
-    public function handle(ReportSnapshot $reports, CentralExportSnapshot $central, SalesReport $salesReports): void
+    public function handle(ReportSnapshot $reports, CentralExportSnapshot $central, SalesReport $salesReports, InventoryReport $inventoryReports): void
     {
         $job = ExportJob::query()->find($this->exportJobId);
         if ($job === null || in_array($job->status, ['ready', 'failed'], true)) {
@@ -53,12 +54,17 @@ final class GenerateReportExportJob implements ShouldQueue
         Gate::forUser($user)->authorize('dashboard_reports.export_'.($job->format === 'csv' ? 'xlsx' : $job->format));
         $isCentral = in_array($job->report_key, CentralExportSnapshot::DATASETS, true);
         $isSalesReport = in_array($job->report_key, SalesReport::EXPORT_KEYS, true);
-        $snapshot = $isSalesReport
+        $isInventoryReport = in_array($job->report_key, InventoryReport::EXPORT_KEYS, true);
+        $snapshot = $isInventoryReport
+            ? $inventoryReports->export($user, $job->report_key, $job->filters ?? [])
+            : ($isSalesReport
             ? $salesReports->export($user, $job->report_key, $job->filters ?? [])
-            : ($isCentral ? $central->execute($user, $job->report_key, $job->filters ?? []) : $reports->execute($user, $job->filters ?? [], true));
-        $currentSnapshotHash = $isSalesReport
+            : ($isCentral ? $central->execute($user, $job->report_key, $job->filters ?? []) : $reports->execute($user, $job->filters ?? [], true)));
+        $currentSnapshotHash = $isInventoryReport
+            ? $inventoryReports->fingerprint($snapshot)
+            : ($isSalesReport
             ? $salesReports->fingerprint($snapshot)
-            : ($isCentral ? $central->fingerprint($snapshot) : $reports->fingerprint($snapshot));
+            : ($isCentral ? $central->fingerprint($snapshot) : $reports->fingerprint($snapshot)));
         if ($job->snapshot_hash === null || ! hash_equals($job->snapshot_hash, $currentSnapshotHash)) {
             throw new RuntimeException('The report changed before export generation. Refresh the report and request it again. Expected snapshot '.$job->snapshot_hash.'; current snapshot '.$currentSnapshotHash.'.');
         }
@@ -127,9 +133,9 @@ final class GenerateReportExportJob implements ShouldQueue
         $path = $temporary.'.xlsx';
         @rename($temporary, $path);
         $writer = WriterFactory::createFromFile($path);
-        $writer->setCreator('TOY & JOY');
+        $writer->setCreator('3allaf | علاف');
         $writer->openToFile($path);
-        $writer->addRow(Row::fromValues(['TOY & JOY dashboard export', 'Generated at', now()->toIso8601String()]));
+        $writer->addRow(Row::fromValues(['3allaf dashboard export', 'Generated at', now()->toIso8601String()]));
         $writer->addRow(Row::fromValues(['Filter', 'Value']));
         foreach ($snapshot['filters'] as $key => $value) {
             $writer->addRow(Row::fromValues([$this->safe((string) $key), is_scalar($value) || $value === null ? $this->safe((string) ($value ?? '')) : json_encode($value)]));
@@ -224,9 +230,9 @@ final class GenerateReportExportJob implements ShouldQueue
         }
         fwrite($stream, "\xEF\xBB\xBF");
         foreach ($snapshot['detail_sections'] ?? [] as $section) {
-            fputcsv($stream, array_map(fn ($v) => $this->safe((string) $v), array_values($section['columns'] ?? [])));
+            fputcsv($stream, array_map(fn ($v) => $this->safe((string) $v), array_values($section['columns'] ?? [])), ',', '"', '');
             foreach ($section['rows'] ?? [] as $row) {
-                fputcsv($stream, array_map(fn ($v) => is_string($v) ? $this->safe($v) : $v, array_values($row)));
+                fputcsv($stream, array_map(fn ($v) => is_string($v) ? $this->safe($v) : $v, array_values($row)), ',', '"', '');
             }
         }
         rewind($stream);

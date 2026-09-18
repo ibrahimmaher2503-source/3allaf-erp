@@ -10,6 +10,7 @@ use App\Modules\Reporting\Jobs\GenerateReportExportJob;
 use App\Modules\Reporting\Models\ExportJob;
 use App\Modules\Reporting\Queries\CentralExportSnapshot;
 use App\Modules\Reporting\Queries\ReportSnapshot;
+use App\Modules\Reporting\Queries\InventoryReport;
 use App\Modules\Reporting\Queries\SalesReport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -28,12 +29,17 @@ final class CreateExportJobAction
         $locale = in_array($locale, config('app.supported_locales', ['ar', 'en', 'ar-EG']), true) ? $locale : (string) config('app.fallback_locale', 'en');
         $dataset = filled($filters['dataset'] ?? null) ? (string) $filters['dataset'] : null;
         $salesDataset = $dataset !== null && in_array($dataset, SalesReport::EXPORT_KEYS, true);
-        $snapshot = $salesDataset
+        $inventoryDataset = $dataset !== null && in_array($dataset, InventoryReport::EXPORT_KEYS, true);
+        $snapshot = $inventoryDataset
+            ? app(InventoryReport::class)->export($user, $dataset, $filters)
+            : ($salesDataset
             ? app(SalesReport::class)->export($user, $dataset, $filters)
-            : ($dataset ? app(CentralExportSnapshot::class)->execute($user, $dataset, $filters) : app(ReportSnapshot::class)->execute($user, $filters, true));
-        $fingerprint = $salesDataset
+            : ($dataset ? app(CentralExportSnapshot::class)->execute($user, $dataset, $filters) : app(ReportSnapshot::class)->execute($user, $filters, true)));
+        $fingerprint = $inventoryDataset
+            ? app(InventoryReport::class)->fingerprint($snapshot)
+            : ($salesDataset
             ? app(SalesReport::class)->fingerprint($snapshot)
-            : ($dataset ? app(CentralExportSnapshot::class)->fingerprint($snapshot) : app(ReportSnapshot::class)->fingerprint($snapshot));
+            : ($dataset ? app(CentralExportSnapshot::class)->fingerprint($snapshot) : app(ReportSnapshot::class)->fingerprint($snapshot)));
         $requestHash = hash('sha256', json_encode([$user->id, $dataset, $format, $locale, $snapshot['filters']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
         $created = false;
         $job = DB::transaction(function () use ($user, $snapshot, $dataset, $format, $locale, $fingerprint, $requestHash, &$created): ExportJob {

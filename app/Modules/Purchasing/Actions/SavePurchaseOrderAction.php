@@ -4,6 +4,9 @@ namespace App\Modules\Purchasing\Actions;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductUnit;
+use App\Modules\Catalog\Services\ConvertProductQuantity;
+use App\Support\ProductQuantity;
 use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Platform\Actions\RecordAuditEvent;
 use App\Modules\Platform\Models\Store;
@@ -68,19 +71,37 @@ class SavePurchaseOrderAction
 
             foreach ($lines as $index => $line) {
                 $productId = (int) ($line['product_id'] ?? 0);
-                $product = Product::query()->sellable()->findOrFail($productId);
+                $product = Product::query()->sellable()->with('baseProductUnit.unit')->findOrFail($productId);
                 if ($product->status !== 'active') {
                     throw new InvalidArgumentException(__('Product :name is inactive and cannot be ordered.', ['name' => $product->name_en ?: $product->name_ar]));
                 }
 
-                $qty = $this->decimal($line['quantity_ordered'] ?? null, 6, 'Quantity ordered', false);
-                $unitCost = $this->decimal($line['unit_cost'] ?? null, 4, 'Unit cost', true);
+                $productUnit = filled($line['product_unit_id'] ?? null)
+                    ? $product->productUnits()->with('unit')->find((int) $line['product_unit_id'])
+                    : $product->baseProductUnit;
+                if (filled($line['product_unit_id'] ?? null) && ! $productUnit instanceof ProductUnit) {
+                    throw new InvalidArgumentException(__('The selected unit does not belong to the product.'));
+                }
+                if ($productUnit !== null && (! $productUnit->is_purchase_unit || $productUnit->unit?->status !== 'active')) {
+                    throw new InvalidArgumentException(__('Select an active purchase unit for this product.'));
+                }
+                $precision = $product->fractional_quantity ? min(6, (int) ($productUnit?->unit?->decimal_places ?? 6)) : 0;
+                $enteredQuantity = (string) ProductQuantity::normalize($line['quantity_ordered'] ?? null, "lineItems.$index.quantity_ordered", decimalPlaces: $precision);
+                $enteredPrice = $this->decimal($line['unit_cost'] ?? null, 4, 'Unit cost', true);
+                $factor = $productUnit?->conversion_factor ?? '1.000000';
+                $qty = new Number($productUnit ? app(ConvertProductQuantity::class)->execute($product, $productUnit, $enteredQuantity) : $enteredQuantity);
+                $unitCost = new Number(bcdiv((string) $enteredPrice, (string) $factor, 4));
 
-                $lineSubtotal = $qty->mul($unitCost)->round(4);
+                $lineSubtotal = (new Number($enteredQuantity))->mul($enteredPrice)->round(4);
                 $lineSubtotalSum = $lineSubtotalSum->add($lineSubtotal)->round(4);
 
                 $validatedLines[] = [
                     'product_id' => $product->id,
+                    'product_unit_id' => $productUnit?->id,
+                    'unit_code_snapshot' => $productUnit?->unit?->code,
+                    'entered_quantity' => $enteredQuantity,
+                    'conversion_factor_snapshot' => (string) $factor,
+                    'entered_unit_price' => (string) $enteredPrice,
                     'line_number' => $index + 1,
                     'quantity_ordered' => (string) $qty,
                     'quantity_received' => '0.000000',

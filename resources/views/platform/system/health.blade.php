@@ -121,7 +121,7 @@ new #[Title('System Health')] class extends Component {
                 <flux:badge size="sm" color="zinc">{{ $status['application']['environment'] ?? 'local' }}</flux:badge>
             </div>
 
-            <flux:heading size="lg">{{ $status['application']['name'] ?? 'TOY & JOY' }}</flux:heading>
+            <flux:heading size="lg">{{ $status['application']['name'] ?? '3allaf | علاف' }}</flux:heading>
             <flux:text class="text-xs">PHP {{ $status['application']['php_version'] ?? '' }} / Laravel {{ $status['application']['laravel_version'] ?? '' }}</flux:text>
         </flux:card>
     </div>

@@ -25,7 +25,7 @@
 
         <header class="flex flex-wrap items-start justify-between gap-6 border-b border-zinc-300 pb-5">
             <div>
-                <h1 class="text-2xl font-bold">{{ $shift->store?->company?->name_en ?: $shift->company_name_en_snapshot ?: 'TOY & JOY' }}</h1>
+                <h1 class="text-2xl font-bold">{{ $shift->store?->company?->name_en ?: $shift->company_name_en_snapshot ?: '3allaf' }}</h1>
                 <p class="mt-1 text-sm">{{ $branchName }} · {{ $storeName }}</p>
                 <p class="mt-1 text-sm text-zinc-500">{{ $drawerName }}</p>
             </div>

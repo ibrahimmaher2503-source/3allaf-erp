@@ -23,7 +23,7 @@
     <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
             <p class="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">{{ $label }}</p>
-            <p class="mt-2 truncate text-2xl font-bold tabular-nums tracking-tight text-text-primary" dir="ltr">{{ $value }}</p>
+            <p class="mt-2 text-xl font-bold tabular-nums tracking-tight text-text-primary sm:text-2xl" dir="ltr">{{ $value }}</p>
         </div>
         <span class="flex size-10 shrink-0 items-center justify-center rounded-xl shadow-sm {{ $palette['icon'] }}">
             <flux:icon :name="$icon" class="size-5" />

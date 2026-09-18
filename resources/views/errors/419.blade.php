@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ __('Session expired') }} - TOY & JOY</title>
+    <title>{{ __('Session expired') }} - 3allaf | علاف</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen items-center justify-center bg-zinc-50 p-4 text-zinc-900 antialiased dark:bg-zinc-900 dark:text-zinc-100">

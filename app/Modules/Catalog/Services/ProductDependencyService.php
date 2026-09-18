@@ -29,9 +29,18 @@ final class ProductDependencyService
         $database = DB::connection()->getDatabaseName();
         $foreignKeys = DB::table('information_schema.KEY_COLUMN_USAGE')->where('CONSTRAINT_SCHEMA', $database)->where('REFERENCED_TABLE_SCHEMA', $database)->where('REFERENCED_TABLE_NAME', 'products')->where('REFERENCED_COLUMN_NAME', 'id')->get(['TABLE_NAME', 'COLUMN_NAME']);
         $operational = []; $configuration = [];
+        $dependencyCounts = null;
         foreach ($foreignKeys as $foreignKey) {
             $table = (string) $foreignKey->TABLE_NAME; $column = (string) $foreignKey->COLUMN_NAME;
-            $count = $table === 'products' && $column === 'parent_product_id' ? Product::query()->where('parent_product_id', $product->id)->count() : DB::table($table)->where($column, $product->id)->count();
+            $query = $table === 'products' && $column === 'parent_product_id'
+                ? Product::query()->where('parent_product_id', $product->id)->toBase()
+                : DB::table($table)->where($column, $product->id);
+            $query->selectRaw('? AS dependency_table, COUNT(*) AS dependency_count', [$table]);
+            $dependencyCounts = $dependencyCounts === null ? $query : $dependencyCounts->unionAll($query);
+        }
+        foreach ($dependencyCounts?->get() ?? [] as $dependency) {
+            $table = (string) $dependency->dependency_table;
+            $count = (int) $dependency->dependency_count;
             if ($count < 1) continue;
             if (in_array($table, self::CONFIGURATION_TABLES, true)) {
                 $configuration[$table] = (int) $count;

@@ -81,12 +81,6 @@ new #[Title('Supplier Returns')] class extends Component
     public function openCreateModal(): void
     {
         Gate::authorize('purchase_returns.create');
-        if (! SupplierReturnReason::query()->active()->exists()) {
-            Flux::toast(__('No active supplier return reasons are configured yet.'), variant: 'warning');
-
-            return;
-        }
-
         $this->resetValidation();
         $this->selectedInvoiceId = null;
         $this->selectedSupplierId = null;
@@ -416,7 +410,7 @@ new #[Title('Supplier Returns')] class extends Component
             <flux:button href="{{ route('purchasing.returns.settings') }}" variant="subtle" icon="adjustments-horizontal">{{ __('Return settings') }}</flux:button>
         @endcan
         @can('purchase_returns.create')
-            <flux:button wire:click="openCreateModal" variant="primary" icon="plus" :disabled="!$hasReasonCatalog">{{ __('New supplier return') }}</flux:button>
+            <flux:button wire:click="openCreateModal" variant="primary" icon="plus">{{ __('New supplier return') }}</flux:button>
         @endcan
         </x-tables.resource-toolbar>
     </x-slot:actions>
@@ -528,6 +522,14 @@ new #[Title('Supplier Returns')] class extends Component
         <flux:modal wire:model.self="showFormModal" class="md:w-[min(96vw,900px)]">
             <form wire:submit="saveDraft" class="space-y-5" data-product-line-editor>
                 <flux:heading size="lg">{{ __('New supplier return draft') }}</flux:heading>
+                @unless($hasReasonCatalog)
+                    <flux:callout variant="warning" icon="exclamation-triangle">
+                        {{ __('Add at least one active supplier return reason before saving a return.') }}
+                        @can('company_settings.view')
+                            <flux:link href="{{ route('purchasing.returns.settings') }}" wire:navigate>{{ __('Open return settings') }}</flux:link>
+                        @endcan
+                    </flux:callout>
+                @endunless
                 <flux:callout variant="warning" icon="shield-check">
                     {{ __('The source invoice and line cost are server-authoritative. The cost field below is read-only and cannot be replaced with current WAC.') }}
                 </flux:callout>

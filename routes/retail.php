@@ -1941,9 +1941,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         /** @var User $user */
         $user = $request->user();
         abort_unless($user->can('pos_sales.view'), 403);
-        if (! $request->filled('store_id') && ($contextStoreId = app(WorkContext::class)->id($user)) !== null) {
-            $request->merge(['store_id' => $contextStoreId]);
-        }
+        // The overview starts with all authorized stores; the store filter is explicit.
+        // A hidden POS work context must not make a valid sales overview look empty.
         $perPage = in_array($request->integer('per_page'), [20, 50, 100], true) ? $request->integer('per_page') : 20;
         $sort = in_array((string) $request->string('sort'), ['created_at', 'document_number', 'status', 'total'], true) ? (string) $request->string('sort') : 'created_at';
         $direction = (string) $request->string('direction') === 'asc' ? 'asc' : 'desc';
@@ -1981,6 +1980,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->when($request->filled('store_id'), fn ($scope) => $scope->where('store_id', $request->integer('store_id'))))
             ->selectRaw('product_id, item_code, name_ar, name_en, SUM(quantity) as units, SUM(net_amount) as net_total')
             ->groupBy('product_id', 'item_code', 'name_ar', 'name_en')->orderByDesc('units')->limit(5)->get();
+        $approvedOverview = Sale::query()->visibleTo($user)->approved()
+            ->when($request->filled('store_id'), fn ($builder) => $builder->where('store_id', $request->integer('store_id')))
+            ->selectRaw('COUNT(*) as invoice_count, MAX(approved_at) as latest_approved_at')->first();
         $dashboard = [
             'today_total' => (string) (clone $todaySales)->sum('total'),
             'today_count' => (clone $todaySales)->count(),
@@ -1993,6 +1995,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             'trend' => $trendDays,
             'payment_summary' => $paymentSummary,
             'top_products' => $topProducts,
+            'approved_count' => (int) ($approvedOverview?->invoice_count ?? 0),
+            'latest_approved_at' => $approvedOverview?->latest_approved_at,
         ];
 
         return view('pages.sales.index', compact('sales', 'stores', 'dashboard', 'sort', 'direction'));

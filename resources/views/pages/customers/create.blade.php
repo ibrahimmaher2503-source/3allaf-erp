@@ -81,52 +81,6 @@
                 </div>
             </section>
 
-            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900" x-data="{ children: @js(old('children', [])), childPurpose: @js($childPurposes[0] ?? '') }" x-init="children.forEach(child => child.purpose ||= childPurpose)">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <flux:heading size="lg">{{ str_starts_with(app()->getLocale(), 'ar') ? 'بيانات الأطفال (اختياري)' : __('Child profiles (optional)') }}</flux:heading>
-                        <flux:text class="mt-1 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? 'أضف بيانات طفل أو أكثر عند الحاجة.' : 'Add one or more child profiles when needed.' }}</flux:text>
-                    </div>
-                    @if ($childPurposes !== [])
-                        <flux:button type="button" variant="subtle" icon="plus" x-on:click="children.push({ name_ar: '', name_en: '', birth_date: '', purpose: childPurpose })" x-bind:disabled="children.length >= 10">
-                            {{ str_starts_with(app()->getLocale(), 'ar') ? 'إضافة طفل' : 'Add child' }}
-                        </flux:button>
-                    @endif
-                </div>
-
-                @if ($childPurposes !== [])
-                    <div class="mt-4 space-y-4" x-show="children.length">
-                        <template x-for="(child, index) in children" :key="index">
-                            <div class="rounded-xl border border-border bg-surface p-4">
-                                <div class="mb-4 flex items-center justify-between gap-3">
-                                    <p class="font-semibold text-text-primary" x-text="`{{ str_starts_with(app()->getLocale(), 'ar') ? 'الطفل' : 'Child' }} ${index + 1}`"></p>
-                                    <flux:button type="button" size="sm" variant="subtle" icon="trash" x-on:click="children.splice(index, 1)">{{ str_starts_with(app()->getLocale(), 'ar') ? 'حذف' : 'Remove' }}</flux:button>
-                                </div>
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <flux:input x-bind:name="`children[${index}][name_ar]`" x-model="child.name_ar" :label="str_starts_with(app()->getLocale(), 'ar') ? 'اسم الطفل بالعربية' : __('Child Arabic name')" dir="rtl" />
-                                    <flux:input x-bind:name="`children[${index}][name_en]`" x-model="child.name_en" :label="str_starts_with(app()->getLocale(), 'ar') ? 'اسم الطفل بالإنجليزية (اختياري)' : __('Child English name')" dir="ltr" />
-                                    <flux:input x-bind:name="`children[${index}][birth_date]`" x-model="child.birth_date" :label="str_starts_with(app()->getLocale(), 'ar') ? 'تاريخ الميلاد' : __('Birth date')" type="date" />
-                                    @if (count($childPurposes) === 1)
-                                        <input type="hidden" x-bind:name="`children[${index}][purpose]`" x-model="child.purpose">
-                                    @else
-                                        <label class="block min-w-0 text-sm font-medium text-text-primary">
-                                            {{ str_starts_with(app()->getLocale(), 'ar') ? 'الغرض من حفظ بيانات الطفل' : __('Child-data purpose') }}
-                                            <select x-bind:name="`children[${index}][purpose]`" x-model="child.purpose" class="mt-2 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                                                <option value="">{{ str_starts_with(app()->getLocale(), 'ar') ? 'اختر الغرض' : 'Choose a purpose' }}</option>
-                                                @foreach ($childPurposes as $purpose)
-                                                    <option value="{{ $purpose }}">{{ $purpose }}</option>
-                                                @endforeach
-                                            </select>
-                                        </label>
-                                    @endif
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                    <p class="mt-4 text-sm text-text-muted" x-show="! children.length">{{ str_starts_with(app()->getLocale(), 'ar') ? 'لم تُضف بيانات أطفال بعد.' : 'No child profiles have been added.' }}</p>
-                @endif
-            </section>
-
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <flux:text class="text-xs text-slate-500">{{ __('The selected selling store is') }}: <span class="font-semibold">{{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</span></flux:text>
                 <flux:button type="submit" variant="primary" :disabled="$consentPurposes === []">{{ __('Save') }}</flux:button>

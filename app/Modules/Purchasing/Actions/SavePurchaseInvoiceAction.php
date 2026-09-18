@@ -150,6 +150,10 @@ final class SavePurchaseInvoiceAction
                 if ($productUnit?->unit?->status !== null && $productUnit->unit->status !== 'active') {
                     throw new InvalidArgumentException(__('The selected product unit is inactive.'));
                 }
+                if ($purchaseOrderLine?->product_unit_id !== null && $productUnit !== null && (int) $purchaseOrderLine->product_unit_id === (int) $productUnit->id) {
+                    // Use the approved order's factor, not a later change to the product card.
+                    $productUnit->conversion_factor = $purchaseOrderLine->conversion_factor_snapshot;
+                }
                 $normalizedLines[] = [...$line, 'product' => $product, 'product_unit' => $productUnit, 'entered_quantity' => $line['quantity'] ?? null, 'entered_unit_price' => $line['unit_cost'] ?? null, 'product_id' => $product->id, 'purchase_order_line_id' => $purchaseOrderLine?->id, 'line_number' => $index + 1];
             }
 

@@ -18,6 +18,7 @@
         'reconciled' => 'green',
         'success' => 'green',
         'online' => 'green',
+        'paid' => 'green',
 
         'draft' => 'zinc',
         'inactive' => 'zinc',
@@ -58,6 +59,8 @@
         'in_progress' => 'blue',
         'partially_received' => 'blue',
         'sent' => 'blue',
+        'partially_paid' => 'blue',
+        'unpaid' => 'zinc',
 
         'override' => 'purple',
         'special' => 'purple',
@@ -77,6 +80,7 @@
         'reconciled' => __('Reconciled'),
         'success' => __('Success'),
         'online' => __('Online'),
+        'paid' => __('Paid'),
         'draft' => __('Draft'),
         'inactive' => __('Inactive'),
         'closed' => __('Closed'),
@@ -113,6 +117,8 @@
         'in_progress' => __('In progress'),
         'partially_received' => __('Partially received'),
         'sent' => __('Sent'),
+        'partially_paid' => __('Partially paid'),
+        'unpaid' => __('Unpaid'),
         'override' => __('Override'),
     ];
 

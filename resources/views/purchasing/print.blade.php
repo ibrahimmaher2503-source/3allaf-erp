@@ -47,7 +47,7 @@
         <!-- Header -->
         <div class="flex items-start justify-between border-b border-zinc-200 dark:border-zinc-700 pb-6">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">TOY & JOY</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">3allaf | علاف</h1>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ __('Purchase order copy') }}</p>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-1">{{ __('Tax registration: not configured') }}</p>
             </div>
@@ -98,7 +98,7 @@
                         <th class="px-4 py-2.5 text-center w-12">#</th>
                         <th class="px-4 py-2.5 text-start">{{ __('Product') }}</th>
                         <th class="px-4 py-2.5 text-end">{{ __('Qty Ordered') }}</th>
-                        <th class="px-4 py-2.5 text-end">{{ __('Unit Cost') }}</th>
+                        <th class="px-4 py-2.5 text-end">{{ __('Price per selected unit') }}</th>
                         <th class="px-4 py-2.5 text-end">{{ __('Subtotal') }}</th>
                     </tr>
                 </thead>
@@ -110,8 +110,8 @@
                                 <div class="font-medium text-zinc-900 dark:text-white">{{ str_starts_with(app()->getLocale(), 'ar') ? $line->product->name_ar : ($line->product->name_en ?: $line->product->name_ar) }}</div>
                                 <div class="text-xs font-mono text-zinc-500">{{ $line->product->sku ?: $line->product->code }}</div>
                             </td>
-                            <td class="px-4 py-2.5 text-end font-mono"><x-product-quantity :value="$line->quantity_ordered" /></td>
-                            <td class="px-4 py-2.5 text-end font-mono">{{ number_format((float)$line->unit_cost, 2) }}</td>
+                            <td class="px-4 py-2.5 text-end font-mono"><x-product-quantity :value="$line->entered_quantity ?? $line->quantity_ordered" /> {{ $line->unit_code_snapshot }}<div class="text-xs">{{ __('Base quantity') }}: <x-product-quantity :value="$line->quantity_ordered" /></div></td>
+                            <td class="px-4 py-2.5 text-end font-mono">{{ number_format((float)($line->entered_unit_price ?? $line->unit_cost), 4) }}</td>
                             <td class="px-4 py-2.5 text-end font-mono font-semibold">{{ number_format((float)$line->subtotal, 2) }}</td>
                         </tr>
                     @endforeach

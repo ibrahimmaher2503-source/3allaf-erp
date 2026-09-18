@@ -21,14 +21,10 @@ final class TranslationOverrideLoader extends FileLoader
             return $lines;
         }
 
-        if (! Schema::hasTable('translation_overrides')) {
-            return $lines;
-        }
-
         try {
             $requestId = app()->bound('request') ? (string) request()->attributes->get('request_id', spl_object_id(request())) : 'console';
             $cacheKey = $requestId.':'.$locale;
-            $overrides = $this->requestOverrides[$cacheKey] ??= TranslationOverride::query()
+            $overrides = $this->requestOverrides[$cacheKey] ??= ! Schema::hasTable('translation_overrides') ? [] : TranslationOverride::query()
                 ->where('locale', $locale)
                 ->get(['group', 'translation_key', 'value'])
                 ->groupBy('group')

@@ -70,7 +70,7 @@ class GetPlatformStatus
             'request_id' => $requestId,
             'timestamp' => $timestamp,
             'application' => [
-                'name' => config('app.name', 'TOY & JOY'),
+                'name' => config('app.name', '3allaf | علاف'),
                 'environment' => app()->environment(),
                 'locale' => app()->getLocale(),
                 'timezone' => config('app.timezone', 'UTC'),

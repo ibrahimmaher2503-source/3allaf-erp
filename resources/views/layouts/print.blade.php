@@ -7,7 +7,7 @@
         @include('partials.theme-bootstrap')
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ $title ?? __('Print Preview Placeholder') }} - TOY & JOY</title>
+        <title>{{ $title ?? __('Print Preview Placeholder') }} - 3allaf | علاف</title>
         @vite(['resources/css/app.css'])
         <style>
             @media print {
@@ -79,7 +79,7 @@
 
             <!-- Layout Document Footer -->
             <footer class="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between font-mono">
-                <span>TOY & JOY - Platform Layout Engine</span>
+                <span>3allaf | علاف - Platform Layout Engine</span>
                 <span>{{ __('Page 1 of 1') }}</span>
             </footer>
         </main>

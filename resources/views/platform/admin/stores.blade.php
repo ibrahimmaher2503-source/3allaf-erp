@@ -255,7 +255,6 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
 
     public function openStoreMappingModal(int $storeId): void
     {
-        abort(410, __('Company-wide primary sales outlets are obsolete. Select the exact outlet when opening a shift.'));
         Gate::authorize('branches_stores.edit');
 
         $store = Store::visibleTo(auth()->user())->with('branch')->findOrFail($storeId);
@@ -288,7 +287,6 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
 
     public function saveStoreMapping(SaveBranchSellingStoreMappingAction $action): void
     {
-        abort(410, __('Company-wide primary sales outlets are obsolete. Select the exact outlet when opening a shift.'));
         Gate::authorize('branches_stores.edit');
 
         $validated = $this->validate([
@@ -311,7 +309,10 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
 
     public function render()
     {
-        $query = Store::visibleTo(auth()->user())->with('branch');
+        $query = Store::visibleTo(auth()->user())->with([
+            'branch',
+            'sellingStoreMappings' => fn ($mappingQuery) => $mappingQuery->where('status', 'active'),
+        ]);
         $term = trim($this->search);
 
         if ($term !== '') {
@@ -462,6 +463,9 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
                                 @default
                                     <flux:badge size="sm" variant="subtle">{{ $st->type }}</flux:badge>
                             @endswitch
+                            @if ($st->sellingStoreMappings->isNotEmpty())
+                                <flux:badge size="sm" color="emerald">{{ __('Primary') }}</flux:badge>
+                            @endif
                             @if ($isPendingArchive)
                                 <flux:badge size="sm" color="amber" inset="top"><span style="color: light-dark(#78350f, #fde68a)">{{ __('Pending archive approval') }}</span></flux:badge>
                             @elseif ($st->status === 'active')
@@ -495,7 +499,7 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
                     <div class="grid grid-cols-2 gap-2">
                         @can('branches_stores.edit')
                             <x-actions.button semantic="edit" :label="__('Edit')" size="sm" variant="subtle" icon="pencil" wire:click="openEditStoreModal({{ $st->id }})">{{ __('Edit') }}</x-actions.button>
-                            @if (false)
+                            @if ($st->type === 'selling' && $st->status === 'active' && $st->branch)
                                 <x-actions.button semantic="assign" :label="__('Assign')" size="sm" variant="subtle" icon="arrows-right-left" wire:click="openStoreMappingModal({{ $st->id }})">{{ __('Set as primary point of sale') }}</x-actions.button>
                             @endif
                             @if ($st->status === 'active' && ! $isPendingArchive)
@@ -558,6 +562,9 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
                                 @default
                                     <flux:badge size="sm" variant="subtle">{{ $st->type }}</flux:badge>
                             @endswitch
+                            @if ($st->sellingStoreMappings->isNotEmpty())
+                                <flux:badge size="sm" color="emerald">{{ __('Primary') }}</flux:badge>
+                            @endif
                         </flux:table.cell>
 
                         <flux:table.cell class="align-top text-xs">
@@ -599,7 +606,7 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
                             <div class="flex flex-wrap items-center justify-end gap-2">
                                 @can('branches_stores.edit')
                                     <x-actions.button semantic="edit" :label="__('Edit')" size="xs" variant="subtle" icon="pencil" wire:click="openEditStoreModal({{ $st->id }})" aria-label="{{ __('Edit') }}" title="{{ __('Edit') }}" />
-                                    @if (false)
+                                    @if ($st->type === 'selling' && $st->status === 'active' && $st->branch)
                                         <x-actions.button semantic="assign" :label="__('Assign')" size="xs" variant="subtle" icon="arrows-right-left" wire:click="openStoreMappingModal({{ $st->id }})" aria-label="{{ __('Set as primary point of sale') }}" title="{{ __('Set as primary point of sale') }}" />
                                     @endif
                                     @if ($st->status === 'active' && ! $isPendingArchive)
@@ -750,8 +757,6 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
         </div>
     </flux:modal>
 
-    {{-- Historical primary-outlet mapping UI intentionally retired in Hotfix7. --}}
-    @if(false)
     <!-- Set primary point of sale modal -->
     <flux:modal wire:model="showStoreMappingModal" class="md:w-140 space-y-6">
         <div>
@@ -775,5 +780,4 @@ new #[Title('Store & Inventory Mapping Masters')] class extends Component
             </div>
         </form>
     </flux:modal>
-    @endif
 </x-app.page>

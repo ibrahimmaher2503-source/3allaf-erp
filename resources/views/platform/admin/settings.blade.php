@@ -812,7 +812,7 @@ new #[Title('System Settings')] class extends Component
                         <flux:input
                             wire:model="companyForm.legal_name"
                             :label="__('Legal Name')"
-                            placeholder="TOY & JOY Commercial Co."
+                            placeholder="3allaf Commercial Co."
                         />
 
                         <flux:input
@@ -825,7 +825,7 @@ new #[Title('System Settings')] class extends Component
                         <flux:input
                             wire:model="companyForm.name_en"
                             :label="__('Name (English)')"
-                            placeholder="TOY & JOY Company"
+                            placeholder="3allaf Company"
                             required
                         />
 

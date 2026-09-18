@@ -1,8 +1,10 @@
-# Current Milestone — R1 Sales Reports
+# Current Milestone — R2 Inventory Reports
 
-**Date:** 2026-09-17
+**Date:** 2026-09-18
 **Status:** COMPLETE locally; release remains unauthorized.
 
-Sales Summary, Sales by Product, customer-profile sales analysis, and CSV/XLSX/PDF export generation are implemented and verified on dedicated MariaDB `rajeh_r1_sales_reports_20260917`. The reports preserve invoice/payment/return history, company and authorized-store scope, product-unit grain, bilingual direction, responsive layout, and server authorization.
+Stock Movement Card and Inventory Valuation As Of Date are implemented with direct report/sidebar destinations, historical movement and cost snapshots, deterministic running balances, scoped drilldown, and CSV/XLSX/PDF exports through the existing reporting infrastructure.
 
-No schema migration was required. Production deployment, release packaging, activation, push, and tag are outside this milestone.
+Dedicated MariaDB `rajeh_r2_inventory_reports_20260918` passed focused and linked inventory tests. Existing movement indexes cover the report predicates; no migration was added for R2. Authenticated Arabic and English browser UAT passed on the local runtime.
+
+Production deployment, activation, commit, push, tag, and release packaging are outside this milestone.

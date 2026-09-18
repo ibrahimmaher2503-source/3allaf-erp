@@ -1,5 +1,16 @@
 # Test and Verification Results
 
+## 2026-09-18 — Receipt customer search
+
+- Manual scoped controller diagnostics on dedicated local dataset: empty0; known name/phone/Arabic-digit phone each1 and correct ID; nonexistent term0. PHP and compiled Blade syntax/diff hygiene passed.
+- No automated suite, browser UAT, restricted-role scenario or business-record mutation. No build, commit, push or release.
+
+## 2026-09-18 — Product detail update 500
+
+- Manual dependency comparison for products 1/3/4: identical report counts/denials; 169 to 52 queries for three inspections. PHP syntax/diff hygiene passed.
+- Authenticated local HTTP product1 GET and no-op Livewire update returned 200 after dependency aggregation and nested relation loadMissing. First update exposed supplier hydration error and only that failed diagnostic was repeated. No delete/archive calls or business record changes.
+- No automated tests or browser UAT, build, commit, push or production release.
+
 ## 2026-09-05 — v0.1.22-hotfix14 focused verification
 
 - Direct database-free arithmetic/source verification passed 20 assertions covering all required upward-derived-price examples, nearest-5 cash examples, unchanged base/manual price boundaries, exact non-cash settlement, append-only setting migration, and safe missing/invalid configuration handling.
@@ -418,3 +429,39 @@
 - PASS: Targeted Pint, changed/new PHP syntax, three locale JSON files, targeted compiled-Blade PHP syntax, report route discovery, and `git diff --check`.
 - INFO: MariaDB EXPLAIN used existing product-line and return indexes. The small seeded sales query scanned 150 rows against `approved_at`; no new index migration was justified by measured evidence.
 - NOT RUN: Full application suite, production access/change, deployment, release, push, or tag. A broad `view:cache` attempt was stopped after hanging; the six touched views were compiled and syntax-checked individually and rendered through browser UAT.
+
+## 2026-09-18 — Purchase-order units, local manual diagnostics
+
+- PASS: Nullable additive migration 000129 on confirmed dedicated `rajeh_r1_sales_reports_20260917`, port 3307; no historical row backfill or reset.
+- PASS: Transaction-rolled-back SavePurchaseOrderAction and calculator diagnostics: 10 BAG × 1200 → 500 base / 12000 total; 2 TON × 24000 → 2000 base / 48000 total; 0.5 TON → 500 base / 12000 total. Base cost 24 in each case. Foreign-product unit rejected; diagnostic writes rolled back.
+- PASS: Changed PHP/migration syntax, affected compiled Blade syntax after partial directive correction, locale JSON parsing and diff hygiene. New order-form partial rendered in Arabic and English with BAG and TON choices. Existing Blaze compilation warnings were observed, not hidden.
+- NOT RUN: Automated tests, browser UX/UAT, posted partial/full receipts, weighted-average costing, returns, production, deployment, build, commit or push. Purchase scope remains PARTIAL verification and does not inherit R1's named test/browser exception.
+
+## 2026-09-18 — Customer profile query-budget failure
+
+- Manual diagnostic: customers/40 rendered with 135 queries before / 72 after TranslationOverrideLoader fix; rendered length unchanged.
+- Authenticated HTTP GET http://127.0.0.1:8139/customers/40 returned 200 OK without login redirect. Dedicated local MariaDB only. PHP syntax and diff hygiene passed.
+- No automated suite or browser control/UAT, business-record mutation, commit, push or production release.
+
+## 2026-09-18 — Stock-count opening and UX follow-up
+
+- Correlated the latest inventory failure to the local 15:07:58 trace: opening a count used `firstOrCreate` once per product and exceeded the 100-query request budget.
+- Transaction-rolled-back MariaDB diagnostic changed count 1 to full only inside the transaction: 29 scoped products opened in 24 queries, then rollback restored `draft|partial|0 lines`.
+- Authenticated kernel GET `/inventory/counts/create` returned 200 with 28 queries. Customer create and customer 40 returned 200 with no child-profile copy.
+- Changed PHP and three compiled Blade files passed syntax checks; inventory count routes remain registered and customer child routes are absent. No automated tests, browser control/UAT, commit, push, build, release, or production action.
+
+## 2026-09-18 — Customer list account summary
+
+- Manual local route/render diagnostic: 20 customer accounts, 22 queries, Arabic debt heading present. Every displayed signed balance matched existing CustomerBalance::for for QA admin. Read-only diagnostic on dedicated MariaDB; no business record writes.
+- Changed PHP and compiled Blade syntax / diff hygiene passed. No automated tests or browser UAT. Restricted-role, English/mobile visual checks not performed. No build, commit, push or release.
+
+## 2026-09-18 — R2 Inventory Reports
+
+- Dedicated MariaDB: `rajeh_r2_inventory_reports_20260918` on local port 3307; full migrations through 000129 and ProductionSeeder completed.
+- Focused R2 suite passed: 4 tests, 20 assertions. Covered historical weighted-cost valuation unaffected by later movement/current cost, opening/in/out/closing/running reconciliation, fractional and negative quantities, current-balance reconciliation, store exclusion, and cross-company store rejection.
+- Linked inventory suite passed: 9 tests, 45 assertions across receiving, fractional inventory, and adjustment rules.
+- Actual exports passed through the existing job pipeline: stock movement and valuation in CSV, XLSX, and PDF. Generated files and export rows were removed/rolled back after verification.
+- R1 read-only calculations: movement product 1/store 1 returned opening 0, incoming 2500, outgoing 1250, closing 1250; valuation store 1 as of 2026-09-17 returned 1,251,872.5000, 30 rows, 28 positive and 2 zero.
+- Direct integrity audit returned zero violations for balance reconciliation, duplicate/orphan movements, over-released transfers, purchase/sales over-returns, negative balances, invalid conversions, missing cost snapshots, and FLOAT/DOUBLE columns.
+- EXPLAIN used the existing movement cost/product-store-date index for card ranges and an existing product/store/date index for valuation scanning; no new index was added.
+- PHP syntax, route discovery, Blade compilation, and diff hygiene passed. Authenticated Arabic and English browser UAT at port 8139 showed both sidebar links and both reports with expected totals, rows, historical-cost explanation, and drilldown. Mobile/tablet visual acceptance was not performed. No production or release action occurred.

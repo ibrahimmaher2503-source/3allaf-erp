@@ -4,6 +4,7 @@ namespace App\Modules\Purchasing\Models;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductUnit;
 use App\Modules\Platform\Models\Concerns\GuardsApprovedParent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,11 @@ class PurchaseOrderLine extends Model
     protected $fillable = [
         'purchase_order_id',
         'product_id',
+        'product_unit_id',
+        'unit_code_snapshot',
+        'entered_quantity',
+        'conversion_factor_snapshot',
+        'entered_unit_price',
         'line_number',
         'quantity_ordered',
         'quantity_received',
@@ -27,6 +33,9 @@ class PurchaseOrderLine extends Model
 
     protected $casts = [
         'line_number' => 'integer',
+        'entered_quantity' => 'decimal:6',
+        'conversion_factor_snapshot' => 'decimal:6',
+        'entered_unit_price' => 'decimal:4',
         'quantity_ordered' => 'decimal:6',
         'quantity_received' => 'decimal:6',
         'unit_cost' => 'decimal:4',
@@ -41,6 +50,11 @@ class PurchaseOrderLine extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function productUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProductUnit::class);
     }
 
     public function creator(): BelongsTo

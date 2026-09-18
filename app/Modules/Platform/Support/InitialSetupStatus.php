@@ -69,15 +69,26 @@ final class InitialSetupStatus
         $activeCompanyId = (int) Company::query()->where('status', 'active')->value('id');
         $productPricing = app(ProductPricingReadiness::class)->snapshot($activeCompanyId);
         $catalogReady = $this->catalogReady($productPricing);
-        $activeCustomerGroups = CustomerGroup::query()->forCompany($activeCompanyId)->active();
-        $activeSupplierGroups = SupplierGroup::query()->forCompany($activeCompanyId)->active();
+        $activeCustomerGroups = CustomerGroup::query()->forCompany($activeCompanyId)->active()->count();
+        $activeSupplierGroups = SupplierGroup::query()->forCompany($activeCompanyId)->active()->count();
         $activeProductOptionGroups = ProductOptionGroup::query()
             ->active()
-            ->whereHas('values', fn (Builder $query): Builder => $query->active());
+            ->whereHas('values', fn (Builder $query): Builder => $query->active())->count();
         $customerConsentPolicyRecords = $this->customerConsentPolicyRecords();
         $latestDecisions = $activeCompanyId > 0 && Schema::hasTable('setup_decisions')
             ? SetupDecision::query()->where('company_id', $activeCompanyId)->latest('id')->get()->unique('step_key')->keyBy('step_key')
             : collect();
+
+        $suppliersReady = $this->suppliersReady();
+        $pricesReady = $this->pricesReady($productPricing);
+        $pricingReadinessReason = $this->pricingReadinessReason($productPricing, $pricesReady);
+        $paymentMethodsCount = PaymentMethod::query()->count();
+        $taxesCount = TaxSetting::query()->count();
+        $documentSequencesCount = DocumentSequence::query()->count();
+        $printersCount = PrinterConfiguration::query()->count();
+        $printTemplatesCount = PrinterConfiguration::query()->where('status', 'active')->whereNotNull('template_name')->where('template_name', '!=', '')->count();
+        $categoriesCount = Category::query()->count();
+        $brandsCount = Brand::query()->count();
 
         $steps = [
             $this->step('company', $companyReady, Company::query()->count()),
@@ -85,20 +96,20 @@ final class InitialSetupStatus
             $this->step('warehouses', $this->warehousesReady() && Store::query()->where('type','selling')->where('status','active')->whereNotNull('branch_id')->exists(), Store::query()->whereIn('type',['warehouse','selling'])->count()),
             $this->step('cash-drawers', $this->cashDrawersReady(), CashDrawer::query()->count()),
             $this->step('users-scopes', $this->usersAndScopesReady(), User::query()->where('status', 'active')->count()),
-            $this->step('payment-methods', $this->paymentMethodsReady(), PaymentMethod::query()->count()),
-            $this->step('taxes', $this->taxesReady(), TaxSetting::query()->count()),
-            $this->step('document-sequences', $this->documentSequencesReady(), DocumentSequence::query()->count()),
-            $this->step('printers', $this->printersReady(), PrinterConfiguration::query()->count()),
-            $this->step('print-templates', $this->printTemplatesReady(), PrinterConfiguration::query()->where('status', 'active')->whereNotNull('template_name')->where('template_name', '!=', '')->count()),
-            $this->step('categories', Category::query()->where('status', 'active')->exists(), Category::query()->count()),
-            $this->step('brands', Brand::query()->where('status', 'active')->exists(), Brand::query()->count()),
-            $this->step('customer-groups', $activeCustomerGroups->exists(), $activeCustomerGroups->count()),
+            $this->step('payment-methods', $this->paymentMethodsReady(), $paymentMethodsCount),
+            $this->step('taxes', $this->taxesReady(), $taxesCount),
+            $this->step('document-sequences', $this->documentSequencesReady(), $documentSequencesCount),
+            $this->step('printers', $this->printersReady(), $printersCount),
+            $this->step('print-templates', $printTemplatesCount > 0, $printTemplatesCount),
+            $this->step('categories', Category::query()->where('status', 'active')->exists(), $categoriesCount),
+            $this->step('brands', Brand::query()->where('status', 'active')->exists(), $brandsCount),
+            $this->step('customer-groups', $activeCustomerGroups > 0, $activeCustomerGroups),
             $this->step('customers', $customerConsentPolicyRecords === 3, $customerConsentPolicyRecords),
-            $this->step('supplier-groups', $activeSupplierGroups->exists(), $activeSupplierGroups->count()),
-            $this->step('suppliers', $this->suppliersReady(), Supplier::query()->count(), $this->suppliersReady() ? null : __('Add an active supplier and choose Cash, Cheques, Installments, Trust Deposits, or Other. Other also requires a description.')),
-            $this->step('product-options', $activeProductOptionGroups->exists(), $activeProductOptionGroups->count()),
+            $this->step('supplier-groups', $activeSupplierGroups > 0, $activeSupplierGroups),
+            $this->step('suppliers', $suppliersReady, Supplier::query()->count(), $suppliersReady ? null : __('Add an active supplier and choose Cash, Cheques, Installments, Trust Deposits, or Other. Other also requires a description.')),
+            $this->step('product-options', $activeProductOptionGroups > 0, $activeProductOptionGroups),
             $this->step('product-masters', $catalogReady, Product::query()->where('status', 'active')->count(), $this->productReadinessReason($productPricing), $productPricing),
-            $this->step('prices', $this->pricesReady($productPricing), PriceList::query()->count(), $this->pricingReadinessReason($productPricing), $productPricing),
+            $this->step('prices', $pricesReady, PriceList::query()->count(), $pricingReadinessReason, $productPricing),
             $this->step('opening-configuration', $this->openingInventoryReady(), OpeningInventoryDocument::query()->count(), $branchStoreSetupReady && $catalogReady ? null : __('Complete active branches, stores, categories, and product masters before opening inventory.')),
         ];
 
@@ -276,9 +287,9 @@ final class InitialSetupStatus
     }
 
     /** @param array<string,mixed> $productPricing */
-    private function pricingReadinessReason(array $productPricing): ?string
+    private function pricingReadinessReason(array $productPricing, ?bool $ready = null): ?string
     {
-        if ($this->pricesReady($productPricing)) return null;
+        if (($ready ?? $this->pricesReady($productPricing)) === true) return null;
         $companyId = (int) Company::query()->where('status', 'active')->value('id');
         $reasons = [];
         $base = PriceList::query()->where('company_id', $companyId)->where('list_number', 0)->first();
@@ -306,8 +317,13 @@ final class InitialSetupStatus
 
     private function customerConsentPolicyRecords(): int
     {
-        return collect(['customer.consent.purpose', 'customer.consent.wording', 'customer.consent.retention'])
-            ->filter(fn (string $key): bool => trim((string) CustomerPolicySettingVersion::query()->where('key', $key)->latest('version')->value('value')) !== '')
+        return CustomerPolicySettingVersion::query()
+            ->whereIn('key', ['customer.consent.purpose', 'customer.consent.wording', 'customer.consent.retention'])
+            ->select('key', 'value')
+            ->orderByDesc('version')
+            ->get()
+            ->unique('key')
+            ->filter(fn (CustomerPolicySettingVersion $record): bool => trim((string) $record->value) !== '')
             ->count();
     }
 

@@ -1016,7 +1016,7 @@ new #[Title('Supplier Masters')] class extends Component
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div><flux:heading size="sm">{{ __('Accounts Payable / Supplier Account') }}</flux:heading><flux:text class="text-sm">{{ __('Payable is derived from approved purchase invoices, returns, allocations, and approved adjustments.') }}</flux:text></div>
                             @can('purchase_invoices.approve')
-                                <flux:button href="{{ route('feed-store.operations', ['operation' => 'supplier_payment', 'supplier_id' => $viewingSupplier->id, 'company_id' => $activeCompanyId, 'currency_code' => $supplierCurrency]).'#supplier-payment' }}" variant="primary" size="sm" icon="banknotes">{{ __('Pay Supplier / سداد مورد') }}</flux:button>
+                                <flux:button href="{{ route('feed-store.operations', ['operation' => 'supplier_payment', 'supplier_id' => $viewingSupplier->id, 'company_id' => $activeCompanyId, 'currency_code' => $supplierCurrency]).'#supplier-payment' }}" variant="primary" size="sm" icon="banknotes">{{ __('Pay supplier') }}</flux:button>
                             @endcan
                         </div>
                         <div class="grid gap-3 sm:grid-cols-3">

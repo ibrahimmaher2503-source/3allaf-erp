@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 final class InventoryMovementLabel
 {
     private const LABELS = [
-        'opening_inventory' => 'Opening inventory', 'opening_inventory_reversal' => 'Opening inventory reversal',
+        'opening_balance' => 'Opening inventory', 'opening_inventory' => 'Opening inventory', 'opening_inventory_reversal' => 'Opening inventory reversal',
         'purchase_distribution_in' => 'Purchase distribution in', 'purchase_distribution_out' => 'Purchase distribution out',
         'purchase_receipt' => 'Purchase receipt', 'purchase_receipt_reversal' => 'Purchase receipt reversal',
         'purchase_return' => 'Purchase return', 'purchase_return_reversal' => 'Purchase return reversal',

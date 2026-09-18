@@ -53,7 +53,7 @@ final class PurchaseInvoiceCalculator
             throw new InvalidArgumentException(__('Purchase tax is disabled in Phase 1; tax rate must be zero.'));
         }
 
-        $gross = bcmul($quantity, $unitCost, 8);
+        $gross = bcmul($enteredQuantity, $enteredUnitPrice, 8);
         $discount = $discountType === 'percentage'
             ? bcdiv(bcmul($gross, $discountValue, 8), '100', 8)
             : $discountValue;

@@ -66,6 +66,10 @@ new #[Title('Role Permissions')] class extends Component
     $isArabic = str_starts_with(app()->getLocale(), 'ar');
     $roleName = $isArabic ? $role->name_ar : $role->name_en;
     $locale = $isArabic ? 'ar' : 'en';
+    $hiddenModules = ['party_wallet', 'party_bookings_invoices', 'party_operating_orders_consumables', 'rental_assets'];
+    $permissions = $permissions->reject(fn ($permission) => in_array($permission->module, $hiddenModules, true));
+    $permissionGroups = $permissionGroups->reject(fn ($modulePermissions, $module) => in_array($module, $hiddenModules, true));
+    $modules = $modules->reject(fn ($module) => in_array($module, $hiddenModules, true));
     $moduleLabels = [
         'company_settings' => ['ar' => 'إعدادات الشركة', 'en' => 'Company settings'],
         'branches_stores' => ['ar' => 'الفروع والمخازن ومواقع البيع', 'en' => 'Branches, stores, and selling locations'],
@@ -86,11 +90,7 @@ new #[Title('Role Permissions')] class extends Component
         'customers_children' => ['ar' => 'العملاء وبيانات الأطفال', 'en' => 'Customers and child profiles'],
         'loyalty' => ['ar' => 'الولاء', 'en' => 'Loyalty'],
         'product_wallet' => ['ar' => 'محفظة المنتجات', 'en' => 'Product wallet'],
-        'party_wallet' => ['ar' => 'محفظة الحفلات', 'en' => 'Party wallet'],
         'returns_exchanges_gift_instruments' => ['ar' => 'المرتجعات والاستبدالات وأدوات الهدايا', 'en' => 'Returns, exchanges, and gift instruments'],
-        'party_bookings_invoices' => ['ar' => 'حجوزات وفواتير الحفلات', 'en' => 'Party bookings and invoices'],
-        'party_operating_orders_consumables' => ['ar' => 'أوامر تشغيل الحفلات والمستهلكات', 'en' => 'Party operating orders and consumables'],
-        'rental_assets' => ['ar' => 'أصول التأجير', 'en' => 'Rental assets'],
         'quotations' => ['ar' => 'عروض الأسعار', 'en' => 'Quotations'],
         'dashboard_reports' => ['ar' => 'لوحة التحكم والتقارير', 'en' => 'Dashboard and reports'],
         'audit_logs' => ['ar' => 'سجل التدقيق', 'en' => 'Audit logs'],

@@ -1,6 +1,10 @@
 @php
     $isArabic = str_starts_with(app()->getLocale(), 'ar');
     $isCustomerWallet = $customer !== null;
+    if ($wallet === 'product' && $isCustomerWallet) {
+        $title = $isArabic ? 'محفظة العميل للمبيعات' : 'Customer sales wallet';
+        $description = $isArabic ? 'سجل مستقل لحركات المحفظة المرتبطة بالمبيعات. لمعرفة مشتريات العميل والمديونية أو تحصيل مبلغ، افتح كشف الحساب والتحصيل.' : 'A separate wallet ledger linked to sales. For customer purchases, debt or payment collection, open Account & collection.';
+    }
     $walletLabel = $wallet === 'party' ? __('Party Wallet') : __('Product Wallet');
     $settlementRoute = $customer !== null ? ($wallet === 'party' ? route('customers.party-wallet.settle', $customer) : route('customers.product-wallet.settle', $customer)) : null;
     $adjustmentRoute = $customer !== null ? ($wallet === 'party' ? route('customers.party-wallet.adjustments.store', $customer) : route('customers.product-wallet.adjustments.store', $customer)) : null;
@@ -18,14 +22,17 @@
                 @endif
             </div>
             <div class="flex max-w-full flex-wrap gap-2">
-                @if ($otherPermission && auth()->user()?->can($otherPermission))
+                @if ($wallet !== 'product' && $otherPermission && auth()->user()?->can($otherPermission))
                     <a href="{{ $isCustomerWallet && $customer !== null ? route($otherCustomerRoute, $customer) : route($otherRoute) }}" class="inline-flex items-center rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-800 shadow-sm hover:border-cyan-300">{{ $otherLabel }}</a>
                 @endif
                 @if ($customer !== null)
+                    @if($wallet === 'product')<flux:button variant="primary" href="{{ route('customers.show', $customer) }}#customer-ar-heading" icon="banknotes">{{ $isArabic ? 'كشف الحساب والتحصيل' : 'Account & collection' }}</flux:button>@endif
                     <a href="{{ route('customers.show', $customer) }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-cyan-300">{{ __('Customer profile') }}</a>
                 @endif
                 @can('company_settings.view')
+                    @if(!$policyError)
                     <a href="{{ route('admin.settings.customer-loyalty') }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-cyan-300">{{ __('Wallet policy settings') }}</a>
+                    @endif
                 @endcan
             </div>
         </div>
@@ -35,10 +42,9 @@
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="max-w-3xl">
                         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">{{ str_starts_with(app()->getLocale(), 'ar') ? 'محفظة المنتجات' : 'Product Wallet' }}</p>
-                        <h2 class="mt-2 text-lg font-semibold text-amber-950">{{ str_starts_with(app()->getLocale(), 'ar') ? 'محفظة المنتجات غير مُعدة بعد' : 'Product Wallet is not configured yet' }}</h2>
-                        <p class="mt-2 text-sm leading-6 text-amber-900">{{ str_starts_with(app()->getLocale(), 'ar') ? 'تحتفظ محفظة المنتجات بأرصدة المنتجات الخاصة بالعملاء في دفتر مستقل مرتبط بالمصدر.' : 'Product Wallet holds customer product credits in a separate source-linked ledger.' }}</p>
-                        <p class="mt-2 text-sm leading-6 text-amber-900">{{ str_starts_with(app()->getLocale(), 'ar') ? 'قبل الاستخدام: يجب إعداد سياسة محفظة المنتجات والعملة على مستوى الشركة. ويتطلب كل قيد مصدر بيع تجزئة معتمد.' : 'Before use, an authorized owner must configure the Product Wallet policy and company currency. Each entry also requires an approved retail source.' }}</p>
-                        <p class="mt-2 text-xs leading-5 text-amber-800">{{ $policyError }}</p>
+                        <h2 class="mt-2 text-lg font-semibold text-amber-950">{{ $isArabic ? 'تسجيل حركات المحفظة غير متاح حاليًا' : 'Wallet posting is currently unavailable' }}</h2>
+                        <p class="mt-2 text-sm leading-6 text-amber-900">{{ $isArabic ? 'يلزم استكمال سياسة المحفظة وعملتها وصلاحيات استخدامها من إعدادات الشركة. يمكنك مراجعة السجل الحالي، لكن لا يمكن تسجيل تسوية أو تعديل رصيد قبل الإعداد.' : 'Company wallet policy, currency and usage rules must be configured. Existing history remains readable; settlement and adjustment posting are unavailable until setup is complete.' }}</p>
+                        <details class="mt-3 text-xs text-amber-800"><summary class="cursor-pointer">{{ $isArabic ? 'عرض تفاصيل مشكلة الإعداد' : 'Show setup issue details' }}</summary><p class="mt-2">{{ $policyError }}</p></details>
                     </div>
                     @can('company_settings.view')
                         <a href="{{ route('admin.settings.customer-loyalty') }}" class="inline-flex shrink-0 items-center rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 shadow-sm hover:border-amber-400">{{ str_starts_with(app()->getLocale(), 'ar') ? 'إعداد سياسة المحفظة' : 'Configure wallet policy' }}</a>
@@ -55,10 +61,10 @@
             </section>
         @endif
 
-        <section class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-guide="{{ $guidePrefix }}-summary">
+        <section class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-guide="{{ $guidePrefix }}-summary">
             <div class="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">{{ __('Derived balance') }}</p>
-                <p class="mt-2 break-all text-3xl font-black tabular-nums text-slate-950" dir="ltr">{{ $balance }} {{ $currencyCode ?? '' }}</p>
+                <p class="mt-2 break-all text-3xl font-black tabular-nums text-slate-950" dir="ltr"><x-money :amount="$balance" :currency="$currencyCode" /></p>
                 <p class="mt-1 text-xs text-slate-600">{{ __('Calculated from recorded wallet entries') }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -67,7 +73,7 @@
             </div>
             <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">{{ __('State') }}</p>
-                <p class="mt-2 text-lg font-semibold text-amber-900">{{ $policyError ? __('Action required') : __('Up to date') }}</p>
+                <p class="mt-2 text-lg font-semibold text-amber-900">{{ $policyError ? ($isArabic ? 'الإعداد غير مكتمل' : 'Setup incomplete') : ($isArabic ? 'السياسة مهيأة' : 'Policy configured') }}</p>
             </div>
         </section>
 
@@ -145,13 +151,13 @@
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" data-guide="{{ $guidePrefix }}-ledger">
             <div class="flex min-w-0 flex-wrap items-end justify-between gap-3">
                 <div><h2 class="text-lg font-semibold text-slate-950">{{ __('Wallet history') }}</h2><p class="mt-1 text-sm text-slate-600">{{ __('Review wallet entries, sources, amounts, and balances.') }}</p></div>
-                @if ($exportRoute)<a href="{{ $exportRoute }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-cyan-300">{{ __('Export visible statement') }}</a>@endif
+                @if ($exportRoute && $entries->isNotEmpty())<a href="{{ $exportRoute }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-cyan-300">{{ __('Export visible statement') }}</a>@endif
             </div>
             @if ($entries->isEmpty())
                 <div class="mt-5" data-guide="{{ $guidePrefix }}-empty">
                     <x-state.empty :title="__('No wallet entries yet')" :description="__('Wallet entries will appear after an approved source is recorded.')">
                         <x-slot:action>
-                            @if ($wallet === 'product')
+                            @if ($wallet === 'product' && !$policyError)
                                 @can('company_settings.view')
                                     <flux:button href="{{ route('admin.settings.customer-loyalty') }}" variant="subtle">{{ __('Review wallet policy') }}</flux:button>
                                 @endcan

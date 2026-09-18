@@ -36,6 +36,7 @@ new #[Title('Product Details')] class extends Component {
 
     public function render()
     {
+        $this->product->loadMissing(['category', 'brand', 'barcodes', 'images.attachment', 'productSuppliers.supplier']);
         $canRemove = Gate::allows('products_categories_brands.logical_delete');
         return view('catalog.product-detail', [
             'canEdit' => Gate::allows('products_categories_brands.edit'),
@@ -100,9 +101,9 @@ new #[Title('Product Details')] class extends Component {
             </flux:card>
 
             <flux:card class="space-y-5 p-5 sm:p-6" data-guide="product-detail-attributes">
-                <div class="flex items-center justify-between gap-3"><flux:heading size="lg">{{ __('Reportable attributes') }}</flux:heading><flux:badge size="sm" color="zinc">{{ __('No variants or balances') }}</flux:badge></div>
-                <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    @foreach ([['Colour', $product->colour], ['Size', $product->size], ['Character', $product->character], ['Target age', $product->target_age], ['Suitable gender', $product->suitable_gender], ['Weight', $product->weight], ['Dimensions', collect([$product->dimension_length, $product->dimension_width, $product->dimension_height])->filter(fn ($value) => $value !== null && $value !== '')->implode(' × ').($product->dimension_unit ? ' '.$product->dimension_unit : '')], ['Keywords Arabic', $product->keywords_ar], ['Keywords English', $product->keywords_en]] as [$label, $value])
+                <flux:heading size="lg">{{ str_starts_with(app()->getLocale(), 'ar') ? 'بيانات الصنف الإضافية' : 'Additional product data' }}</flux:heading>
+                <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ([['Weight', $product->weight === null ? null : $product->weight.' '.$product->weight_unit], ['Keywords Arabic', $product->keywords_ar], ['Keywords English', $product->keywords_en]] as [$label, $value])
                         <div class="catalog-detail-field"><dt class="catalog-detail-label">{{ __($label) }}</dt><dd class="mt-1 text-sm font-medium">{{ $value ?: __('Not provided') }}</dd></div>
                     @endforeach
                 </dl>

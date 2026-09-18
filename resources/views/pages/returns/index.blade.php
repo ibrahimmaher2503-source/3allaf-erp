@@ -12,13 +12,17 @@
         </flux:callout>
 
         @can('returns.create')
-            <flux:card class="mt-6">
+            <flux:card class="mt-6 space-y-4 p-4 sm:p-6">
                 <flux:heading size="lg">{{ __('New return or exchange') }}</flux:heading>
                 <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ __('For an exchange, add every replacement line below. Any difference requires an active payment method when the approved return is completed.') }}</p>
 
                 <form method="POST" action="{{ route('returns.store') }}" class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" x-data="{ settlement: @js(old('settlement_type', 'cash_refund')) }" data-product-line-editor data-next-index="1">
                     @csrf
                     <input type="hidden" name="idempotency_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+
+                    <fieldset class="sm:col-span-2 lg:col-span-4 grid min-w-0 gap-4 rounded-xl border border-border p-4 sm:grid-cols-2">
+                        <legend class="px-2 font-semibold">{{ str_starts_with(app()->getLocale(), 'ar') ? '١. مصدر المرتجع والصنف' : '1. Source document & item' }}</legend>
+                        <p class="text-sm text-text-muted sm:col-span-2">{{ str_starts_with(app()->getLocale(), 'ar') ? 'اختر فاتورة البيع أو إيصال بدون أسعار، وليس الاثنين معًا، ثم حدد الصنف من نفس المستند.' : 'Choose either the sales invoice or a receipt without prices, then select an item from that document.' }}</p>
 
                     <flux:select name="source_sale_id" label="{{ __('Source completed sale') }}">
                         <option value="">{{ __('Choose sale') }}</option>
@@ -46,6 +50,10 @@
                         @endforeach
                     </flux:select>
                     <flux:input name="quantity" type="number" min="1" step="1" value="{{ old('quantity', 1) }}" label="{{ __('Quantity') }}" required />
+                    </fieldset>
+
+                    <fieldset class="sm:col-span-2 lg:col-span-4 grid min-w-0 gap-4 rounded-xl border border-border p-4 sm:grid-cols-2">
+                        <legend class="px-2 font-semibold">{{ str_starts_with(app()->getLocale(), 'ar') ? '٢. الفحص وطريقة التسوية' : '2. Inspection & settlement' }}</legend>
 
                     <flux:select name="settlement_type" label="{{ __('Settlement') }}" required x-model="settlement">
                         <option value="cash_refund">{{ __('Cash refund record') }}</option>
@@ -64,6 +72,7 @@
                         <option value="quarantine">{{ __('Quarantine to the damaged store') }}</option>
                     </flux:select>
                     <flux:textarea name="inspection_notes" label="{{ __('Inspection notes / evidence reference') }}" />
+                    </fieldset>
 
                     <fieldset x-show="settlement === 'exchange'" x-cloak class="sm:col-span-2 lg:col-span-4 rounded-lg border border-teal-200 p-4 dark:border-teal-900">
                         <legend class="px-1 text-sm font-semibold">{{ __('Replacement lines') }}</legend>
@@ -78,15 +87,16 @@
                         <button type="button" data-add-line class="mt-3 text-sm text-teal-700 underline">{{ __('Add item') }}</button>
                     </fieldset>
 
-                    <flux:textarea name="reason" label="{{ __('Reason') }}" required class="sm:col-span-2" />
+                    <flux:textarea name="reason" label="{{ __('Reason') }}" required class="sm:col-span-2 lg:col-span-4" />
                     <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
-                        <flux:button type="submit" variant="primary">{{ __('Create draft') }}</flux:button>
+                        <div class="flex flex-wrap items-center justify-end gap-3"><p class="text-sm text-text-muted">{{ str_starts_with(app()->getLocale(), 'ar') ? 'حفظ المسودة لا يرد المبلغ ولا يغيّر المخزون؛ يلزم استكمال الفحص والاعتماد والتسوية.' : 'Saving a draft does not refund money or change stock; inspection, approval and settlement must be completed.' }}</p><flux:button type="submit" variant="primary">{{ __('Create draft') }}</flux:button></div>
                     </div>
                 </form>
             </flux:card>
         @endcan
 
         <flux:card class="mt-6 overflow-hidden p-0">
+            <header class="border-b border-border p-4"><flux:heading size="lg">{{ str_starts_with(app()->getLocale(), 'ar') ? 'سجل مرتجعات البيع' : 'Sales return register' }}</flux:heading><flux:text>{{ str_starts_with(app()->getLocale(), 'ar') ? 'افتح المرتجع لمراجعة الأصناف والفحص ومرحلة الاعتماد والتسوية.' : 'Open a return to review its items, inspection, approval and settlement stage.' }}</flux:text></header>
             <div class="overflow-x-auto">
                 <table class="data-table min-w-[960px] w-full text-sm">
                     <thead><tr><th>{{ __('Return') }}</th><th>{{ __('Source') }}</th><th>{{ __('Lines') }}</th><th>{{ __('Settlement') }}</th><th>{{ __('Value') }}</th><th>{{ __('Status') }}</th><th>{{ __('Actions') }}</th></tr></thead>
@@ -95,7 +105,7 @@
                             <tr class="border-t border-zinc-100 align-top dark:border-zinc-800">
                                 <td class="font-mono font-semibold">{{ $return->return_number ?: '#'.$return->id }}</td>
                                 <td>{{ $return->sourceSale?->document_number ?: ($return->sourceGiftReceipt?->reference ?: __('Source unavailable')) }}</td>
-                                <td>{{ $return->lines->count() }}</td><td>{{ str_replace('_', ' ', ucfirst($return->settlement_type)) }}</td>
+                                <td>{{ $return->lines->count() }}</td><td>{{ __(match ($return->settlement_type) { 'cash_refund' => 'Cash refund record', 'original_tender' => 'Original tender reversal record', 'gift_card' => 'Gift Card', 'exchange' => 'Exchange', default => 'Settlement' }) }}</td>
                                 <td>{{ number_format((float) $return->settlement_value, 2) }} {{ $return->currency_code }}</td><td><x-status.badge :status="$return->status" /></td>
                                 <td><x-actions.button semantic="view" :label="__('Open')" :href="route('returns.show', $return)">{{ __('Open') }}</x-actions.button> <x-actions.button semantic="print" :label="__('Print')" :href="route('returns.print', $return)">{{ __('Print') }}</x-actions.button></td>
                             </tr>

@@ -1,4 +1,21 @@
 {
+    "Archive :code? It will be unavailable for new transactions, while all history remains unchanged.": "Archive :code? It will be unavailable for new transactions, while all history remains unchanged.",
+    "Archive :code? It will be unavailable for new transactions.": "Archive :code? It will be unavailable for new transactions.",
+    "Archive product": "Archive product",
+    "Delete permanently": "Delete permanently",
+    "No operational or historical dependency was found. Permanent deletion removes only this product and its non-historical catalog configuration.": "No operational or historical dependency was found. Permanent deletion removes only this product and its non-historical catalog configuration.",
+    "Permanently delete dependency-free product :code? This cannot be undone.": "Permanently delete dependency-free product :code? This cannot be undone.",
+    "Product archived. Historical and operational records remain unchanged.": "Product archived. Historical and operational records remain unchanged.",
+    "Product: :code — :name": "Product: :code — :name",
+    "Safe product removal": "Safe product removal",
+    "This product has :count operational or historical dependencies. It can only be archived; every dependency remains intact.": "This product has :count operational or historical dependencies. It can only be archived; every dependency remains intact.",
+    "Purchase unit": "Purchase unit",
+    "Conversion factor": "Conversion factor",
+    "Choose a purchase unit, enter its quantity and price. Stock is received in the base unit only after invoice approval.": "Choose a purchase unit, enter its quantity and price. Stock is received in the base unit only after invoice approval.",
+    "Price per selected unit": "Price per selected unit",
+    "Cost per base unit": "Cost per base unit",
+    "Base quantity": "Base quantity",
+    "Select an active purchase unit for this product.": "Select an active purchase unit for this product.",
     "Company settings": "Company settings",
     "Enter the approved bilingual identity, legal details, currency, timezone, and contact information.": "Enter the approved bilingual identity, legal details, currency, timezone, and contact information.",
     "Create active branches and stores, then assign the active selling store for each retail branch.": "Create active branches and stores, then assign the active selling store for each retail branch.",
@@ -263,6 +280,11 @@
     "Transaction history": "Transaction history",
     "Product Wallet": "Product Wallet",
     "Purchase invoices": "Purchase invoices",
+    "Add at least one active supplier return reason before saving a return.": "Add at least one active supplier return reason before saving a return.",
+    "Open return settings": "Open return settings",
+    "Cancel purchase invoice and reverse its effects": "Cancel purchase invoice and reverse its effects",
+    "This cancels the approved invoice, reverses its stock receipt, and restores the previous product costs. It cannot be undone here.": "This cancels the approved invoice, reverses its stock receipt, and restores the previous product costs. It cannot be undone here.",
+    "Confirm invoice reversal": "Confirm invoice reversal",
     "Supplier invoices & cost history": "Supplier invoices & cost history",
     "Invoice import": "Invoice import",
     "Purchase receiving & matching": "Purchase receiving & matching",
@@ -718,12 +740,12 @@
     "To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.": "To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.",
     "or, enter the code manually": "or, enter the code manually",
     "Manage your profile and account settings": "Manage your profile and account settings",
-    "TOY & JOY home": "TOY & JOY home",
+    "TOY & JOY home": "3allaf home",
     "Account navigation": "Account navigation",
     "Open dashboard": "Open dashboard",
     "Sign in": "Sign in",
     "Phase 1 platform foundation": "Phase 1 platform foundation",
-    "One dependable workspace for daily TOY & JOY operations.": "One dependable workspace for daily TOY & JOY operations.",
+    "One dependable workspace for daily TOY & JOY operations.": "One dependable workspace for daily 3allaf operations.",
     "A browser-based operational platform for retail, inventory, customers, point of sale, and party services, built with clear controls and traceable workflows.": "A browser-based operational platform for retail, inventory, customers, point of sale, and party services, built with clear controls and traceable workflows.",
     "Continue to workspace": "Continue to workspace",
     "Please verify your email address by clicking on the link we just emailed to you.": "Please verify your email address by clicking on the link we just emailed to you.",
@@ -736,7 +758,7 @@
     "Arabic RTL and English LTR direction support": "Arabic RTL and English LTR direction support",
     "Local database and asset build workflow": "Local database and asset build workflow",
     "Implementation is proceeding milestone by milestone.": "Implementation is proceeding milestone by milestone.",
-    "TOY & JOY Phase 1 operational platform": "TOY & JOY Phase 1 operational platform",
+    "TOY & JOY Phase 1 operational platform": "3allaf operational platform",
     "Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate codes above.": "Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate codes above.",
     "A temporary error occurred while processing your request. Safe inputs have been preserved.": "A temporary error occurred while processing your request. Safe inputs have been preserved.",
     "A4 Document": "A4 Document",
@@ -1570,8 +1592,12 @@
     "Inventory Control Center": "Inventory Control Center",
     "Inventory operation failed. Please review the record and try again.": "Inventory operation failed. Please review the record and try again.",
     "Search list, item code, or product": "Search list, item code, or product",
-    "Gift Receipts": "Gift Receipts",
+    "Gift Receipts": "Price-free gift receipts",
     "Gift Cards": "Gift Cards",
+    "Partially paid": "Partially paid",
+    "Unpaid": "Unpaid",
+    "Pay supplier": "Pay supplier",
+    "Edit supplier master": "Edit supplier",
     "Price-free source-reference readiness; issue, validate, reprint, and use remain disabled.": "Price-free source-reference readiness; issue, validate, reprint, and use remain disabled.",
     "Gift Receipt policy values are configurable from Settings, but no source sale lines or receipt references are loaded until eligibility, privacy, numbering, and format are approved.": "Gift Receipt policy values are configurable from Settings, but no source sale lines or receipt references are loaded until eligibility, privacy, numbering, and format are approved.",
     "Source eligibility": "Source eligibility",
@@ -3019,4 +3045,111 @@
     ,"No customer sales in the selected period": "No customer sales in the selected period"
     ,"Most Purchased Products": "Most Purchased Products"
     ,"No customer product sales in the selected period": "No customer product sales in the selected period"
+    ,"CSV": "CSV"
+    ,"Export dataset": "Export dataset"
+    ,"Format": "Format"
+    ,"Generated time": "Generated time"
+    ,"Request export": "Request export"
+    ,"Requested filters": "Requested filters"
+    ,"The end date must be on or after the start date.": "The end date must be on or after the start date."
+    ,"The selected date is invalid.": "The selected date is invalid."
+    ,"The selected filter is invalid.": "The selected filter is invalid."
+    ,"The selected report direction is not available.": "The selected report direction is not available."
+    ,"The selected report sort is not available.": "The selected report sort is not available."
+    ,"The selected reporting period may not exceed 366 days.": "The selected reporting period may not exceed 366 days."
+    ,"The selected store is outside your access scope.": "The selected store is outside your access scope."
+    ,"brand": "brand"
+    ,"category": "category"
+    ,"character": "character"
+    ,"colour": "colour"
+    ,"customer": "customer"
+    ,"gender": "gender"
+    ,"payment method": "payment method"
+    ,"product": "product"
+    ,"Shift status": "Shift status"
+    ,"supplier": "supplier"
+    ,"Products and barcodes": "Products and barcodes"
+    ,"Customers and groups": "Customers and groups"
+    ,"Suppliers and groups": "Suppliers and groups"
+    ,"Purchase invoices and receiving": "Purchase invoices and receiving"
+    ,"Inventory movements": "Inventory movements"
+    ,"Create a data export": "Create a data export"
+    ,"Choose one dataset and the exact operating scope. The generated file stays private to your account.": "Choose one dataset and the exact operating scope. The generated file stays private to your account."
+    ,"Create :format export": "Create :format export"
+    ,"Remove filter: :filter": "Remove filter: :filter"
+    ,"Sales report navigation": "Sales report navigation"
+    ,"All reports": "All reports"
+    ,"Choose the period and optional filters. Every section and export uses the same scope.": "Choose the period and optional filters. Every section and export uses the same scope."
+    ,"Choose the period, product, category, or selling unit. Every row keeps its historical unit.": "Choose the period, product, category, or selling unit. Every row keeps its historical unit."
+    ,"Your export requests": "Your export requests"
+    ,"Ready files can be viewed or downloaded until their expiry time.": "Ready files can be viewed or downloaded until their expiry time."
+    ,"Reports & exports": "Reports & exports"
+    ,"Back to reports": "Back to reports"
+    ,"Requested": "Requested"
+    ,"View error": "View error"
+    ,"All authorized scope": "All authorized scope"
+    ,"Expired": "Expired"
+    ,"Not ready yet": "Not ready yet"
+    ,"Generated": "Generated"
+    ,"Period": "Period"
+    ,"Filters and scope": "Filters and scope"
+    ,"Key performance indicators": "Key performance indicators"
+    ,"Payment method summary": "Payment method summary"
+    ,"Collected": "Collected"
+    ,"Bounded detail": "Bounded detail"
+    ,"No matching source rows.": "No matching source rows."
+    ,"Feed store operations": "Feed store operations"
+    ,"Record credit settlements, expenses, treasury accounts, and inventory batches.": "Record credit settlements, expenses, treasury accounts, and inventory batches."
+    ,"Customer receipt": "Customer receipt"
+    ,"Apply one receipt to several approved invoices, or leave it as customer credit.": "Choose the customer, enter the amount, then save the receipt. You can allocate it to approved invoices if needed."
+    ,"Select customer": "Select customer"
+    ,"Collection store": "Collection store"
+    ,"Select payment method": "Select payment method"
+    ,"Cash account": "Cash account"
+    ,"Required for cash receipts": "Choose the receiving account for cash receipts"
+    ,"Cash account help": "The account that receives or pays the money, such as the shop treasury, bank, or wallet."
+    ,"Currency (automatic)": "Currency (automatic)"
+    ,"Currency is set automatically": "Set from the store settings; you do not need to type it."
+    ,"Approved invoices to allocate (optional)": "Approved invoices to allocate (optional)"
+    ,"Suggest oldest first": "Auto-allocate oldest invoices"
+    ,"No approved outstanding customer invoices.": "No approved outstanding customer invoices."
+    ,"Select a customer to load outstanding invoices.": "Select the customer and collection store, enter an amount, then choose Auto-allocate oldest invoices."
+    ,"Allocation total": "Allocation total"
+    ,"Unapplied customer credit": "Unapplied customer credit"
+    ,"Payment evidence reference": "Payment evidence reference"
+    ,"Record receipt": "Save receipt"
+    ,"Supplier payment": "Supplier payment"
+    ,"Allocate one payment across approved purchase invoices. Supplier advances are not supported.": "Allocate one payment across approved purchase invoices. Supplier advances are not supported."
+    ,"Select company": "Select company"
+    ,"Required for cash payments": "Required for cash payments"
+    ,"No approved outstanding supplier invoices.": "No approved outstanding supplier invoices."
+    ,"Select a supplier to load outstanding invoices.": "Select a supplier to load outstanding invoices."
+    ,"Allocation total must equal payment amount": "Allocation total must equal payment amount"
+    ,"Record payment": "Record payment"
+    ,"Expense": "Expense"
+    ,"Approved expenses post an append-only treasury transaction when an account is selected.": "Approved expenses post an append-only treasury transaction when an account is selected."
+    ,"Expense category": "Expense category"
+    ,"Required for cash expenses": "Required for cash expenses"
+    ,"Record expense": "Record expense"
+    ,"General treasury account": "General treasury account"
+    ,"Create a separate store treasury, bank, or wallet account.": "Create a separate store treasury, bank, or wallet account."
+    ,"Bank": "Bank"
+    ,"Electronic wallet": "Electronic wallet"
+    ,"Inventory batch": "Inventory batch"
+    ,"Batches carry identity and dates only; their stock is derived from stock movements.": "Batches carry identity and dates only; their stock is derived from stock movements."
+    ,"Tracked product": "Tracked product"
+    ,"Batch number": "Batch number"
+    ,"Production date": "Production date"
+    ,"Expiry date": "Expiry date"
+    ,"Create batch": "Create batch"
+    ,"Recent settlements": "Recent settlements"
+    ,"No customer receipts yet.": "No customer receipts yet."
+    ,"No supplier payments yet.": "No supplier payments yet."
+    ,"Recent treasury and inventory activity": "Recent treasury and inventory activity"
+    ,"No treasury transactions yet.": "No treasury transactions yet."
+    ,"No inventory batches yet.": "No inventory batches yet."
+    ,"Cash customer": "Cash customer"
+    ,"Credit customer": "Credit customer"
+    ,"Cash and credit customer": "Cash and credit customer"
+    ,"Additional details": "Additional details"
 }

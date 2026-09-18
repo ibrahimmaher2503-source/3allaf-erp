@@ -20,12 +20,10 @@ use App\Modules\Customer\Actions\RejectLoyaltyAdjustmentAction;
 use App\Modules\Customer\Actions\RequestLoyaltyAdjustmentAction;
 use App\Modules\Customer\Actions\RequestPartyWalletAdjustmentAction;
 use App\Modules\Customer\Actions\RequestProductWalletAdjustmentAction;
-use App\Modules\Customer\Actions\SaveCustomerChildAction;
 use App\Modules\Customer\Actions\StageCustomerImportAction;
 use App\Modules\Customer\Actions\UpdateCustomerAction;
 use App\Modules\Customer\Actions\UpdateCustomerGroupAction;
 use App\Modules\Customer\Models\Customer;
-use App\Modules\Customer\Models\CustomerChild;
 use App\Modules\Customer\Models\CustomerConsent;
 use App\Modules\Customer\Models\CustomerGroup;
 use App\Modules\Customer\Models\CustomerImportBatch;
@@ -238,7 +236,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         abort_if($mode === 'loyalty' && ! $user->can('loyalty.view'), 403);
 
         $store = $sellingStore($user);
-        $query = Customer::query()->visibleTo($user)->with(['scopes.store', 'scopes.branch', 'group.parent', 'governorate', 'city'])->withCount(['consents', 'children']);
+        $query = Customer::query()->visibleTo($user)->with(['scopes.store', 'scopes.branch', 'group.parent', 'governorate', 'city'])->withCount('consents');
         $term = trim((string) $request->string('q'));
         if ($term !== '') {
             $digits = preg_replace('/[^0-9]+/', '', $term);
@@ -261,6 +259,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $query->when($request->integer('city_id') > 0, fn ($builder) => $builder->where('city_id', $request->integer('city_id')));
         $perPage = in_array($request->integer('per_page'), [20, 50, 100], true) ? $request->integer('per_page') : 20;
         $customers = $query->latest('id')->paginate($perPage)->withQueryString();
+        $canViewCustomerAccounts = $user->can('pos_sales.view') && $user->can('pos_sales.payment_view');
+        $currencyCode = strtoupper((string) $store->company()->value('currency_code'));
+        $customerAccounts = $canViewCustomerAccounts
+            ? app(CustomerBalance::class)->summaryForCustomers($customers->pluck('id')->all(), $user, $currencyCode)
+            : collect();
         $groupOptions = GroupHierarchy::flatten(CustomerGroup::query()->forCompany((int) $store->company_id)->active()->with('parent')->get());
         $governorates = Governorate::query()->active()->orderBy('sort_order')->get();
         $cities = City::query()->visibleToCompany((int) $store->company_id)->active()->orderBy('sort_order')->get();
@@ -269,7 +272,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $governorateId = $request->integer('governorate_id') ?: null;
         $cityId = $request->integer('city_id') ?: null;
 
-        return view('pages.customers.index', compact('customers', 'term', 'mode', 'status', 'groupId', 'governorateId', 'cityId', 'groupOptions', 'governorates', 'cities'));
+        return view('pages.customers.index', compact('customers', 'term', 'mode', 'status', 'groupId', 'governorateId', 'cityId', 'groupOptions', 'governorates', 'cities', 'canViewCustomerAccounts', 'currencyCode', 'customerAccounts'));
     })->middleware('can:customers.view')->name('customers.index');
 
     Route::get('customers/export', function (Request $request, MasterDataDocument $documents) use ($sellingStore) {
@@ -304,23 +307,18 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         abort_unless($user->can('customers.create'), 403);
         $store = $sellingStore($user);
         $consentPurposes = [];
-        $childPurposes = [];
         $consentPolicyError = null;
         try {
             $consentPurposes = CustomerPolicy::allowedPurposes('customer.consent.purpose')['value'];
         } catch (InvalidArgumentException $exception) {
             $consentPolicyError = UserSafeError::message($exception);
         }
-        try {
-            $childPurposes = CustomerPolicy::childPurposes()['value'];
-        } catch (InvalidArgumentException) {
-        }
         $allGroups = CustomerGroup::query()->forCompany((int) $store->company_id)->active()->with('parent')->get();
         $groupOptions = GroupHierarchy::flatten($allGroups);
         $governorates = Governorate::query()->active()->orderBy('sort_order')->get();
         $cities = City::query()->visibleToCompany((int) $store->company_id)->active()->orderBy('sort_order')->get();
 
-        return view('pages.customers.create', compact('store', 'consentPurposes', 'childPurposes', 'consentPolicyError', 'groupOptions', 'governorates', 'cities'));
+        return view('pages.customers.create', compact('store', 'consentPurposes', 'consentPolicyError', 'groupOptions', 'governorates', 'cities'));
     })->middleware('can:customers.create')->name('customers.create');
 
     Route::post('customers', function (Request $request, CreateCustomerAction $action) use ($sellingStore) {
@@ -346,16 +344,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             'notes' => ['nullable', 'string', 'max:4000'],
             'governorate_id' => ['required', 'integer'],
             'city_id' => ['required', 'integer'],
-            'children' => ['nullable', 'array', 'max:10'],
-            'children.*.name_ar' => ['nullable', 'string', 'max:190'],
-            'children.*.name_en' => ['nullable', 'string', 'max:190'],
-            'children.*.birth_date' => ['nullable', 'date'],
-            'children.*.purpose' => ['nullable', 'string', 'max:80'],
         ]);
-        $children = collect($validated['children'] ?? [])
-            ->filter(fn (array $child): bool => filled($child['name_ar'] ?? null) || filled($child['name_en'] ?? null))
-            ->values()
-            ->all();
 
         $store = $sellingStore($user);
         try {
@@ -365,7 +354,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
                     'status' => 'granted',
                     'source' => 'profile_create',
                 ]],
-                'children' => $children,
             ]);
         } catch (InvalidArgumentException|UniqueConstraintViolationException $exception) {
             $normalizedPhone = PhoneNormalizer::normalize((string) ($validated['phone'] ?? ''));
@@ -400,7 +388,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         $consents = collect();
         if ($user->can('customers.sensitive')) {
             $consents = CustomerConsent::query()->visibleTo($user)->with('capturer')->whereIn('customer_id', $historyIds)->latest('id')->get();
-            $customer->load(['children' => fn ($query) => $query->visibleTo($user)->latest('id')]);
         }
         $canViewSalesAnalysis = $user->can('dashboard_reports.view') && $user->can('pos_sales.view') && $user->can('pos_sales.payment_view');
         $salesAnalysis = $canViewSalesAnalysis ? app(SalesReport::class)->customer($user, collect($historyIds)->all(), $request->only(['date_from', 'date_to', 'store_id', 'product_id', 'category_id', 'payment_method_id', 'sales_page'])) : null;
@@ -529,48 +516,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
         return back()->with('success', __('Consent history recorded.'));
     })->middleware('can:customers.sensitive')->name('customers.consents.store');
-
-    Route::post('customers/{customerId}/children', function (Request $request, int $customerId, SaveCustomerChildAction $action) use ($sellingStore) {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->can('customers.sensitive'), 403);
-        $validated = $request->validate(['name_ar' => ['required', 'string', 'max:190'], 'name_en' => ['nullable', 'string', 'max:190'], 'birth_date' => ['nullable', 'date'], 'purpose' => ['nullable', 'string', 'max:80']]);
-        $customer = Customer::query()->visibleTo($user)->whereKey($customerId)->where('status', 'active')->firstOrFail();
-        try {
-            $action->execute($user, $customer, $sellingStore($user), $validated);
-        } catch (InvalidArgumentException $exception) {
-            return back()->withInput()->withErrors(['child' => UserSafeError::message($exception)]);
-        }
-
-        return back()->with('success', __('Child profile recorded.'));
-    })->middleware('can:customers.sensitive')->name('customers.children.store');
-
-    Route::patch('customers/{customerId}/children/{childId}', function (Request $request, int $customerId, int $childId, SaveCustomerChildAction $action) use ($sellingStore) {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->can('customers.sensitive'), 403);
-        $validated = $request->validate(['name_ar' => ['required', 'string', 'max:190'], 'name_en' => ['nullable', 'string', 'max:190'], 'birth_date' => ['nullable', 'date'], 'purpose' => ['nullable', 'string', 'max:80']]);
-        $customer = Customer::query()->visibleTo($user)->whereKey($customerId)->where('status', 'active')->firstOrFail();
-        $child = CustomerChild::query()->visibleTo($user)->where('customer_id', $customer->id)->whereKey($childId)->firstOrFail();
-        try {
-            $action->execute($user, $customer, $sellingStore($user), $validated, $child);
-        } catch (InvalidArgumentException $exception) {
-            return back()->withInput()->withErrors(['child' => UserSafeError::message($exception)]);
-        }
-
-        return back()->with('success', __('Child profile updated.'));
-    })->middleware('can:customers.sensitive')->name('customers.children.update');
-
-    Route::post('customers/{customerId}/children/{childId}/deactivate', function (Request $request, int $customerId, int $childId, SaveCustomerChildAction $action) use ($sellingStore) {
-        /** @var User $user */
-        $user = $request->user();
-        abort_unless($user->can('customers.sensitive'), 403);
-        $customer = Customer::query()->visibleTo($user)->whereKey($customerId)->where('status', 'active')->firstOrFail();
-        $child = CustomerChild::query()->visibleTo($user)->where('customer_id', $customer->id)->whereKey($childId)->where('status', 'active')->firstOrFail();
-        $action->deactivate($user, $customer, $sellingStore($user), $child);
-
-        return back()->with('success', __('Child profile deactivated.'));
-    })->middleware('can:customers.sensitive')->name('customers.children.deactivate');
 
     Route::post('customers/{customerId}/merge', function (Request $request, int $customerId, MergeCustomersAction $action) use ($sellingStore) {
         /** @var User $user */

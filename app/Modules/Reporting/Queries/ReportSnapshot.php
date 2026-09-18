@@ -497,7 +497,7 @@ final class ReportSnapshot
             'fresh_at' => now()->toIso8601String(),
             'kpis' => $kpis,
             'sources' => [
-                'sales_label' => $documentStatus === null ? 'Approved sales' : ucfirst($documentStatus).' sales',
+                'sales_label' => __($documentStatus === null ? 'Approved sales' : ucfirst($documentStatus).' sales'),
                 'sales_count' => $salesCount,
                 'sales_gross' => round($salesGross, 2),
                 'sales_net' => round($salesGross - $discountTotal, 2),
@@ -778,9 +778,9 @@ final class ReportSnapshot
             }));
 
             $workflowRows = collect()
-                ->merge(StockTransfer::query()->where(fn (Builder $query): Builder => $query->whereIn('source_store_id', $storeIds)->orWhereIn('destination_store_id', $storeIds))->latest('id')->limit(20)->get()->map(fn (StockTransfer $row): array => ['type' => __('Transfer'), 'document' => $row->transfer_number, 'status' => $this->status($row->status), 'difference' => $row->difference_status]))
+                ->merge(StockTransfer::query()->where(fn (Builder $query): Builder => $query->whereIn('source_store_id', $storeIds)->orWhereIn('destination_store_id', $storeIds))->latest('id')->limit(20)->get()->map(fn (StockTransfer $row): array => ['type' => __('Transfer'), 'document' => $row->transfer_number, 'status' => $this->status($row->status), 'difference' => filled($row->difference_status) ? $this->status($row->difference_status) : null]))
                 ->merge(StockCount::query()->whereIn('store_id', $storeIds)->latest('id')->limit(15)->get()->map(fn (StockCount $row): array => ['type' => __('Stock count'), 'document' => $row->count_number, 'status' => $this->status($row->status), 'difference' => null]))
-                ->merge(InventoryAdjustment::query()->whereIn('store_id', $storeIds)->latest('id')->limit(15)->get()->map(fn (InventoryAdjustment $row): array => ['type' => __('Adjustment'), 'document' => $row->adjustment_number, 'status' => $this->status($row->status), 'difference' => $row->adjustment_type]));
+                ->merge(InventoryAdjustment::query()->whereIn('store_id', $storeIds)->latest('id')->limit(15)->get()->map(fn (InventoryAdjustment $row): array => ['type' => __('Adjustment'), 'document' => $row->adjustment_number, 'status' => $this->status($row->status), 'difference' => $this->status($row->adjustment_type)]));
             $section('inventory_workflows', __('Transfers, counts, and adjustments'), ['type' => __('Type'), 'document' => __('Document'), 'status' => __('Status'), 'difference' => __('Difference / kind')], $workflowRows);
         }
 
@@ -788,15 +788,15 @@ final class ReportSnapshot
             $supplierId = $filters['supplier_id'];
             $orders = PurchaseOrder::query()->with(['supplier', 'store'])->whereIn('store_id', $storeIds)->whereBetween('order_date', [$from->toDateString(), $to->toDateString()])
                 ->whereIn('status', ['approved', 'partially_received', 'received', 'closed'])->when($supplierId, fn (Builder $query, int $id): Builder => $query->where('supplier_id', $id))->latest('id')->limit(50)->get();
-            $section('purchase_orders', __('Purchase orders'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'status' => __('Status'), 'total' => __('Total')], $orders->map(fn (PurchaseOrder $row): array => ['document' => $row->po_number, 'supplier' => $row->supplier?->name_en, 'store' => $row->store?->code, 'status' => $this->status($row->status), 'total' => (float) $row->total_amount]));
+            $section('purchase_orders', __('Purchase orders'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'status' => __('Status'), 'total' => __('Total')], $orders->map(fn (PurchaseOrder $row): array => ['document' => $row->po_number, 'supplier' => $this->localizedName($row->supplier), 'store' => $row->store?->code, 'status' => $this->status($row->status), 'total' => (float) $row->total_amount]));
 
             $invoices = PurchaseInvoice::query()->with(['supplier', 'store'])->whereIn('store_id', $storeIds)->whereBetween('invoice_date', [$from->toDateString(), $to->toDateString()])
                 ->where('status', 'approved')->when($supplierId, fn (Builder $query, int $id): Builder => $query->where('supplier_id', $id))->latest('id')->limit(50)->get();
-            $section('purchase_invoices', __('Approved purchase invoices'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'date' => __('Date'), 'total' => __('Total')], $invoices->map(fn (PurchaseInvoice $row): array => ['document' => $row->invoice_number, 'supplier' => $row->supplier?->name_en, 'store' => $row->store?->code, 'date' => $row->invoice_date?->toDateString(), 'total' => (float) $row->total_amount]));
+            $section('purchase_invoices', __('Approved purchase invoices'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'date' => __('Date'), 'total' => __('Total')], $invoices->map(fn (PurchaseInvoice $row): array => ['document' => $row->invoice_number, 'supplier' => $this->localizedName($row->supplier), 'store' => $row->store?->code, 'date' => $row->invoice_date?->toDateString(), 'total' => (float) $row->total_amount]));
 
             $returns = PurchaseReturn::query()->with(['supplier', 'store'])->whereIn('store_id', $storeIds)->whereBetween('return_date', [$from->toDateString(), $to->toDateString()])
                 ->where('status', 'approved')->when($supplierId, fn (Builder $query, int $id): Builder => $query->where('supplier_id', $id))->latest('id')->limit(50)->get();
-            $section('purchase_returns', __('Approved supplier returns'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'date' => __('Date'), 'total' => __('Total')], $returns->map(fn (PurchaseReturn $row): array => ['document' => $row->return_number, 'supplier' => $row->supplier?->name_en, 'store' => $row->store?->code, 'date' => $row->return_date?->toDateString(), 'total' => (float) $row->total_amount]));
+            $section('purchase_returns', __('Approved supplier returns'), ['document' => __('Document'), 'supplier' => __('Supplier'), 'store' => __('Store'), 'date' => __('Date'), 'total' => __('Total')], $returns->map(fn (PurchaseReturn $row): array => ['document' => $row->return_number, 'supplier' => $this->localizedName($row->supplier), 'store' => $row->store?->code, 'date' => $row->return_date?->toDateString(), 'total' => (float) $row->total_amount]));
 
             $supplierPrices = ProductSupplier::query()->with(['product', 'supplier'])->whereHas('product', function (Builder $product): void {
                 $product->where('status', 'active')->where(function (Builder $scope): void {
@@ -809,7 +809,7 @@ final class ReportSnapshot
                     });
                 });
             })->when($supplierId, fn (Builder $query, int $id): Builder => $query->where('supplier_id', $id))->latest('last_purchase_date')->limit(50)->get();
-            $section('supplier_prices', __('Supplier and last purchase prices'), ['product' => __('Product'), 'supplier' => __('Supplier'), 'preferred' => __('Preferred'), 'last_price' => __('Last purchase price'), 'last_date' => __('Last purchase date')], $supplierPrices->map(fn (ProductSupplier $row): array => ['product' => $row->product?->item_code, 'supplier' => $row->supplier?->name_en, 'preferred' => $row->is_preferred ? __('Yes') : __('No'), 'last_price' => (float) $row->last_purchase_price, 'last_date' => $row->last_purchase_date?->toDateString()]));
+            $section('supplier_prices', __('Supplier and last purchase prices'), ['product' => __('Product'), 'supplier' => __('Supplier'), 'preferred' => __('Preferred'), 'last_price' => __('Last purchase price'), 'last_date' => __('Last purchase date')], $supplierPrices->map(fn (ProductSupplier $row): array => ['product' => $row->product?->item_code, 'supplier' => $this->localizedName($row->supplier), 'preferred' => $row->is_preferred ? __('Yes') : __('No'), 'last_price' => (float) $row->last_purchase_price, 'last_date' => $row->last_purchase_date?->toDateString()]));
         }
 
         if (in_array('cash', $modules, true)) {
@@ -830,7 +830,7 @@ final class ReportSnapshot
                 return $row;
             }));
             $movements = CashMovement::query()->whereIn('store_id', $storeIds)->whereBetween('created_at', [$from, $to])->latest('id')->limit(50)->get();
-            $section('cash_movements', __('Drawer movements'), ['created' => __('Created'), 'type' => __('Movement'), 'amount' => __('Amount'), 'reference' => __('Reference')], $movements->map(fn (CashMovement $row): array => ['created' => $row->created_at?->toIso8601String(), 'type' => $row->movement_type, 'amount' => (float) $row->amount, 'reference' => $row->reference]));
+            $section('cash_movements', __('Drawer movements'), ['created' => __('Created'), 'type' => __('Movement'), 'amount' => __('Amount'), 'reference' => __('Reference')], $movements->map(fn (CashMovement $row): array => ['created' => $row->created_at?->toIso8601String(), 'type' => $this->status($row->movement_type), 'amount' => (float) $row->amount, 'reference' => $row->reference]));
         }
 
         if (in_array('customers', $modules, true)) {
@@ -842,7 +842,7 @@ final class ReportSnapshot
                 $customerColumns['phone'] = __('Phone');
             }
             $section('customers', __('Customer history'), $customerColumns, $customers->map(function (Customer $customer) use ($user): array {
-                $row = ['customer' => $customer->name_en, 'status' => $customer->status, 'created' => $customer->created_at?->toDateString()];
+                $row = ['customer' => $this->localizedName($customer), 'status' => $this->status($customer->status), 'created' => $customer->created_at?->toDateString()];
                 if (Gate::forUser($user)->allows('customers.sensitive')) {
                     $row['phone'] = $customer->phone_display;
                 }
@@ -851,7 +851,7 @@ final class ReportSnapshot
             }));
             if (Gate::forUser($user)->allows('loyalty.view')) {
                 $loyalty = LoyaltyLedger::query()->visibleTo($user)->with('customer')->whereIn('store_id', $storeIds)->whereBetween('effective_at', [$from, $to])->when($filters['customer_id'], fn (Builder $query, int $id): Builder => $query->where('customer_id', $id))->latest('effective_at')->limit(50)->get();
-                $section('loyalty', __('Loyalty earn and redeem'), ['effective' => __('Effective'), 'customer' => __('Customer'), 'event' => __('Event'), 'points' => __('Points'), 'balance' => __('Balance')], $loyalty->map(fn (LoyaltyLedger $row): array => ['effective' => $row->effective_at?->toIso8601String(), 'customer' => $row->customer?->name_en, 'event' => $row->event_type, 'points' => $row->points, 'balance' => $row->balance_after]));
+                $section('loyalty', __('Loyalty earn and redeem'), ['effective' => __('Effective'), 'customer' => __('Customer'), 'event' => __('Event'), 'points' => __('Points'), 'balance' => __('Balance')], $loyalty->map(fn (LoyaltyLedger $row): array => ['effective' => $row->effective_at?->toIso8601String(), 'customer' => $this->localizedName($row->customer), 'event' => $this->status($row->event_type), 'points' => $row->points, 'balance' => $row->balance_after]));
             }
             foreach ([
                 ['product_wallet.view', ProductWalletLedger::class, 'product_wallet', __('Product Wallet statement')],
@@ -861,27 +861,27 @@ final class ReportSnapshot
                     continue;
                 }
                 $ledger = $ledgerClass::query()->with('customer')->whereIn('store_id', $storeIds)->whereBetween('created_at', [$from, $to])->when($filters['customer_id'], fn (Builder $query, int $id): Builder => $query->where('customer_id', $id))->latest('created_at')->limit(50)->get();
-                $section($key, $title, ['effective' => __('Effective'), 'customer' => __('Customer'), 'event' => __('Event'), 'amount' => __('Amount'), 'balance' => __('Balance')], $ledger->map(fn ($row): array => ['effective' => $row->created_at?->toIso8601String(), 'customer' => $row->customer?->name_en, 'event' => $row->entry_type, 'amount' => (float) $row->amount, 'balance' => (float) $row->balance_after]));
+                $section($key, $title, ['effective' => __('Effective'), 'customer' => __('Customer'), 'event' => __('Event'), 'amount' => __('Amount'), 'balance' => __('Balance')], $ledger->map(fn ($row): array => ['effective' => $row->created_at?->toIso8601String(), 'customer' => $this->localizedName($row->customer), 'event' => $this->status($row->entry_type), 'amount' => (float) $row->amount, 'balance' => (float) $row->balance_after]));
             }
             if (Gate::forUser($user)->allows('gift_cards.view') || Gate::forUser($user)->allows('returns_exchanges_gift_instruments.view')) {
                 $cards = GiftCard::query()->visibleTo($user)->with('holder')->whereIn('store_id', $storeIds)->when($filters['customer_id'], fn (Builder $query, int $id): Builder => $query->where('holder_customer_id', $id))->latest('id')->limit(50)->get();
-                $section('gift_cards', __('Gift Card status and use'), ['identifier' => __('Identifier'), 'holder' => __('Holder'), 'status' => __('Status'), 'issued' => __('Issued'), 'balance' => __('Balance'), 'valid_until' => __('Valid until')], $cards->map(fn (GiftCard $row): array => ['identifier' => $row->identifier, 'holder' => $row->holder?->name_en, 'status' => $row->status, 'issued' => (float) $row->issued_value, 'balance' => (float) $row->balance, 'valid_until' => $row->valid_until?->toDateString()]));
+                $section('gift_cards', __('Gift Card status and use'), ['identifier' => __('Identifier'), 'holder' => __('Holder'), 'status' => __('Status'), 'issued' => __('Issued'), 'balance' => __('Balance'), 'valid_until' => __('Valid until')], $cards->map(fn (GiftCard $row): array => ['identifier' => $row->identifier, 'holder' => $this->localizedName($row->holder), 'status' => $this->status($row->status), 'issued' => (float) $row->issued_value, 'balance' => (float) $row->balance, 'valid_until' => $row->valid_until?->toDateString()]));
             }
         }
 
         if (in_array('parties', $modules, true)) {
             $bookings = PartyBooking::query()->visibleTo($user)->with(['customer', 'store'])->whereIn('store_id', $storeIds)->whereBetween('party_date', [$from->toDateString(), $to->toDateString()])
                 ->when($filters['customer_id'], fn (Builder $query, int $id): Builder => $query->where('customer_id', $id))->when($filters['party_status'], fn (Builder $query, string $status): Builder => $query->where('status', $status))->latest('party_date')->limit(50)->get();
-            $section('party_bookings', __('Party bookings'), ['booking' => __('Booking'), 'date' => __('Party date'), 'customer' => __('Customer'), 'store' => __('Store'), 'status' => __('Status')], $bookings->map(fn (PartyBooking $row): array => ['booking' => $row->booking_number, 'date' => $row->party_date?->toDateString(), 'customer' => $row->customer?->name_en, 'store' => $row->store?->code, 'status' => $row->status]));
+            $section('party_bookings', __('Party bookings'), ['booking' => __('Booking'), 'date' => __('Party date'), 'customer' => __('Customer'), 'store' => __('Store'), 'status' => __('Status')], $bookings->map(fn (PartyBooking $row): array => ['booking' => $row->booking_number, 'date' => $row->party_date?->toDateString(), 'customer' => $this->localizedName($row->customer), 'store' => $row->store?->code, 'status' => $this->status($row->status)]));
 
             $invoices = PartyInvoice::query()->visibleTo($user)->with('booking')->whereIn('party_booking_id', $bookings->pluck('id'))->latest('id')->limit(50)->get();
-            $section('party_invoices', __('Party invoices and balances'), ['invoice' => __('Invoice'), 'booking' => __('Booking'), 'state' => __('State'), 'total' => __('Total'), 'paid' => __('Paid'), 'balance' => __('Balance')], $invoices->map(fn (PartyInvoice $row): array => ['invoice' => $row->invoice_number, 'booking' => $row->booking?->booking_number, 'state' => $row->state, 'total' => (float) $row->total_amount, 'paid' => (float) $row->paid_amount, 'balance' => (float) $row->balance_due]));
+            $section('party_invoices', __('Party invoices and balances'), ['invoice' => __('Invoice'), 'booking' => __('Booking'), 'state' => __('State'), 'total' => __('Total'), 'paid' => __('Paid'), 'balance' => __('Balance')], $invoices->map(fn (PartyInvoice $row): array => ['invoice' => $row->invoice_number, 'booking' => $row->booking?->booking_number, 'state' => $this->status($row->state), 'total' => (float) $row->total_amount, 'paid' => (float) $row->paid_amount, 'balance' => (float) $row->balance_due]));
 
             $payments = PartyPayment::query()->whereIn('store_id', $storeIds)->whereBetween('approved_at', [$from, $to])->where('status', 'approved')->latest('approved_at')->limit(50)->get();
             $section('party_payments', __('Party payments on account'), ['receipt' => __('Receipt'), 'method' => __('Method'), 'amount' => __('Amount'), 'approved' => __('Approved')], $payments->map(fn (PartyPayment $row): array => ['receipt' => $row->receipt_number, 'method' => $row->method_code, 'amount' => (float) $row->amount, 'approved' => $row->approved_at?->toIso8601String()]));
 
             $orders = PartyOperatingOrder::query()->visibleTo($user)->whereIn('store_id', $storeIds)->latest('id')->limit(50)->get();
-            $section('party_operations', __('Party operating orders and consumables'), ['order' => __('Order'), 'status' => __('Status'), 'released' => __('Released'), 'completed' => __('Completed')], $orders->map(fn (PartyOperatingOrder $row): array => ['order' => $row->order_number, 'status' => $row->status, 'released' => $row->released_at?->toIso8601String(), 'completed' => $row->completed_at?->toIso8601String()]));
+            $section('party_operations', __('Party operating orders and consumables'), ['order' => __('Order'), 'status' => __('Status'), 'released' => __('Released'), 'completed' => __('Completed')], $orders->map(fn (PartyOperatingOrder $row): array => ['order' => $row->order_number, 'status' => $this->status($row->status), 'released' => $row->released_at?->toIso8601String(), 'completed' => $row->completed_at?->toIso8601String()]));
         }
 
         if (in_array('assets', $modules, true)) {
@@ -892,7 +892,7 @@ final class ReportSnapshot
                 $assetColumns['cost'] = __('Cost');
             }
             $section('rental_assets', __('Rental asset register'), $assetColumns, $assetRows->map(function (RentalAsset $asset) use ($canViewCost): array {
-                $row = ['code' => $asset->code, 'name' => $asset->name_en, 'status' => $asset->status, 'condition' => $asset->condition];
+                $row = ['code' => $asset->code, 'name' => $this->localizedName($asset), 'status' => $this->status($asset->status), 'condition' => $this->status($asset->condition)];
                 if ($canViewCost) {
                     $row['cost'] = (float) $asset->cost_value;
                 }
@@ -900,16 +900,16 @@ final class ReportSnapshot
                 return $row;
             }));
             $reservations = AssetReservation::query()->whereIn('asset_id', $assetIds)->where('starts_at', '<=', $to)->where('ends_at', '>=', $from)->latest('starts_at')->limit(50)->get();
-            $section('asset_reservations', __('Asset reservations and calendar'), ['asset' => __('Asset'), 'starts' => __('Starts'), 'ends' => __('Ends'), 'status' => __('Status'), 'source' => __('Source')], $reservations->map(fn (AssetReservation $row): array => ['asset' => $row->asset_id, 'starts' => $row->starts_at?->toIso8601String(), 'ends' => $row->ends_at?->toIso8601String(), 'status' => $row->status, 'source' => $row->source_reference]));
+            $section('asset_reservations', __('Asset reservations and calendar'), ['asset' => __('Asset'), 'starts' => __('Starts'), 'ends' => __('Ends'), 'status' => __('Status'), 'source' => __('Source')], $reservations->map(fn (AssetReservation $row): array => ['asset' => $row->asset_id, 'starts' => $row->starts_at?->toIso8601String(), 'ends' => $row->ends_at?->toIso8601String(), 'status' => $this->status($row->status), 'source' => $row->source_reference]));
             $returns = AssetReturn::query()->whereIn('asset_id', $assetIds)->whereBetween('returned_at', [$from, $to])->latest('returned_at')->limit(50)->get();
-            $section('asset_returns', __('Asset checkout and return'), ['asset' => __('Asset'), 'returned' => __('Returned'), 'condition' => __('Condition'), 'outcome' => __('Outcome')], $returns->map(fn (AssetReturn $row): array => ['asset' => $row->asset_id, 'returned' => $row->returned_at?->toIso8601String(), 'condition' => $row->condition_after, 'outcome' => $row->outcome]));
+            $section('asset_returns', __('Asset checkout and return'), ['asset' => __('Asset'), 'returned' => __('Returned'), 'condition' => __('Condition'), 'outcome' => __('Outcome')], $returns->map(fn (AssetReturn $row): array => ['asset' => $row->asset_id, 'returned' => $row->returned_at?->toIso8601String(), 'condition' => $this->status($row->condition_after), 'outcome' => $this->status($row->outcome)]));
             $events = AssetEvent::query()->whereIn('asset_id', $assetIds)->latest('id')->limit(50)->get();
             $eventColumns = ['asset' => __('Asset'), 'event' => __('Event'), 'assessment' => __('Assessment'), 'status' => __('Status')];
             if ($canViewCost) {
                 $eventColumns['cost'] = __('Cost impact');
             }
             $section('asset_events', __('Damage, depreciation, and history'), $eventColumns, $events->map(function (AssetEvent $event) use ($canViewCost): array {
-                $row = ['asset' => $event->asset_id, 'event' => $event->event_type, 'assessment' => $event->assessment, 'status' => $event->status];
+                $row = ['asset' => $event->asset_id, 'event' => $this->status($event->event_type), 'assessment' => $event->assessment, 'status' => $this->status($event->status)];
                 if ($canViewCost) {
                     $row['cost'] = (float) $event->cost_value;
                 }
@@ -923,7 +923,20 @@ final class ReportSnapshot
 
     private function status(mixed $status): string
     {
-        return $status instanceof BackedEnum ? (string) $status->value : (string) $status;
+        $value = $status instanceof BackedEnum ? (string) $status->value : (string) $status;
+
+        return __((string) str($value)->replace('_', ' ')->title());
+    }
+
+    private function localizedName(?object $record): ?string
+    {
+        if ($record === null) {
+            return null;
+        }
+
+        return str_starts_with(app()->getLocale(), 'ar')
+            ? ($record->name_ar ?: $record->name_en)
+            : ($record->name_en ?: $record->name_ar);
     }
 
     /** @param array<int, array<string, mixed>>|null $snapshot */
