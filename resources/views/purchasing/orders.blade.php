@@ -5,6 +5,7 @@ use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Platform\Models\AuditLog;
 use App\Modules\Platform\Models\Branch;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Platform\Support\DefaultOperatingContext;
 use App\Modules\Purchasing\Actions\ApprovePurchaseOrderAction;
 use App\Modules\Purchasing\Actions\CancelPurchaseOrderAction;
 use App\Modules\Purchasing\Actions\ClosePurchaseOrderAction;
@@ -80,8 +81,8 @@ new #[Title('Purchase Orders')] class extends Component
     {
         $this->createPage = request()->routeIs('purchasing.orders.create', 'purchasing.orders.edit');
         Gate::authorize(request()->routeIs('purchasing.orders.edit') ? 'purchase_orders.edit' : ($this->createPage ? 'purchase_orders.create' : 'purchase_orders.view'));
-        $contextStoreId = app(\App\Modules\Platform\Support\WorkContext::class)->id(auth()->user());
-        $this->storeFilter = $contextStoreId === null ? 'all' : (string) $contextStoreId;
+        $defaultWarehouse = app(DefaultOperatingContext::class)->warehouse(auth()->user());
+        $this->storeFilter = $defaultWarehouse === null ? 'all' : (string) $defaultWarehouse->id;
         if (request()->routeIs('purchasing.orders.edit')) {
             $order = request()->route('order');
             $this->loadDraft($order instanceof PurchaseOrder ? $order->id : (int) $order);
@@ -116,7 +117,7 @@ new #[Title('Purchase Orders')] class extends Component
         $this->paymentTermsManuallyEdited = false;
         $this->orderForm = [
             'supplier_id' => '',
-            'store_id' => '',
+            'store_id' => (string) (app(DefaultOperatingContext::class)->warehouse(auth()->user())?->id ?? ''),
             'order_date' => now()->toDateString(),
             'expected_delivery_date' => '',
             'payment_terms' => '',
@@ -310,18 +311,26 @@ new #[Title('Purchase Orders')] class extends Component
         ]);
 
         try {
-            $action = app(SavePurchaseOrderAction::class);
-            $order = $action->execute(
-                data: $this->orderForm,
-                lines: $this->lineItems,
-                id: $this->editingOrderId,
-                expectedVersion: $this->editingOrderId ? (int) $this->orderForm['lock_version'] : null,
-            );
+            $order = \Illuminate\Support\Facades\DB::transaction(function (): PurchaseOrder {
+                $order = app(SavePurchaseOrderAction::class)->execute(
+                    data: $this->orderForm,
+                    lines: $this->lineItems,
+                    id: $this->editingOrderId,
+                    expectedVersion: $this->editingOrderId ? (int) $this->orderForm['lock_version'] : null,
+                );
+
+                return app(SubmitPurchaseOrderAction::class)->execute($order->id, $order->lock_version);
+            });
 
             app(\App\Modules\Purchasing\Actions\GeneratePurchaseOrderPdfAction::class)->execute($order);
 
             $this->showFormModal = false;
-            Flux::toast($this->editingOrderId ? __('Purchase Order updated successfully.') : __('Purchase Order :number created as draft.', ['number' => $order->po_number]), variant: 'success');
+            Flux::toast(
+                $order->status === 'approved'
+                    ? __('Purchase Order :number approved successfully. No stock or invoice posting occurred.', ['number' => $order->po_number])
+                    : __('Purchase Order :number sent to admin for approval.', ['number' => $order->po_number]),
+                variant: 'success',
+            );
             if ($this->createPage) $this->redirectRoute('purchasing.orders', navigate: true);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
@@ -342,8 +351,16 @@ new #[Title('Purchase Orders')] class extends Component
 
         try {
             $order = PurchaseOrder::findOrFail($id);
-            app(SubmitPurchaseOrderAction::class)->execute($order->id, $order->lock_version);
-            Flux::toast(__('Purchase Order :number submitted successfully.', ['number' => $order->po_number]), variant: 'success');
+            $order = app(SubmitPurchaseOrderAction::class)->execute($order->id, $order->lock_version);
+            if ($order->status === 'approved') {
+                app(\App\Modules\Purchasing\Actions\GeneratePurchaseOrderPdfAction::class)->execute($order);
+            }
+            Flux::toast(
+                $order->status === 'approved'
+                    ? __('Purchase Order :number approved successfully. No stock or invoice posting occurred.', ['number' => $order->po_number])
+                    : __('Purchase Order :number sent to admin for approval.', ['number' => $order->po_number]),
+                variant: 'success',
+            );
         } catch (Throwable $e) {
             Flux::toast(\App\Support\UserSafeError::message($e), variant: 'danger');
         }
@@ -417,7 +434,7 @@ new #[Title('Purchase Orders')] class extends Component
     {
         $user = auth()->user();
         $suppliers = Supplier::query()->where('status', 'active')->orderBy('name_ar')->get();
-        $stores = Store::visibleTo($user)->where('status', 'active')->orderBy('name_ar')->get();
+        $stores = Store::visibleTo($user)->where('status', 'active')->where('type', 'warehouse')->orderBy('name_ar')->get();
         $products = Product::query()->sellable()->with(['productUnits.unit', 'baseProductUnit.unit', 'productSuppliers' => fn($query) => $query->when(filled($this->orderForm['supplier_id']), fn($scope) => $scope->where('supplier_id',(int)$this->orderForm['supplier_id']))])->whereIn('id', collect($this->lineItems)->pluck('product_id')->filter()->map(fn ($id): int => (int) $id))->get();
         $formSubtotal = collect($this->lineItems)->sum(fn (array $item): float => (float) ($item['quantity_ordered'] ?? 0) * (float) ($item['unit_cost'] ?? 0));
 
@@ -540,7 +557,7 @@ new #[Title('Purchase Orders')] class extends Component
 
     <!-- Filters Bar -->
     <flux:card id="po-filters" class="scroll-mt-24 space-y-4 p-5 sm:p-6" data-guide="po-filters">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 {{ $branches->count() > 1 ? 'sm:grid-cols-4' : 'sm:grid-cols-3' }} gap-4">
             <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by PO #, supplier or notes...')" />
 
             <flux:select wire:model.live="statusFilter" :label="__('Status')">
@@ -560,7 +577,7 @@ new #[Title('Purchase Orders')] class extends Component
                     <option value="{{ $sup->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $sup->name_ar : ($sup->name_en ?: $sup->name_ar) }} ({{ $sup->code }})</option>
                 @endforeach
             </flux:select>
-            <flux:select wire:model.live="branchFilter" :label="__('Branch')"><option value="all">{{ __('All branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ str_starts_with(app()->getLocale(),'ar') ? $branch->name_ar : $branch->name_en }} · {{ $branch->purchase_orders_count ?? '' }}</option>@endforeach</flux:select>
+            @if($branches->count() > 1)<flux:select wire:model.live="branchFilter" :label="__('Branch')"><option value="all">{{ __('All branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ str_starts_with(app()->getLocale(),'ar') ? $branch->name_ar : $branch->name_en }} · {{ $branch->purchase_orders_count ?? '' }}</option>@endforeach</flux:select>@endif
         </div>
     </flux:card>
 
@@ -622,7 +639,7 @@ new #[Title('Purchase Orders')] class extends Component
                                         <flux:button size="xs" variant="subtle" icon="paper-airplane" wire:click="submitOrder({{ $order->id }})" title="{{ __('Submit Order') }}" />
                                     @endif
 
-                                    @if ($order->status === 'submitted' && $canApprove && $order->submitted_by !== auth()->id())
+                                    @if ($order->status === 'submitted' && $canApprove && ($order->submitted_by !== auth()->id() || auth()->user()?->canBypassApproval()))
                                         <x-actions.button semantic="approve" :label="__('Approve Order')" size="xs" wire:click="approveOrder({{ $order->id }})" />
                                     @endif
 
@@ -685,12 +702,17 @@ new #[Title('Purchase Orders')] class extends Component
                     @endforeach
                 </flux:select>
 
-                <flux:select wire:model="orderForm.store_id" :label="__('Receiving Store / Warehouse')">
-                    <option value="">{{ __('Select Store (Optional)') }}</option>
-                    @foreach ($stores as $st)
-                        <option value="{{ $st->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $st->name_ar : $st->name_en }} ({{ $st->code }})</option>
-                    @endforeach
-                </flux:select>
+                @if($stores->count() === 1)
+                    <input type="hidden" wire:model="orderForm.store_id" />
+                    <div><span class="text-xs font-semibold text-text-muted">{{ __('Receiving Store / Warehouse') }}</span><strong class="mt-1 flex h-10 items-center rounded-lg bg-surface-muted px-3 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? $stores->first()->name_ar : $stores->first()->name_en }}</strong></div>
+                @else
+                    <flux:select wire:model="orderForm.store_id" :label="__('Receiving Store / Warehouse')">
+                        <option value="">{{ __('Select Store') }}</option>
+                        @foreach ($stores as $st)
+                            <option value="{{ $st->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $st->name_ar : $st->name_en }} ({{ $st->code }})</option>
+                        @endforeach
+                    </flux:select>
+                @endif
 
                 <flux:input type="date" wire:model="orderForm.order_date" :label="__('Order Date') . ' *'" />
                 <flux:input type="date" wire:model="orderForm.expected_delivery_date" :label="__('Expected Delivery Date')" />
@@ -846,7 +868,7 @@ new #[Title('Purchase Orders')] class extends Component
                                             <div class="text-[11px] font-mono text-zinc-500">{{ $line->product->sku ?: $line->product->code }}</div>
                                         </td>
                                         <td class="px-3 py-2 text-end font-mono"><x-product-quantity :value="$line->entered_quantity ?? $line->quantity_ordered" /> {{ $line->unit_code_snapshot }}<div class="text-xs text-text-muted">{{ __('Base quantity') }}: <x-product-quantity :value="$line->quantity_ordered" /></div></td>
-                                        <td class="px-3 py-2 text-end font-mono">{{ number_format((float) ($line->entered_unit_price ?? $line->unit_cost), 4) }}</td>
+                                        <td class="px-3 py-2 text-end font-mono">{{ number_format((float) ($line->entered_unit_price ?? $line->unit_cost), 2) }}</td>
                                         <td class="px-3 py-2 text-end font-mono font-semibold">{{ number_format((float) $line->subtotal, 2) }}</td>
                                     </tr>
                                 @endforeach

@@ -12,7 +12,7 @@
         <form method="GET" class="internal-toolbar" aria-label="{{ $isArabic ? 'مرشحات فواتير المبيعات' : 'Sales invoice filters' }}">
             <div class="internal-toolbar__grid">
                 <flux:input name="q" value="{{ request('q') }}" :label="__('Invoice number')" :placeholder="app()->isLocale('ar-EG') ? 'ادوّر برقم الفاتورة' : ($isArabic ? 'ابحث برقم الفاتورة' : 'Search invoice number')" />
-                <flux:select name="store_id" :label="__('Store')"><flux:select.option value="">{{ __('All') }}</flux:select.option>@foreach ($stores as $store)<flux:select.option value="{{ $store->id }}" :selected="(string) request('store_id') === (string) $store->id">{{ $store->code }}</flux:select.option>@endforeach</flux:select>
+                @if($stores->count() > 1)<flux:select name="store_id" :label="__('Store')"><flux:select.option value="">{{ __('All') }}</flux:select.option>@foreach ($stores as $store)<flux:select.option value="{{ $store->id }}" :selected="(string) request('store_id') === (string) $store->id">{{ $store->code }}</flux:select.option>@endforeach</flux:select>@endif
                 <flux:input name="date_from" type="date" value="{{ request('date_from') }}" :label="__('From')" />
                 <flux:input name="date_to" type="date" value="{{ request('date_to') }}" :label="__('To')" />
                 <div class="flex items-end gap-2 xl:col-span-2"><flux:button type="submit" variant="primary" icon="funnel">{{ __('Filter') }}</flux:button><flux:button href="{{ route('sales.invoices') }}" variant="ghost">{{ __('Reset') }}</flux:button></div>
@@ -20,7 +20,7 @@
             <x-tables.filter-chips :filters="[__('Invoice number') => request('q'), __('Store') => $selectedStore?->code, __('From') => request('date_from'), __('To') => request('date_to')]" :reset-url="route('sales.invoices')" />
         </form>
 
-        <x-tables.data-panel :title="__('Sales Invoices')" :description="$isArabic ? 'الفواتير المعتمدة ضمن المتاجر المصرح بها.' : 'Approved invoices across your authorized stores.'">
+        <x-tables.data-panel :title="__('Sales Invoices')" :description="$isArabic ? 'الفواتير المعتمدة في منفذ البيع الرئيسي.' : 'Approved invoices for the main selling outlet.'">
             <x-slot:actions><flux:badge size="sm" color="zinc">{{ $sales->total() }} {{ __('records') }}</flux:badge></x-slot:actions>
             <table class="data-table responsive-resource-table w-full text-sm">
                 <thead><tr><th>{{ __('Invoice') }}</th><th>{{ __('Store') }}</th><th>{{ __('Cashier') }}</th><th>{{ __('Approved') }}</th><th class="text-end">{{ __('Payments') }}</th><th class="text-end">{{ __('Final total') }}</th><th class="text-end">{{ __('Action') }}</th></tr></thead>

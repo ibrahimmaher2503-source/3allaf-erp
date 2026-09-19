@@ -20,6 +20,7 @@ const openKeys = (navigation) => [...navigation.querySelectorAll('details[data-n
     .filter((key) => typeof key === 'string' && key !== '');
 
 const maximumScrollTop = (navigation) => Math.max(0, navigation.scrollHeight - navigation.clientHeight);
+const shouldAutoOpen = (details) => details.hasAttribute('data-navigation-auto-open') && details.closest('[data-active-group]');
 
 const revealActiveInsideSidebar = (navigation, active) => {
     if (!active) return;
@@ -76,12 +77,13 @@ export const restoreSidebarState = (root = document, storage = window.localStora
         const storedOpen = new Set(state.open);
         details.forEach((candidate) => {
             candidate.open = storedOpen.has(candidate.dataset.navigationState)
-                || activeAncestors.has(candidate.dataset.navigationState);
+                || activeAncestors.has(candidate.dataset.navigationState)
+                || shouldAutoOpen(candidate);
         });
         navigation.scrollTop = Math.min(maximumScrollTop(navigation), Math.max(0, Math.round(state.scrollTop)));
     } else {
         details.forEach((candidate) => {
-            if (activeAncestors.has(candidate.dataset.navigationState)) candidate.open = true;
+            if (activeAncestors.has(candidate.dataset.navigationState) || shouldAutoOpen(candidate)) candidate.open = true;
         });
     }
 
@@ -110,6 +112,9 @@ const bindSidebarState = () => {
         });
     }, { passive: true });
     navigation.addEventListener('toggle', (event) => {
+        if (event.target.matches('[data-navigation-group="administration"]') && event.target.open) {
+            event.target.querySelector('[data-navigation-auto-open]')?.setAttribute('open', '');
+        }
         const scrollTop = navigation.scrollTop;
         requestAnimationFrame(() => {
             navigation.scrollTop = Math.min(maximumScrollTop(navigation), scrollTop);

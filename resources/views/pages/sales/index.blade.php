@@ -92,7 +92,7 @@
             <div class="internal-toolbar__grid">
                 <flux:input name="q" value="{{ request('q') }}" :label="__('Search')" :placeholder="$isArabic ? 'رقم الفاتورة أو مرجع العملية' : 'Invoice or checkout reference'" />
                 <flux:select name="status" :label="__('Status')"><flux:select.option value="">{{ __('All') }}</flux:select.option>@foreach (['draft', 'suspended', 'approved', 'cancelled'] as $status)<flux:select.option value="{{ $status }}" :selected="request('status') === $status">{{ __(ucfirst($status)) }}</flux:select.option>@endforeach</flux:select>
-                <flux:select name="store_id" :label="__('Store')"><flux:select.option value="">{{ __('All') }}</flux:select.option>@foreach ($stores as $store)<flux:select.option value="{{ $store->id }}" :selected="(string) request('store_id') === (string) $store->id">{{ $store->code }}</flux:select.option>@endforeach</flux:select>
+                @if($stores->count() > 1)<flux:select name="store_id" :label="__('Store')"><flux:select.option value="">{{ __('All') }}</flux:select.option>@foreach ($stores as $store)<flux:select.option value="{{ $store->id }}" :selected="(string) request('store_id') === (string) $store->id">{{ $store->code }}</flux:select.option>@endforeach</flux:select>@endif
                 <flux:input name="date_from" type="date" value="{{ request('date_from') }}" :label="__('From')" />
                 <flux:input name="date_to" type="date" value="{{ request('date_to') }}" :label="__('To')" />
                 <div class="flex items-end gap-2"><flux:button type="submit" variant="primary" icon="funnel">{{ __('Filter') }}</flux:button><flux:button href="{{ route('sales.index') }}" variant="ghost">{{ __('Reset') }}</flux:button></div>

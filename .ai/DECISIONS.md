@@ -145,3 +145,15 @@
 - Inventory valuation at a cutoff is `SUM(stock_movements.total_cost)` and historical quantity is `SUM(stock_movements.quantity)` through Cairo end-of-day. Historical unit cost is derived as value divided by quantity when quantity is positive. Current Product or StockBalance average cost must never be substituted.
 - The movement card opening balance is every posted movement before the start boundary; period incoming/outgoing and running balance use deterministic `posted_at, id` order. Transfers report only posted dispatch/receipt movements, so partial receipts and shortages are not fabricated.
 - Existing `(product_id, store_id, posted_at)` and store/date indexes cover the two report paths. No R2 migration or new index is justified by the reviewed plans and dataset.
+
+## 2026-09-19 — Purchase-order save routes directly to approval
+
+- Owner directed removal of the manual draft-then-submit step from the purchase-order UI. Saving a new or edited draft now submits it atomically to the existing approval workflow.
+- A Super Admin uses the existing audited `canBypassApproval()` boundary and `purchase_orders.approve` authorization to approve immediately. Other authorized purchasing users create a pending approval record for the admin/reviewer inbox.
+- Approval still has no stock, invoice, receipt, or cost-posting effect. Existing permission, store scope, locking, approval-record, audit, cancellation, and immutable approved-order safeguards remain authoritative.
+
+## 2026-09-19 — Single default operating context in the UI
+
+- The owner confirmed one operating branch, one warehouse, and one selling outlet. Operational screens therefore resolve the sole active record visible to the signed-in user and use it automatically instead of asking for a redundant selection.
+- This is a reversible UI and defaulting rule, not a destructive data-model rewrite: existing company, branch, store, permission, audit, and historical document references remain intact. If more than one active visible record of a required type exists later, the relevant selector returns automatically.
+- Warehouse-versus-selling-outlet choices remain visible where they are the business operation itself, especially stock balances, adjustments, counts, and transfer source/destination. Those are distinct stock locations, not competing branches.

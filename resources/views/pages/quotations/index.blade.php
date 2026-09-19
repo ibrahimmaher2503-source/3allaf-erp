@@ -1,4 +1,5 @@
 <x-layouts::app :title="__('Quotations')">
+    @php($sellingStores = $stores->where('type', 'selling')->values())
     <x-app.page :title="__('Quotations')" :description="__('Create typed offers that are printable and shareable, with no stock, payment, reservation, wallet, or accounting effect.')" max-width="7xl">
         @if(session('success'))<flux:callout variant="success">{{ session('success') }}</flux:callout>@endif
         @if($errors->any())<flux:callout variant="danger" icon="exclamation-triangle">{{ $errors->first() }}</flux:callout>@endif
@@ -12,7 +13,7 @@
                     @csrf<input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
                     <flux:select name="activity_type" :label="__('Activity type')" required><flux:select.option value="retail">{{ __('Retail') }}</flux:select.option><flux:select.option value="party">{{ __('Party') }}</flux:select.option></flux:select>
                     <flux:select name="customer_id" :label="__('Customer (optional)')"><flux:select.option value="">{{ __('Walk-in customer') }}</flux:select.option>@foreach($customers as $customer)<flux:select.option value="{{ $customer->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $customer->name_ar : $customer->name_en }} · {{ $customer->phone_display }}</flux:select.option>@endforeach</flux:select>
-                    <flux:select name="store_id" :label="__('Store')" required><flux:select.option value="">{{ __('Choose store') }}</flux:select.option>@foreach($stores as $store)<flux:select.option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }} ({{ $store->type }})</flux:select.option>@endforeach</flux:select>
+                    @if($sellingStores->count() === 1)<input type="hidden" name="store_id" value="{{ $sellingStores->first()->id }}">@else<flux:select name="store_id" :label="__('Store')" required><flux:select.option value="">{{ __('Choose store') }}</flux:select.option>@foreach($sellingStores as $store)<flux:select.option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</flux:select.option>@endforeach</flux:select>@endif
                     <flux:input name="valid_until" type="date" :value="old('valid_until', now()->addDays(7)->toDateString())" :label="__('Valid until')" required />
                     <section class="grid gap-3 rounded-xl border p-3 sm:col-span-2 lg:col-span-4 md:grid-cols-12" data-product-line>
                         <div class="md:col-span-2"><flux:select name="lines[0][line_type]" :label="__('Compatible line type')" required><flux:select.option value="product">{{ __('Retail product') }}</flux:select.option><flux:select.option value="service">{{ __('Party service') }}</flux:select.option><flux:select.option value="asset">{{ __('Party asset') }}</flux:select.option></flux:select></div>

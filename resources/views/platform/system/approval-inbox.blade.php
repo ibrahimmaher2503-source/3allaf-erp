@@ -268,15 +268,15 @@ new #[Title('Approval Inbox')] class extends Component
     <x-tables.data-panel :title="__('Approval requests')" :description="__('Decisions call the source domain action, so posting and audit remain atomic.')">
         <x-slot:toolbar>
             <x-tables.filter-bar>
-                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div class="grid gap-3 md:grid-cols-2 {{ $branches->count() > 1 ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
                     <flux:input wire:model.live.debounce.350ms="search" :label="__('Search')" icon="magnifying-glass" :placeholder="__('UUID, source, action, or reason')" />
                     <flux:select wire:model.live="state" :label="__('State')">
                         <option value="">{{ __('All states') }}</option>
                         @foreach (ApprovalState::cases() as $approvalState)<option value="{{ $approvalState->value }}">{{ UiLabel::status($approvalState->value) }}</option>@endforeach
                     </flux:select>
                     <flux:select wire:model.live="sourceType" :label="__('Source type')"><option value="">{{ __('All source types') }}</option>@foreach($sourceTypes as $type)<option value="{{ $type }}">{{ ApprovalPresentation::source($type) }}</option>@endforeach</flux:select>
-                    <flux:select wire:model.live="branchId" :label="__('Branch')"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }}</option>@endforeach</flux:select>
-                    <flux:select wire:model.live="storeId" :label="__('Store')"><option value="">{{ __('All visible stores') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }}</option>@endforeach</flux:select>
+                    @if($branches->count() > 1)<flux:select wire:model.live="branchId" :label="__('Branch')"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }}</option>@endforeach</flux:select>@endif
+                    <flux:select wire:model.live="storeId" :label="str_starts_with(app()->getLocale(), 'ar') ? 'موقع التشغيل' : 'Operating location'"><option value="">{{ str_starts_with(app()->getLocale(), 'ar') ? 'كل مواقع التشغيل' : 'All operating locations' }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }}</option>@endforeach</flux:select>
                 </div>
             </x-tables.filter-bar>
         </x-slot:toolbar>

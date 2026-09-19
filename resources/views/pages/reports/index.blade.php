@@ -2,6 +2,11 @@
     $reportKey = $reportKey ?? 'dashboard';
     $isArabic = str_starts_with(app()->getLocale(), 'ar');
     $localizedName = fn ($record) => $isArabic ? ($record->name_ar ?: $record->name_en) : ($record->name_en ?: $record->name_ar);
+    $scopeStores = match ($reportKey) {
+        'sales', 'customers', 'cash' => $stores->where('type', 'selling')->values(),
+        'purchasing' => $stores->where('type', 'warehouse')->values(),
+        default => $stores,
+    };
     $datasetLabels = [
         'products_barcodes' => __('Products and barcodes'),
         'customers_groups' => __('Customers and groups'),
@@ -92,7 +97,7 @@
     ];
     $filterValueMaps = [
         'branch_id' => $branches->mapWithKeys(fn ($item) => [$item->id => $item->code.' · '.$localizedName($item)]),
-        'store_id' => $stores->mapWithKeys(fn ($item) => [$item->id => $item->code.' · '.$localizedName($item)]),
+        'store_id' => $scopeStores->mapWithKeys(fn ($item) => [$item->id => $item->code.' · '.$localizedName($item)]),
         'user_id' => $users->pluck('name', 'id'),
         'product_id' => $products->mapWithKeys(fn ($item) => [$item->id => $item->item_code.' · '.($isArabic ? ($item->parent?->name_ar ?? $item->name_ar) : ($item->parent?->name_en ?? $item->name_en))]),
         'category_id' => $categories->mapWithKeys(fn ($item) => [$item->id => $item->code.' · '.$localizedName($item)]),
@@ -146,7 +151,7 @@
             <flux:select name="format" :label="__('Format')"><option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pdf">PDF</option></flux:select>
             <flux:input type="date" name="date_from" :label="__('From')" value="{{ $report['filters']['date_from'] }}" />
             <flux:input type="date" name="date_to" :label="__('To')" value="{{ $report['filters']['date_to'] }}" />
-            <flux:select name="branch_id" :label="__('Branch')"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$branch->name_ar:$branch->name_en }}</option>@endforeach</flux:select>
+            @if($branches->count() > 1)<flux:select name="branch_id" :label="__('Branch')"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$branch->name_ar:$branch->name_en }}</option>@endforeach</flux:select>@endif
             <flux:select name="supplier_id" :label="__('Supplier')"><option value="">{{ __('All suppliers') }}</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->code }} · {{ $localizedName($supplier) }}</option>@endforeach</flux:select>
             <flux:select name="category_id" :label="__('Category')"><option value="">{{ __('All categories') }}</option>@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->code }} · {{ $localizedName($category) }}</option>@endforeach</flux:select>
             <flux:select name="document_status" :label="__('Status')"><option value="">{{ __('All Statuses') }}</option>@foreach(['draft','submitted','approved','partially_received','received','awaiting_distribution','rejected','cancelled','closed'] as $status)<option value="{{ $status }}">{{ __((string) str($status)->replace('_',' ')->title()) }}</option>@endforeach</flux:select>
@@ -177,8 +182,8 @@
                 <flux:input name="date_from" type="date" label="{{ __('From') }}" value="{{ $report['filters']['date_from'] }}" />
                 <flux:input name="date_to" type="date" label="{{ __('To') }}" value="{{ $report['filters']['date_to'] }}" />
                 @if($reportKey === 'sales')<flux:input name="search" type="search" label="{{ __('Search report details') }}" value="{{ $report['filters']['search'] ?? '' }}" />@endif
-                <flux:select name="branch_id" label="{{ __('Branch') }}"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}" @selected((string) $report['filters']['branch_id'] === (string) $branch->id)>{{ $branch->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($branch->name_ar ?: $branch->name_en) : ($branch->name_en ?: $branch->name_ar) }}</option>@endforeach</flux:select>
-                <flux:select name="store_id" label="{{ __('Store') }}"><option value="">{{ __('All visible stores') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}" @selected((string) $report['filters']['store_id'] === (string) $store->id)>{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: $store->name_en) : ($store->name_en ?: $store->name_ar) }}</option>@endforeach</flux:select>
+                @if($branches->count() > 1)<flux:select name="branch_id" label="{{ __('Branch') }}"><option value="">{{ __('All visible branches') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}" @selected((string) $report['filters']['branch_id'] === (string) $branch->id)>{{ $branch->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($branch->name_ar ?: $branch->name_en) : ($branch->name_en ?: $branch->name_ar) }}</option>@endforeach</flux:select>@endif
+                @if($scopeStores->count() > 1)<flux:select name="store_id" label="{{ $reportKey === 'inventory' ? ($isArabic ? 'موقع المخزون' : 'Stock location') : ($isArabic ? 'موقع التشغيل' : 'Operating location') }}"><option value="">{{ $reportKey === 'inventory' ? ($isArabic ? 'كل مواقع المخزون' : 'All stock locations') : ($isArabic ? 'كل مواقع التشغيل' : 'All operating locations') }}</option>@foreach($scopeStores as $store)<option value="{{ $store->id }}" @selected((string) $report['filters']['store_id'] === (string) $store->id)>{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: $store->name_en) : ($store->name_en ?: $store->name_ar) }}</option>@endforeach</flux:select>@endif
                 @if($showFor(['sales', 'cash']))<flux:select name="user_id" label="{{ __('User / cashier') }}"><option value="">{{ __('All visible users') }}</option>@foreach($users as $user)<option value="{{ $user->id }}" @selected((string) $report['filters']['user_id'] === (string) $user->id)>{{ $user->name }}{{ $user->username ? ' · '.$user->username : '' }}</option>@endforeach</flux:select>@endif
                 @if($showFor(['sales', 'inventory']) && $products->isNotEmpty())<flux:select name="product_id" label="{{ __('Product') }}"><option value="">{{ __('All products') }}</option>@foreach($products as $product)<option value="{{ $product->id }}" @selected((string) $report['filters']['product_id'] === (string) $product->id)>{{ $product->item_code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($product->parent?->name_ar ?? $product->name_ar) : ($product->parent?->name_en ?? $product->name_en) }}@if($product->isVariant()) · {{ $product->localizedVariationLabel() }}@endif</option>@endforeach</flux:select>@endif
                 @if($showFor(['sales', 'inventory']) && $categories->isNotEmpty())<flux:select name="category_id" label="{{ __('Category') }}"><option value="">{{ __('All categories') }}</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected((string) $report['filters']['category_id'] === (string) $category->id)>{{ $category->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? ($category->name_ar ?: $category->name_en) : ($category->name_en ?: $category->name_ar) }}</option>@endforeach</flux:select>@endif

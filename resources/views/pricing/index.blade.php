@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Platform\Support\DefaultOperatingContext;
 use App\Modules\Pricing\Actions\ApprovePriceProposalAction;
 use App\Modules\Pricing\Actions\CreatePriceProposalAction;
 use App\Modules\Pricing\Actions\ImportPriceProposalsAction;
@@ -78,8 +79,8 @@ new #[Title('Pricing Workspace')] class extends Component
         Gate::authorize('pricing_labels.view');
         $this->mode = $mode ?? 'workspace';
         abort_unless(in_array($this->mode, self::MODES, true), 404);
-        $contextStoreId = app(\App\Modules\Platform\Support\WorkContext::class)->id($this->actor());
-        $this->storeFilter = $contextStoreId === null ? 'all' : (string) $contextStoreId;
+        $defaultOutlet = app(DefaultOperatingContext::class)->sellingOutlet($this->actor());
+        $this->storeFilter = $defaultOutlet === null ? 'all' : (string) $defaultOutlet->id;
     }
 
     public function updatingSearch(string $value): void
@@ -116,7 +117,7 @@ new #[Title('Pricing Workspace')] class extends Component
     {
         $this->search = '';
         $this->statusFilter = 'all';
-        $this->storeFilter = 'all';
+        $this->storeFilter = (string) (app(DefaultOperatingContext::class)->sellingOutlet($this->actor())?->id ?? 'all');
         $this->effectiveFrom = '';
         $this->effectiveTo = '';
         $this->resetPage();
@@ -127,6 +128,7 @@ new #[Title('Pricing Workspace')] class extends Component
     {
         Gate::authorize('pricing_labels.create');
         $this->resetValidation();
+        $this->form['store_id'] = (string) (app(DefaultOperatingContext::class)->sellingOutlet($this->actor())?->id ?? '');
         $this->showProposalForm = true;
     }
 
@@ -285,7 +287,7 @@ new #[Title('Pricing Workspace')] class extends Component
         $products = $this->showProposalForm
             ? Product::query()->sellable()->orderBy('item_code')->limit(500)->get(['id', 'item_code', 'name_ar', 'name_en', 'parent_product_id'])
             : collect();
-        $stores = Store::query()->visibleTo($user)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']);
+        $stores = Store::query()->visibleTo($user)->where('status', 'active')->where('type', 'selling')->orderBy('code')->get(['id', 'code', 'name_ar', 'name_en']);
         $unpricedQuery = Product::query()->sellable()->where(fn ($query) => $query->whereNull('sale_price')->orWhere('sale_price', '<=', 0));
         if ($this->search !== '') {
             $unpricedQuery->where(function ($query): void {
@@ -314,7 +316,7 @@ new #[Title('Pricing Workspace')] class extends Component
 ?>
 @php
     $pt = static fn (string $ar, string $en): string => str_starts_with(app()->getLocale(), 'ar') ? $ar : $en;
-    $modeTitles = ['workspace' => $pt('نظرة عامة على التسعير', 'Pricing overview'), 'versions' => $pt('مقترحات وإصدارات الأسعار', 'Price proposals and versions'), 'unpriced' => $pt('أصناف تحتاج سعر بيع', 'Products needing a selling price'), 'history' => $pt('سجل تغييرات الأسعار', 'Price change history')];
+    $modeTitles = ['workspace' => $pt('نظرة عامة على التسعير', 'Pricing overview'), 'versions' => $pt('تغيير أسعار البيع واعتمادها', 'Selling price changes and approvals'), 'unpriced' => $pt('أصناف تحتاج سعر بيع', 'Products needing a selling price'), 'history' => $pt('سجل تغييرات الأسعار', 'Price change history')];
     $priceStateHelp = [
         'draft' => $pt('لم يُرسل للمراجعة، لا يغيّر سعر البيع.', 'Not submitted for review; does not change selling prices.'),
         'submitted' => $pt('ينتظر قرار المراجع، لم يُطبّق بعد.', 'Awaiting a reviewer decision; not applied yet.'),
@@ -324,13 +326,13 @@ new #[Title('Pricing Workspace')] class extends Component
         'cancelled' => $pt('ملغى، لا يُطبّق في البيع.', 'Cancelled; not applied to sales.'),
     ];
 @endphp
-<x-app.page :title="$modeTitles[$mode]" :description="$mode === 'versions' ? $pt('راجع تغييرات أسعار البيع لكل صنف وموقع، وتابعها من المسودة حتى الاعتماد وفترة السريان.', 'Review selling-price changes by product and location, from draft through approval and validity dates.') : $pt('تابع أسعار البيع وقوائم الأسعار واعتماداتها ضمن المواقع المصرح بها.', 'Manage selling prices, price lists and approvals within authorized locations.')" :breadcrumbs="$pt('التسعير', 'Pricing')" max-width="7xl" class="pricing-screen" data-pricing-mode="{{ $mode }}">
-    <x-slot:actions><x-tables.resource-toolbar filter-target="pricing-filters">@can('pricing_labels.create')<flux:button variant="subtle" wire:click="openImportForm" icon="arrow-up-tray">{{ str_starts_with(app()->getLocale(), 'ar') ? 'استيراد CSV' : 'Import CSV' }}</flux:button><flux:button variant="primary" wire:click="openProposalForm" icon="plus">{{ str_starts_with(app()->getLocale(), 'ar') ? 'مقترح سعر جديد' : 'New price proposal' }}</flux:button>@endcan</x-tables.resource-toolbar></x-slot:actions>
+<x-app.page :title="$modeTitles[$mode]" :description="$mode === 'versions' ? $pt('من هنا تغيّر سعر بيع صنف، وتحدد متى يبدأ السعر الجديد، ثم تراجعه وتعتمده قبل البيع به.', 'Change a product selling price, choose when it starts, then review and approve it before it is used in sales.') : ($mode === 'workspace' ? $pt('لتغيير سعر صنف، اضغط «تغيير سعر صنف» أعلى الصفحة. راجع أسعار البيع وحالات اعتمادها من هنا.', 'To change a product price, use Change a product price at the top of this page. Review selling prices and approval states here.') : $pt('تابع أسعار البيع وقوائم الأسعار واعتماداتها ضمن المواقع المصرح بها.', 'Manage selling prices, price lists and approvals within authorized locations.'))" :breadcrumbs="$pt('التسعير', 'Pricing')" max-width="7xl" class="pricing-screen" data-pricing-mode="{{ $mode }}">
+    <x-slot:actions><x-tables.resource-toolbar filter-target="pricing-filters">@can('pricing_labels.create')<flux:button variant="subtle" wire:click="openImportForm" icon="arrow-up-tray">{{ str_starts_with(app()->getLocale(), 'ar') ? 'استيراد CSV' : 'Import CSV' }}</flux:button><flux:button variant="primary" wire:click="openProposalForm" icon="plus">{{ str_starts_with(app()->getLocale(), 'ar') ? 'تغيير سعر صنف' : 'Change a product price' }}</flux:button>@endcan</x-tables.resource-toolbar></x-slot:actions>
     <div class="space-y-5">
     <div class="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-base font-bold">{{ $pt('متى يتغيّر سعر البيع؟', 'When does the selling price change?') }}</h2>
-            <p class="mt-1 max-w-3xl text-sm text-text-muted">{{ $pt('حفظ المقترح لا يغيّر السعر. أرسله للمراجعة ثم الاعتماد، وراجع فترة سريانه. سعر بطاقة المنتج يظل الأساس، وتغيّر تكلفة الشراء لا يغيّر سعر البيع تلقائيًا.', 'Saving a proposal does not change prices. Submit it for review and approval, then check its validity dates. The product-card price remains the base; purchase-cost changes do not automatically change selling prices.') }}</p>
+            <h2 class="text-base font-bold">{{ $pt('وظيفة الصفحة', 'What this page does') }}</h2>
+            <p class="mt-1 max-w-3xl text-sm text-text-muted">{{ $pt('اختر الصنف، أدخل سعر البيع الجديد وتاريخ بدء تطبيقه، ثم احفظه كمسودة. السعر الحالي لن يتغير إلا بعد اعتماد التغيير، وتغيّر تكلفة الشراء لا يغيّر سعر البيع تلقائيًا.', 'Choose the product, enter its new selling price and start date, then save it as a draft. The current price changes only after approval; purchase-cost changes never update selling prices automatically.') }}</p>
         </div>
         <flux:button href="{{ route('pricing.labels') }}" variant="subtle" icon="printer" wire:navigate>{{ str_starts_with(app()->getLocale(), 'ar') ? 'ملصقات الأسعار' : 'Price labels' }}</flux:button>
     </div>
@@ -346,10 +348,10 @@ new #[Title('Pricing Workspace')] class extends Component
     </nav>
 
     <section id="pricing-filters" class="scroll-mt-24 min-w-0 rounded-xl border border-border bg-surface p-4" aria-labelledby="pricing-filter-heading">
-        <h2 id="pricing-filter-heading" class="mb-3 text-sm font-bold">{{ $pt('ابحث وحدد الإصدارات المطلوبة', 'Find the versions you need') }}</h2>
+        <h2 id="pricing-filter-heading" class="mb-3 text-sm font-bold">{{ $pt('ابحث في طلبات تغيير الأسعار', 'Find price-change requests') }}</h2>
         <div class="grid items-end gap-3 md:grid-cols-2 xl:grid-cols-4">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :label="$pt('الصنف أو كود القائمة', 'Product or price-list code')" placeholder="{{ __('Search list, item code, or product') }}" />
-        <flux:select wire:model.live="storeFilter" :label="str_starts_with(app()->getLocale(), 'ar') ? 'موقع العمل' : 'Work location'"><option value="all">{{ str_starts_with(app()->getLocale(), 'ar') ? 'كل المتاجر' : 'All stores' }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</option>@endforeach</flux:select>
+        @if($stores->count() > 1)<flux:select wire:model.live="storeFilter" :label="str_starts_with(app()->getLocale(), 'ar') ? 'موقع العمل' : 'Work location'"><option value="all">{{ str_starts_with(app()->getLocale(), 'ar') ? 'كل المتاجر' : 'All stores' }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</option>@endforeach</flux:select>@endif
         @if($mode !== 'unpriced')<flux:select wire:model.live="statusFilter" :label="$pt('مرحلة الاعتماد', 'Approval stage')"><option value="all">{{ __('All states') }}</option>@foreach (PriceVersionState::cases() as $state)<option value="{{ $state->value }}">{{ UiLabel::status($state->value) }}</option>@endforeach</flux:select>@endif
         <flux:input wire:model.live="effectiveFrom" type="date" :label="str_starts_with(app()->getLocale(), 'ar') ? 'ساري من' : 'Effective from'" />
         <flux:input wire:model.live="effectiveTo" type="date" :label="str_starts_with(app()->getLocale(), 'ar') ? 'ساري حتى' : 'Effective to'" />
@@ -382,9 +384,9 @@ new #[Title('Pricing Workspace')] class extends Component
     @endif
 
     @if(in_array($mode, ['workspace', 'versions', 'history'], true))
-    <x-tables.data-panel :title="$mode === 'history' ? __('Price change history') : __('Price versions')" :description="$pt('كل سطر يوضح إصدارًا وسعره وموقع تطبيقه وفترة سريانه ومرحلة اعتماده.', 'Each row shows a version, its price, target location, validity dates and approval stage.')">
+    <x-tables.data-panel :title="$mode === 'history' ? __('Price change history') : $pt('طلبات تغيير أسعار البيع', 'Selling price change requests')" :description="$pt('كل سطر هو طلب لتغيير سعر صنف، ويوضح السعر الجديد وتاريخ بدء تطبيقه وحالة اعتماده.', 'Each row is a product price-change request showing the new price, start date and approval status.')">
         <table class="data-table responsive-resource-table min-w-full text-start text-sm">
-                <thead><tr><th scope="col"><button type="button" wire:click="sortBy('id')" class="font-semibold">{{ $pt('القائمة والإصدار', 'List and version') }}</button></th><th scope="col">{{ __('Product / location') }}</th><th scope="col">{{ $pt('سعر البيع المقترح', 'Proposed selling price') }}</th><th scope="col">{{ __('Source') }}</th><th scope="col">{{ $pt('فترة سريان السعر', 'Price validity') }}</th><th scope="col"><button type="button" wire:click="sortBy('approved_at')" class="font-semibold">{{ $pt('مرحلة الاعتماد', 'Approval stage') }}</button></th><th scope="col">{{ __('Actions') }}</th></tr></thead>
+                <thead><tr><th scope="col"><button type="button" wire:click="sortBy('id')" class="font-semibold">{{ $pt('القائمة والإصدار', 'List and version') }}</button></th><th scope="col">{{ __('Product / location') }}</th><th scope="col">{{ $pt('سعر البيع الجديد', 'New selling price') }}</th><th scope="col">{{ __('Source') }}</th><th scope="col">{{ $pt('فترة سريان السعر', 'Price validity') }}</th><th scope="col"><button type="button" wire:click="sortBy('approved_at')" class="font-semibold">{{ $pt('مرحلة الاعتماد', 'Approval stage') }}</button></th><th scope="col">{{ __('Actions') }}</th></tr></thead>
                 <tbody>
                     @forelse ($versions as $version)
                         @php($line = $version->lines->first())
@@ -398,11 +400,11 @@ new #[Title('Pricing Workspace')] class extends Component
                             <td data-label="{{ __('Actions') }}" class="space-y-2">
                                 @can('pricing_labels.view')<x-actions.button semantic="history" :label="$pt('مقارنة الإصدارات', 'Compare versions')" wire:click="openDiff({{ $version->id }})">{{ $pt('مقارنة الإصدارات', 'Compare versions') }}</x-actions.button>@endcan
                                 @can('pricing_labels.submit') @if ($version->state === PriceVersionState::Draft)<flux:button size="sm" wire:loading.attr="disabled" wire:target="submitProposal" wire:click="submitProposal({{ $version->id }})">{{ $pt('إرسال السعر للمراجعة', 'Submit price for review') }}</flux:button>@endif @endcan
-                                @can('pricing_labels.approve') @if ($version->state === PriceVersionState::Submitted)<x-actions.button semantic="approve" :label="$pt('اعتماد هذا السعر', 'Approve this price')" wire:click="approveProposal({{ $version->id }})">{{ $pt('اعتماد هذا السعر', 'Approve this price') }}</x-actions.button><details class="rounded-lg border border-border p-2"><summary class="cursor-pointer text-xs font-semibold">{{ $pt('رفض المقترح مع ذكر السبب', 'Reject proposal with a reason') }}</summary><div class="mt-2 space-y-2"><flux:input size="sm" wire:model="rejectionReason" placeholder="{{ __('Rejection reason if rejecting') }}" /><x-actions.button semantic="reject" :label="__('Reject')" wire:click="rejectProposal({{ $version->id }})">{{ __('Reject') }}</x-actions.button></div></details>@endif @endcan
+                                @can('pricing_labels.approve') @if ($version->state === PriceVersionState::Submitted)<x-actions.button semantic="approve" :label="$pt('اعتماد هذا السعر', 'Approve this price')" wire:click="approveProposal({{ $version->id }})">{{ $pt('اعتماد هذا السعر', 'Approve this price') }}</x-actions.button><details class="rounded-lg border border-border p-2"><summary class="cursor-pointer text-xs font-semibold">{{ $pt('رفض تغيير السعر مع ذكر السبب', 'Reject the price change with a reason') }}</summary><div class="mt-2 space-y-2"><flux:input size="sm" wire:model="rejectionReason" placeholder="{{ __('Rejection reason if rejecting') }}" /><x-actions.button semantic="reject" :label="__('Reject')" wire:click="rejectProposal({{ $version->id }})">{{ __('Reject') }}</x-actions.button></div></details>@endif @endcan
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7"><x-state.empty :title="__('No price versions yet.')" :description="__('Create a price proposal to begin the approval workflow.')" /></td></tr>
+                        <tr><td colspan="7"><x-state.empty :title="$pt('لا توجد طلبات تغيير أسعار بعد.', 'No price-change requests yet.')" :description="$pt('اضغط «تغيير سعر صنف» لإدخال السعر الجديد وإرساله للاعتماد.', 'Choose Change a product price to enter a new price and send it for approval.')" /></td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -440,16 +442,16 @@ new #[Title('Pricing Workspace')] class extends Component
     @if ($showProposalForm)
         <flux:modal wire:model="showProposalForm" name="price-proposal" class="md:w-[48rem]">
             <div class="space-y-5">
-                <flux:heading size="lg">{{ __('New price proposal') }}</flux:heading>
-                <flux:text>{{ __('A proposal is Draft until submitted and approved. It cannot change historical sales or activate by itself.') }}</flux:text>
+                <flux:heading size="lg">{{ $pt('تغيير سعر بيع صنف', 'Change a product selling price') }}</flux:heading>
+                <flux:text>{{ $pt('حدد الصنف والسعر الجديد وتاريخ بدء التطبيق. الحفظ ينشئ مسودة ولا يغيّر السعر الحالي قبل الاعتماد.', 'Choose the product, new price and start date. Saving creates a draft and does not change the current price before approval.') }}</flux:text>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <flux:input wire:model="form.price_list_code" label="{{ __('Price list code') }}" />
                     <flux:input wire:model="form.price_list_name_en" label="{{ __('Price list name') }}" />
                     <flux:input wire:model="form.price_list_name_ar" label="{{ __('Price list name (Arabic)') }}" />
                     <flux:select wire:model="form.source_type" label="{{ __('Source') }}"><option value="product_card">{{ __('Product card') }}</option><option value="import">{{ __('Import') }}</option><option value="purchase_context">{{ __('Purchase context') }}</option>@can('pricing_labels.override')<option value="branch_exception">{{ __('Branch exception') }}</option>@endcan</flux:select>
                     <flux:select wire:model="form.product_id" label="{{ __('Product') }}"><option value="">{{ __('Select product') }}</option>@foreach ($products as $product)<option value="{{ $product->id }}">{{ $product->item_code }} · {{ $product->name_en }}</option>@endforeach</flux:select>
-                    <flux:select wire:model="form.store_id" label="{{ __('Store') }}"><option value="">{{ __('Select store') }}</option>@foreach ($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ $store->name_en }}</option>@endforeach</flux:select>
-                    <flux:input wire:model="form.amount" label="{{ __('Proposed amount') }}" type="number" step="0.001" />
+                    @if($stores->count() === 1)<input type="hidden" wire:model="form.store_id" /><div><span class="text-xs font-semibold text-text-muted">{{ __('Store') }}</span><strong class="mt-1 flex h-10 items-center rounded-lg bg-surface-muted px-3 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? $stores->first()->name_ar : $stores->first()->name_en }}</strong></div>@else<flux:select wire:model="form.store_id" label="{{ __('Store') }}"><option value="">{{ __('Select store') }}</option>@foreach ($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ $store->name_en }}</option>@endforeach</flux:select>@endif
+                    <flux:input wire:model="form.amount" label="{{ $pt('سعر البيع الجديد', 'New selling price') }}" type="number" step="0.001" />
                     <flux:input wire:model="form.reference_amount" label="{{ __('Reference amount (optional)') }}" type="number" step="0.001" />
                     <flux:input wire:model="form.effective_from" label="{{ __('Effective from (optional)') }}" type="datetime-local" />
                     <flux:input wire:model="form.effective_to" label="{{ __('Effective to (optional)') }}" type="datetime-local" />
@@ -460,7 +462,7 @@ new #[Title('Pricing Workspace')] class extends Component
                         <flux:input wire:model="form.open_price_maximum" label="{{ __('Open-price maximum') }}" type="number" step="0.0001" />
                     </div>
                 </div>
-                <flux:textarea wire:model="form.reason_text" label="{{ __('Proposal reason / audit note') }}" rows="3" />
+                <flux:textarea wire:model="form.reason_text" label="{{ $pt('سبب تغيير السعر / ملاحظة للمراجع', 'Price-change reason / reviewer note') }}" rows="3" />
                 <div class="flex justify-end gap-2"><flux:button wire:click="$set('showProposalForm', false)">{{ __('Cancel') }}</flux:button><flux:button variant="primary" wire:click="saveProposal">{{ __('Save draft') }}</flux:button></div>
             </div>
         </flux:modal>

@@ -1524,3 +1524,55 @@
 - Owner explicitly authorized committing and uploading the entire current project state, including pre-existing user-owned changes.
 - Added only the local MariaDB runtime directory `/.tmp-mariadb-r1/` to `.gitignore`; database engine files are not project source and were not staged.
 - Created private repository `ibrahimmaher2503-source/3allaf-erp`, configured it as `origin`, and pushed `codex/r1-sales-reports`. Local and remote commit hashes were verified equal. No deployment or production change occurred.
+
+## 2026-09-18 — Local five-page performance diagnosis
+
+- Owner requested local debug mode and five representative page-load measurements. Enabled `APP_DEBUG` and Laravel Debugbar only in the ignored local `.env`; production and business data were not changed.
+- Read-only authenticated application measurements returned HTTP 200 for dashboard, customers, inventory, purchase-order creation and historical inventory valuation. First cold render after cache clearing ranged from 0.28s to 11.64s; the same warmed pages ranged from 0.21s to 0.43s in the primary comparison.
+- Primary cause is cold Blade compilation (100 compiled views / 1.08MB after the run). Warm-route pressure is concentrated in the inventory landing page: 47 queries, roughly 350KB HTML, and one request builds overview, balances, movements, transfers, adjustments and counts together. Dashboard executes 36 queries; valuation repeats its grouped movement dataset for summary, pagination count and rows. Translation overrides are also loaded twice per request but currently contribute only a few milliseconds.
+- Browser navigation to `/dashboard` was attempted after enabling Debugbar but browser control became unavailable; no claim of five-page visual browser acceptance is made. Temporary probe/cookie files were removed. No code fix, automated suite, build, commit, push, deployment or release occurred.
+
+## 2026-09-18 — Inventory same-screen query reduction
+
+- Owner rejected splitting `/inventory`, caching dashboard figures, and relying on runtime cache/OPcache as the next speed improvement. L2 alternative kept the same route, sections, UI and business values.
+- Consolidated nine inventory/product KPI reads into two aggregate reads and reused the already authorized store collection for balance, movement and adjustment relations. The inventory request dropped from the measured 47 queries to 36 (23% fewer) while returning the same 349.8KB screen.
+- A temporary assertion diagnostic proved every replaced KPI value identical, then an authenticated request returned HTTP 200. With Debugbar disabled after diagnosis, the measured local request was 739.02ms; the immediately prior debug-enabled run was 1579.50ms. The private MariaDB 3307 runtime was restarted after it was found stopped.
+- Local `.env` debugging and Debugbar were returned to false. Private MariaDB 3307 and Laravel 8139 were left listening; `/up` returned 200 in 13ms. PHP syntax and diff hygiene passed; the focused Pint check still reports the route file's existing broad formatting debt and was not allowed to rewrite the whole route file. No page splitting, business-result cache, OPcache change, schema/data mutation, automated suite, build, commit, push, deployment or release occurred. Temporary diagnostic code was removed.
+## 2026-09-19 — Purchase-order price readability
+
+- V0 owner-reported UI issue on `/purchasing/orders/create`: purchase-unit prices such as `38000.0000` were hard to read. The existing number input now removes only redundant trailing decimal zeros in the browser; fractional precision remains available and server values/calculations are unchanged.
+- The related `/purchasing/orders` detail modal now displays purchase-unit prices with thousands separators and two financial decimal places, such as `38,000.00`.
+- Changed one purchasing Blade partial and recorded the undeployed change in the pending UI batch. Blade compilation and diff hygiene passed. No automated tests, database writes, browser control/UAT, build, commit, push, deployment, or release occurred.
+## 2026-09-19 — Direct purchase-order approval routing
+
+- D3 owner-directed workflow simplification on `/purchasing/orders`: UI save and submit are now one atomic operation. Super Admin save uses the existing audited approval bypass and approval permission to reach `approved`; non-Super-Admin purchasing users reach `submitted` with the existing pending approval record for the admin/reviewer inbox.
+- Retained server authorization, store scope, lock version, approval records, separate submit/approve audit events, and zero stock/invoice/cost effects. Updated the form action/copy and allowed Super Admin to approve historical self-submitted orders through the existing bypass boundary.
+- PHP syntax, Blade compilation, locale JSON parsing, and diff hygiene were run. No automated tests, persistent business-data diagnostic, browser control/UAT, commit, push, deployment, release, or production change occurred.
+## 2026-09-19 — Remove purchase-invoice draft warning
+
+- V0 owner-selected removal on `/purchasing/invoices`: deleted the prominent draft-only informational callout above the filters. No workflow, approval, posting, inventory, cost, price, audit, permission, route, query, or database behavior changed.
+- Blade compilation and diff hygiene passed. No automated tests, browser control/UAT, data mutation, build, commit, push, deployment, or release occurred. Added to the pending UI batch.
+
+## 2026-09-19 — Single default branch, warehouse, and selling outlet UI
+
+- D3 owner-directed operating-context simplification. Added one permission-scoped resolver that returns a default only when exactly one active visible branch, warehouse, or selling outlet exists. No schema, record, historical reference, or authorization boundary was removed.
+- Purchase orders and purchase invoices now default to the sole warehouse and hide redundant receiving-location selectors. Sales, customer sales analysis, pricing proposals, customer collection, sales reports, quotations, and gift-card issue UI hide redundant selling-outlet selectors. Sidebar identity and one-branch report, approval, audit, opening-inventory, and stock-count filters no longer present an unnecessary all-branches choice.
+- Inventory retains explicit source/destination, count-location, adjustment-location, and reporting-location choices because the main warehouse and main selling outlet are separate stock locations. Their UI terminology now says stock or operating location instead of implying multiple stores.
+- Read-only MariaDB resolution for Super Admin returned branch `MAIN`, warehouse `MAIN-WAREHOUSE`, and outlet `MAIN-SALES`. PHP syntax passed for the resolver, feed-store controller, and reporting routes; all 19 affected Blade files compiled; `git diff --check` passed.
+- No automated tests, browser control/UAT, persistent data mutation, build, commit, push, deployment, release, or production action occurred. The `impeccable` guidance kept existing components and introduced no new design system; missing repository `DESIGN.md` remains a documentation gap.
+
+## 2026-09-19 — Product-list type and colour removal
+
+- V0 owner-selected UI cleanup on `/catalog/products`: removed the table header and row cell that displayed `Standard / No colour`. No product attribute, type, colour, form, filter, import, query, route, permission, or database behavior changed.
+- The exact `resources/views/catalog/products.blade.php` view compiled and `git diff --check` passed. Automated tests and browser control were not authorized and were not run. No data mutation, build, commit, push, deployment, release, or production action occurred.
+
+## 2026-09-19 — Unpriced-products empty-state Arabic fix
+
+- V0 owner-reported translation correction on `/pricing/unpriced`: replaced `لا unpriced الأصناف في the visible المخازن` with fully Arabic copy and aligned `ar-EG` terminology to selling outlets.
+- Locale JSON parsing, pricing Blade compilation, and `git diff --check` passed. Automated tests and browser control were not authorized and were not run. No behavior, data, build, commit, push, deployment, release, or production action occurred.
+
+## 2026-09-19 — Pricing clarity and Basic Data navigation
+
+- Clarified the `/pricing/versions` price-change and approval purpose and made the `/pricing/workspace` change-price entry point explicit. No price, approval, or data behavior changed.
+- Basic Data now expands on entering/opening Administration & settings, even if a prior sidebar preference had it closed; manual collapsing remains available. No route or permission changed.
+- `git diff --check`, JavaScript syntax, Blade cache compilation, and Vite build passed after installing matching local npm dependencies. The first build attempt lacked local `node_modules`; its retry passed. No automated tests or browser control were run because the active task does not authorize them. No business data, commit, push, deployment, release, or production action occurred.

@@ -48,7 +48,7 @@ final class FeedStoreOperationsController extends Controller
         $companyIds = Store::query()->whereIn('id', $storeIds)->pluck('company_id')->unique();
         $visibleCustomerIds = Customer::query()->visibleTo($actor)->select('customers.id');
 
-        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->with([
+        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->where('type', 'selling')->with([
             'company',
             'sellingStoreMappings' => fn ($query) => $query->where('status', 'active'),
         ])->orderBy('name_ar')->get();

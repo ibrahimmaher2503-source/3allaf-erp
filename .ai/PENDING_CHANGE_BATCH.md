@@ -1,5 +1,19 @@
 # Pending Change Batch
 
+## 2026-09-19 — Make selling-price change discoverable (V0 / undeployed)
+
+- **Source commit:** `e663d786fc96101173e1630cbc187ccb56e0cfcf`; uncommitted.
+- Reworded `/pricing/versions` as selling-price changes and approvals, with direct draft/approval guidance, clearer action/form/table labels, and an explicit pointer to the change-price button on `/pricing/workspace`.
+- **File:** `resources/views/pricing/index.blade.php`.
+- **Verification:** Blade cache compilation and diff hygiene passed. No pricing logic, database, browser check, commit, push, or release.
+
+## 2026-09-19 — Open Basic Data within administration (V1 / undeployed)
+
+- **Source commit:** `e663d786fc96101173e1630cbc187ccb56e0cfcf`; uncommitted.
+- Basic Data expands when Administration & settings opens, including when restored sidebar preferences had it collapsed; users can still collapse it manually.
+- **Files:** `resources/views/components/app-navigation.blade.php`, `resources/js/sidebar-navigation-state.js`.
+- **Verification:** Blade cache compilation, JavaScript syntax, Vite build, and diff hygiene passed. Browser control not authorized; no permissions, routes, data, commit, push, or release.
+
 ## 2026-09-18 — Customer wallet clarity
 
 - **V0 / undeployed / uncommitted:** Clear customer sales-wallet title and independent-ledger purpose; primary account/collection link distinguishes receivables. Compact setup warning with diagnostic details disclosure; removed unrelated Party wallet link from product view and duplicate setup controls. Three-column summary, two-decimal money display, clarified Arabic balance/history/export/empty labels; no empty export button.
@@ -167,6 +181,26 @@ Production access, deployment, backup execution, migration execution, active-sym
 - **Usability refinement:** Added a sticky permission-aware operation jump bar, stable section anchors, and collapsed optional references/notes behind accessible native details so the first-use form is shorter without removing any field.
 - **Customer-receipt clarification:** Marked currency as automatic, explained the cash account, required customer/store/amount before enabling invoice allocation, renamed the save action, and added `formnovalidate` so allocation preview is not blocked by unrelated payment fields.
 - No routes, controllers, models, permissions, validation, database, or financial behavior changed. Keep this with the pending UI batch; no release, commit, push, or deployment was performed.
+
+## 2026-09-19 — Purchase-order price readability (V0 / undeployed)
+
+- Removed redundant trailing decimal zeros from the visible purchase-unit price input (for example, `38000.0000` now displays as `38000`) while preserving the existing four-decimal input precision, Livewire value, calculations, validation, and saved data.
+- Purchase-order details now render the same purchase-unit price as a grouped financial amount with two decimals (for example, `38,000.00`).
+- No controller, action, model, query, permission, database, or purchasing workflow behavior changed.
+
+## 2026-09-19 — Remove purchase-invoice draft warning (V0 / undeployed)
+
+- Removed the owner-selected informational warning above the purchase-invoice filters. Approval, posting, inventory, WAC, audit, and sale-price behavior remain unchanged.
+
+## 2026-09-19 — Remove product type/colour column (V0 / undeployed)
+
+- Removed the `Type` table column and its `Standard / No colour` cell from `/catalog/products`. Product type and colour data, forms, filters, imports, validation, and stored records remain unchanged.
+- The catalog Blade view compiled and `git diff --check` passed. Browser control was not authorized for this active task, so the exact page was not reloaded by the agent.
+
+## 2026-09-19 — Unpriced-products empty-state translation (V0 / undeployed)
+
+- Replaced the mixed Arabic/English empty-state text on `/pricing/unpriced` with clear Arabic and Egyptian Arabic wording referring to available selling outlets. English source copy and pricing behavior remain unchanged.
+- Both locale JSON files parsed, the pricing Blade view compiled, and `git diff --check` passed. Browser control was not authorized for this active task.
 
 ## 2026-09-12 — Egyptian Arabic locale completion batch
 

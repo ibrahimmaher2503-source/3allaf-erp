@@ -8,6 +8,7 @@ use App\Modules\Catalog\Actions\AddBarcodeAction;
 use App\Modules\Catalog\Actions\SaveProductAction;
 use App\Modules\Catalog\Models\Supplier;
 use App\Modules\Platform\Models\Store;
+use App\Modules\Platform\Support\DefaultOperatingContext;
 use App\Modules\Purchasing\Actions\ApprovePurchaseInvoiceAction;
 use App\Modules\Purchasing\Actions\CancelPurchaseInvoiceAction;
 use App\Modules\Purchasing\Actions\RejectPurchaseInvoiceAction;
@@ -102,6 +103,8 @@ new #[Title('Purchase Invoices')] class extends Component
         Gate::authorize('purchase_invoices_supplier_returns.view');
         $actor = Auth::user();
         abort_unless($actor instanceof User, 403);
+        $defaultWarehouse = app(DefaultOperatingContext::class)->warehouse($actor);
+        $this->storeFilter = $defaultWarehouse === null ? 'all' : (string) $defaultWarehouse->id;
         $this->invoiceForm['invoice_date'] = now()->toDateString();
 
         if (($purchaseOrderId = request()->integer('purchase_order')) > 0) {
@@ -134,7 +137,7 @@ new #[Title('Purchase Invoices')] class extends Component
         $this->editingInvoiceId = null;
         $this->invoiceForm = [
             'supplier_id' => '',
-            'store_id' => '',
+            'store_id' => (string) (app(DefaultOperatingContext::class)->warehouse(Auth::user())?->id ?? ''),
             'purchase_order_id' => '',
             'supplier_reference' => '',
             'invoice_date' => now()->toDateString(),
@@ -631,10 +634,13 @@ new #[Title('Purchase Invoices')] class extends Component
             ->latest()
             ->paginate(20);
 
+        $stores = Store::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_en')->get();
+
         return view('purchasing.invoices', [
             'invoices' => $invoices,
             'suppliers' => Supplier::query()->where('status', 'active')->orderBy('name_en')->get(),
-            'stores' => Store::query()->visibleTo($actor)->where('status', 'active')->orderBy('name_en')->get(),
+            'stores' => $stores,
+            'receivingStores' => $stores->where('type', 'warehouse')->values(),
             'productResults' => $this->searchProducts($actor),
             'lineProducts' => Product::query()->with('productUnits.unit')->whereIn('id', collect($this->lineItems)->pluck('product_id')->filter()->map(fn($id)=>(int)$id))->get()->keyBy('id'),
             'categories' => Category::query()->where('status','active')->orderBy('name_en')->get(),
@@ -730,13 +736,9 @@ new #[Title('Purchase Invoices')] class extends Component
         </x-tables.resource-toolbar>
     </x-slot:actions>
 
-    <flux:callout variant="warning" icon="exclamation-triangle">
-        {{ __('Drafts calculate totals and create audit records only. No stock, WAC, receipt, or sale-price mutation occurs until a separate approved posting action is completed.') }}
-    </flux:callout>
-
     @unless($showFormModal || $showDistribution)
     <flux:card id="purchase-invoices-filters" class="scroll-mt-24">
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <div class="grid gap-3 sm:grid-cols-2 {{ $receivingStores->count() > 1 ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }}">
             <div class="min-w-64 flex-1">
                 <flux:label>{{ __('Search') }}</flux:label>
                 <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('Invoice number or supplier reference') }}" />
@@ -755,7 +757,7 @@ new #[Title('Purchase Invoices')] class extends Component
                 </flux:select>
             </div>
             <flux:select wire:model.live="supplierFilter" :label="__('Supplier')"><flux:select.option value="all">{{ __('All') }}</flux:select.option>@foreach($suppliers as $supplier)<flux:select.option value="{{ $supplier->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($supplier->name_ar ?: '—') : ($supplier->name_en ?: '—') }}</flux:select.option>@endforeach</flux:select>
-            <flux:select wire:model.live="storeFilter" :label="__('Store')"><flux:select.option value="all">{{ __('All') }}</flux:select.option>@foreach($stores as $store)<flux:select.option value="{{ $store->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: '—') : ($store->name_en ?: '—') }}</flux:select.option>@endforeach</flux:select>
+            @if($receivingStores->count() > 1)<flux:select wire:model.live="storeFilter" :label="__('Store')"><flux:select.option value="all">{{ __('All') }}</flux:select.option>@foreach($receivingStores as $store)<flux:select.option value="{{ $store->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: '—') : ($store->name_en ?: '—') }}</flux:select.option>@endforeach</flux:select>@endif
             <flux:input wire:model.live="dateFrom" type="date" :label="__('From')" />
             <flux:input wire:model.live="dateTo" type="date" :label="__('To')" />
         </div>
@@ -863,12 +865,12 @@ new #[Title('Purchase Invoices')] class extends Component
                             <flux:select.option value="{{ $supplier->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($supplier->name_ar ?: '—') : ($supplier->name_en ?: '—') }}</flux:select.option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model="invoiceForm.store_id" :label="__('Receiving store')">
-                        <flux:select.option value="">{{ __('Select store') }}</flux:select.option>
-                        @foreach ($stores as $store)
-                            <flux:select.option value="{{ $store->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: '—') : ($store->name_en ?: '—') }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
+                    @if($receivingStores->count() === 1)
+                        <input type="hidden" wire:model="invoiceForm.store_id" />
+                        <div><span class="text-xs font-semibold text-text-muted">{{ __('Receiving store') }}</span><strong class="mt-1 flex h-10 items-center rounded-lg bg-surface-muted px-3 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? $receivingStores->first()->name_ar : $receivingStores->first()->name_en }}</strong></div>
+                    @else
+                        <flux:select wire:model="invoiceForm.store_id" :label="__('Receiving store')"><flux:select.option value="">{{ __('Select store') }}</flux:select.option>@foreach ($receivingStores as $store)<flux:select.option value="{{ $store->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? ($store->name_ar ?: '—') : ($store->name_en ?: '—') }}</flux:select.option>@endforeach</flux:select>
+                    @endif
                     <flux:input wire:model="invoiceForm.invoice_date" type="date" :label="__('Invoice date')" />
                     <flux:input wire:model="invoiceForm.supplier_reference" :label="__('Supplier invoice reference')" />
                     <flux:input wire:model="invoiceForm.currency_code" maxlength="3" :label="__('Currency code')" placeholder="{{ __('Optional') }}" />

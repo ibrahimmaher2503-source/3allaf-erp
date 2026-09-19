@@ -58,7 +58,7 @@
             <x-tables.filter-chips :filters="[__('Search') => $term, __('Status') => $status, __('Customer group') => $groupId, __('Governorate') => $governorateId, __('City / locality') => $cityId]" :reset-url="route('customers.index', ['mode' => $mode])" />
         </section>
 
-        <x-tables.data-panel data-guide="customer-table" :title="str_starts_with(app()->getLocale(), 'ar') ? 'حسابات العملاء' : 'Customer accounts'" :description="str_starts_with(app()->getLocale(), 'ar') ? 'إجمالي الفواتير المعتمدة والمدفوع منذ بداية التعامل، بعملة الشركة وداخل المواقع المصرح بها. المديونية تشمل المرتجعات والتسويات؛ الرصيد السالب لصالح العميل.' : 'Lifetime approved invoice totals and payments in company currency and authorized stores. Balance includes returns and adjustments; negative balances are customer credit.'">
+        <x-tables.data-panel data-guide="customer-table" :title="str_starts_with(app()->getLocale(), 'ar') ? 'حسابات العملاء' : 'Customer accounts'" :description="str_starts_with(app()->getLocale(), 'ar') ? 'إجمالي الفواتير المعتمدة والمدفوع منذ بداية التعامل. المديونية تشمل المرتجعات والتسويات؛ والرصيد السالب لصالح العميل.' : 'Lifetime approved invoice totals and payments. Balance includes returns and adjustments; negative balances are customer credit.'">
             <x-slot:actions><flux:badge size="sm" color="zinc">{{ $customers->total() }} {{ __('records') }}</flux:badge></x-slot:actions>
             <table class="data-table responsive-resource-table min-w-full text-start text-sm">
                     <thead><tr><th scope="col">{{ __('Customer') }}</th><th scope="col">{{ __('Customer group') }}</th><th scope="col">{{ __('Phone') }}</th>

@@ -47,12 +47,10 @@
     $navigationGroups = app(\App\Modules\Platform\Support\ApplicationNavigation::class)->for($actor, app()->getLocale());
     $activeGroup = collect($navigationGroups)->firstWhere('active', true);
     $activeItem = collect($activeGroup['items'] ?? [])->firstWhere('active', true);
-    $workContext = app(\App\Modules\Platform\Support\WorkContext::class);
-    $contextStores = $workContext->stores($actor);
-    $contextStore = $workContext->selected($actor) ?? ($contextStores->count() === 1 ? $contextStores->first() : null);
-    $contextName = $contextStore ? ($isArabic ? $contextStore->name_ar : $contextStore->name_en) : ($isArabic ? 'كل المتاجر المصرح بها' : 'All authorized stores');
-    $companyStore = $contextStore ?? $contextStores->first();
-    $company = $companyStore?->company;
+    $contextBranch = app(\App\Modules\Platform\Support\DefaultOperatingContext::class)->branch($actor);
+    $contextName = $contextBranch
+        ? ($isArabic ? $contextBranch->name_ar : $contextBranch->name_en)
+        : ($isArabic ? 'الفرع الرئيسي' : 'Main branch');
     $companyName = config('app.name', '3allaf | علاف');
     $unreadNotifications = $actor->unreadNotifications()->count();
 @endphp
@@ -69,7 +67,7 @@
         </flux:tooltip>
         <flux:sidebar.collapse tooltip="{{ app()->isLocale('ar-EG') ? 'اقفل القائمة' : ($isArabic ? 'إغلاق القائمة' : 'Close menu') }}" class="lg:hidden" />
     </flux:sidebar.header>
-    <div class="app-company-context" title="{{ $companyName }}"><span class="app-company-context__dot" aria-hidden="true"></span><span class="min-w-0"><strong>{{ $companyName }}</strong><small>{{ $contextName ?: ($isArabic ? 'كل المواقع المصرح بها' : 'All authorized locations') }}</small></span></div>
+    <div class="app-company-context" title="{{ $companyName }}"><span class="app-company-context__dot" aria-hidden="true"></span><span class="min-w-0"><strong>{{ $companyName }}</strong><small>{{ $contextName }}</small></span></div>
     <div class="flex items-center justify-between gap-2 px-1 text-xs text-slate-300">
         <span>{{ __('Navigation help') }}</span>
         <x-context-help :title="__('Navigation help')" :label="__('Open navigation help')" sidebar>

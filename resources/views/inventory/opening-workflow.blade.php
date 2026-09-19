@@ -8,6 +8,7 @@ use App\Modules\Inventory\Queries\SearchAssignableProducts;
 use App\Modules\Platform\Models\Branch;
 use App\Modules\Platform\Models\Store;
 use App\Modules\Platform\Support\AuthorizedCompanyContext;
+use App\Modules\Platform\Support\DefaultOperatingContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -33,7 +34,10 @@ new class extends Component
         $this->companyId = (string) $company->id;
         $this->documentId = $documentId;
         $this->documentDate = now()->toDateString();
-        if ($documentId === null) return;
+        if ($documentId === null) {
+            $this->branchId = (string) (app(DefaultOperatingContext::class)->branch($this->actor())?->id ?? '');
+            return;
+        }
 
         $document = OpeningInventoryDocument::query()->where('company_id', $company->id)->with('lines')->findOrFail($documentId);
         abort_unless($document->status === 'draft', 403);
@@ -137,8 +141,8 @@ new class extends Component
         <div class="flex flex-wrap items-start justify-between gap-3"><div><flux:heading>{{ __('Opening inventory header') }}</flux:heading><p class="text-sm text-text-muted">{{ __('The document number is allocated on first save from the branch opening-inventory sequence.') }}</p></div>@if($documentId)<flux:badge color="amber">{{ __('Draft · Resume') }}</flux:badge>@endif</div>
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             @if($companies->count() > 1)<flux:select wire:model.live="companyId" :label="__('Company')">@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$company->name_ar:$company->name_en }}</option>@endforeach</flux:select>@endif
-            <flux:select wire:model.live="branchId" :label="__('Branch')" required><option value="">{{ __('Select branch') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$branch->name_ar:$branch->name_en }}</option>@endforeach</flux:select>
-            <flux:select wire:model="storeId" :label="__('Warehouse / store')" required><option value="">{{ __('Select location') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$store->name_ar:$store->name_en }}</option>@endforeach</flux:select>
+            @if($branches->count() > 1)<flux:select wire:model.live="branchId" :label="__('Branch')" required><option value="">{{ __('Select branch') }}</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$branch->name_ar:$branch->name_en }}</option>@endforeach</flux:select>@endif
+            <flux:select wire:model="storeId" :label="str_starts_with(app()->getLocale(),'ar') ? 'موقع المخزون' : 'Stock location'" required><option value="">{{ __('Select location') }}</option>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->code }} · {{ str_starts_with(app()->getLocale(),'ar')?$store->name_ar:$store->name_en }}</option>@endforeach</flux:select>
             <flux:input wire:model="documentDate" type="date" :label="__('Document date')" required />
             <flux:input value="{{ $documentId ? __('Allocated') : __('Automatic on save') }}" :label="__('Document number')" disabled />
             <flux:input wire:model="notes" :label="__('Notes (optional)')" class="lg:col-span-2" />

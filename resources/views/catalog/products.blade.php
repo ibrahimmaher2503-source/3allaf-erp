@@ -572,7 +572,6 @@ new #[Title('Product Masters')] class extends Component
                     </flux:table.column>
                     <flux:table.column class="min-w-32">{{ __('Item code') }}</flux:table.column>
                     <flux:table.column class="min-w-52">{{ __('Product name') }}</flux:table.column>
-                    <flux:table.column class="min-w-28">{{ __('Type') }}</flux:table.column>
                     <flux:table.column class="min-w-48">{{ __('Category / brand') }}</flux:table.column>
                     <flux:table.column class="min-w-36">{{ __('Barcodes') }}</flux:table.column>
                     <flux:table.column class="min-w-24">{{ __('Status') }}</flux:table.column>
@@ -589,7 +588,6 @@ new #[Title('Product Masters')] class extends Component
                                 <div class="font-medium text-text-primary">{{ str_starts_with(app()->getLocale(), 'ar') ? $product->name_ar : $product->name_en }}</div>
                                 <div class="catalog-secondary-line">{{ str_starts_with(app()->getLocale(), 'ar') ? $product->name_en : $product->name_ar }}</div>
                             </flux:table.cell>
-                            <flux:table.cell data-label="{{ __('Type') }}"><flux:badge size="sm" color="zinc">{{ __(ucfirst($product->product_type)) }}</flux:badge><div class="mt-1 text-xs text-text-muted">{{ $product->colour ?: __('No colour') }}</div></flux:table.cell>
                             <flux:table.cell data-label="{{ __('Category / brand') }}" class="text-xs">
                                 @if($product->category?->parent)<div class="font-semibold">{{ __('Main category') }}: {{ str_starts_with(app()->getLocale(), 'ar') ? $product->category->parent->name_ar : $product->category->parent->name_en }}</div><div>{{ __('Subcategory') }}: {{ str_starts_with(app()->getLocale(), 'ar') ? $product->category->name_ar : $product->category->name_en }}</div>@else<div class="font-semibold">{{ __('Main category') }}: {{ str_starts_with(app()->getLocale(), 'ar') ? $product->category?->name_ar : $product->category?->name_en }}</div>@endif
                                 @if ($product->brand)

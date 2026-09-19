@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Storage;
 Route::middleware(['auth', 'verified'])->group(function (): void {
     $salesReportOptions = function (User $user): array {
         return [
-            'stores' => Store::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->get(['id', 'name_ar', 'name_en']),
+            'stores' => Store::query()->visibleTo($user)->where('status', 'active')->where('type', 'selling')->orderBy('name_en')->get(['id', 'name_ar', 'name_en']),
             'users' => User::query()->where('status', 'active')->orderBy('name')->limit(200)->get(['id', 'name']),
             'customers' => Customer::query()->visibleTo($user)->where('status', 'active')->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']),
             'customerGroups' => CustomerGroup::query()->active()->orderBy('name_en')->limit(200)->get(['id', 'name_ar', 'name_en']),

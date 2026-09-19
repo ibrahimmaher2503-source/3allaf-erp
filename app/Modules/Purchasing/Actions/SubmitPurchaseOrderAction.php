@@ -22,7 +22,7 @@ class SubmitPurchaseOrderAction
     {
         Gate::authorize('purchase_orders.edit');
 
-        return DB::transaction(function () use ($id, $expectedVersion): PurchaseOrder {
+        $submitted = DB::transaction(function () use ($id, $expectedVersion): PurchaseOrder {
             $userId = Auth::id();
             $po = PurchaseOrder::query()->lockForUpdate()->findOrFail($id);
             $this->assertStoreScope($po->store_id);
@@ -77,6 +77,12 @@ class SubmitPurchaseOrderAction
 
             return $po->fresh(['supplier', 'store', 'lines.product']);
         });
+
+        if (Auth::user()?->canBypassApproval() && Gate::allows('purchase_orders.approve')) {
+            return app(ApprovePurchaseOrderAction::class)->execute($submitted->id, $submitted->lock_version);
+        }
+
+        return $submitted;
     }
 
     private function assertStoreScope(?int $storeId): void

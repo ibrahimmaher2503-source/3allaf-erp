@@ -6,7 +6,7 @@
 @endif
 
 <form wire:submit.prevent="saveOrder" class="space-y-4" data-product-line-editor data-autofocus="true">
-    @if($editingOrderId)<flux:callout variant="info" icon="pencil-square">{{ __('Draft') }} · {{ __('Next action') }}: {{ __('Submit for Review') }}</flux:callout>@endif
+    @if($editingOrderId)<flux:callout variant="info" icon="pencil-square">{{ __('Draft') }} · {{ auth()->user()?->canBypassApproval() ? __('Saving will approve this purchase order immediately.') : __('Saving will send this purchase order to admin for approval.') }}</flux:callout>@endif
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(14rem,1.45fr)_minmax(13rem,1.3fr)_10.5rem_10.5rem]">
         <flux:select wire:model.live="orderForm.supplier_id" :label="__('Supplier') . ' *'">
             <option value="">{{ __('Select Supplier') }}</option>
@@ -15,12 +15,17 @@
             @endforeach
         </flux:select>
 
-        <flux:select wire:model="orderForm.store_id" :label="__('Receiving Store / Warehouse') . ' *'">
-            <option value="">{{ __('Select Store') }}</option>
-            @foreach ($stores as $st)
-                <option value="{{ $st->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $st->name_ar : $st->name_en }} ({{ $st->code }})</option>
-            @endforeach
-        </flux:select>
+        @if($stores->count() === 1)
+            <input type="hidden" wire:model="orderForm.store_id" />
+            <div><span class="text-xs font-semibold text-text-muted">{{ __('Receiving Store / Warehouse') }}</span><strong class="mt-1 flex h-10 items-center rounded-lg bg-surface-muted px-3 text-sm">{{ str_starts_with(app()->getLocale(), 'ar') ? $stores->first()->name_ar : $stores->first()->name_en }}</strong></div>
+        @else
+            <flux:select wire:model="orderForm.store_id" :label="__('Receiving Store / Warehouse') . ' *'">
+                <option value="">{{ __('Select Store') }}</option>
+                @foreach ($stores as $st)
+                    <option value="{{ $st->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $st->name_ar : $st->name_en }} ({{ $st->code }})</option>
+                @endforeach
+            </flux:select>
+        @endif
 
         <flux:input type="date" wire:model="orderForm.order_date" :label="__('Order Date') . ' *'" />
         <flux:input type="date" wire:model="orderForm.expected_delivery_date" :label="__('Expected Delivery Date')" />
@@ -75,7 +80,7 @@
 
                     <div class="col-span-7 min-w-0 sm:col-span-3 xl:col-auto">
                         <label for="order-price-{{ $index }}" class="text-xs font-semibold">{{ __('Price per selected unit') }}</label>
-                        <input id="order-price-{{ $index }}" data-line-price data-price-kind="cost" type="number" step="0.0001" min="0" wire:model.live="lineItems.{{ $index }}.unit_cost" wire:change="$set('lineItems.{{ $index }}.price_source','manual_authorized_cost')" class="mt-1 h-10 w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900" required />
+                        <input id="order-price-{{ $index }}" data-line-price data-price-kind="cost" type="number" step="0.0001" min="0" wire:model.live="lineItems.{{ $index }}.unit_cost" wire:change="$set('lineItems.{{ $index }}.price_source','manual_authorized_cost')" x-init="$el.value = $el.value.includes('.') ? $el.value.replace(/\.?0+$/, '') : $el.value" class="mt-1 h-10 w-full rounded-lg border-zinc-300 text-sm dark:border-zinc-700 dark:bg-zinc-900" required />
                         <flux:error name="lineItems.{{ $index }}.unit_cost" />
                         <p class="mt-0.5 truncate text-[9px] leading-none text-zinc-500" data-price-source>{{ match($item['price_source'] ?? 'none') { 'last_supplier_price' => __('Last supplier price'), 'fallback_cost' => __('Fallback product cost'), 'saved_draft_cost' => __('Saved draft cost'), 'manual_authorized_cost' => __('Manually authorized cost'), default => __('No saved supplier price or fallback cost') } }}@if(filled($item['price_date'] ?? '')) · {{ $item['price_date'] }}@endif @if(filled($item['price_currency'] ?? '')) · {{ $item['price_currency'] }}@endif</p>
                     </div>
@@ -127,6 +132,6 @@
         @else
             <flux:button type="button" variant="ghost" wire:click="$set('showFormModal', false)">{{ __('Cancel') }}</flux:button>
         @endif
-        <flux:button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="saveOrder"><span wire:loading.remove wire:target="saveOrder">{{ __('Save Draft') }}</span><span wire:loading wire:target="saveOrder">{{ __('Saving…') }}</span></flux:button>
+        <flux:button variant="primary" type="submit" wire:loading.attr="disabled" wire:target="saveOrder"><span wire:loading.remove wire:target="saveOrder">{{ auth()->user()?->canBypassApproval() ? __('Save and approve') : __('Save and send to admin') }}</span><span wire:loading wire:target="saveOrder">{{ __('Saving…') }}</span></flux:button>
     </div>
 </form>

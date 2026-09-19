@@ -23,7 +23,7 @@
                         @elseif ($item['type'] === 'heading')
                             <p class="px-3 py-1 text-xs font-semibold text-slate-400">{{ $item['label'] }}</p>
                         @elseif ($item['subgroups'] !== [])
-                            <details class="app-navigation__nested {{ ($item['active'] || $item['children_active']) ? 'is-active' : '' }}" data-navigation-state="item:{{ $item['key'] }}" @if($item['active'] || $item['children_active']) open @endif>
+                            <details class="app-navigation__nested {{ ($item['active'] || $item['children_active']) ? 'is-active' : '' }}" data-navigation-state="item:{{ $item['key'] }}" @if($group['key'] === 'administration') data-navigation-auto-open @endif @if($item['active'] || $item['children_active']) open @endif>
                                 <summary><flux:icon :name="$item['icon']" class="size-5" /><span>{{ $item['label'] }}</span><flux:icon.chevron-down class="app-navigation__chevron size-4" /></summary>
                                 <div class="app-navigation__nested-content">
                                     <a href="{{ $item['url'] }}" class="app-navigation__item app-navigation__overview {{ $item['active'] ? 'is-active' : '' }}" @if($item['active']) aria-current="page" @endif wire:navigate><span>{{ __('Basic Data Overview') }}</span></a>

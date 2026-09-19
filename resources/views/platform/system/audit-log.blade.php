@@ -206,14 +206,14 @@ new #[Title('Audit Logs')] class extends Component {
                             <option value="{{ $actor->id }}">{{ $actor->name }}</option>
                         @endforeach
                     </flux:select>
-                    <flux:select wire:model.live="branchId" :label="__('Branch')">
+                    @if($branches->count() > 1)<flux:select wire:model.live="branchId" :label="__('Branch')">
                         <option value="">{{ __('All visible branches') }}</option>
                         @foreach ($branches as $branch)
                             <option value="{{ $branch->id }}">{{ $branch->code }} - {{ str_starts_with(app()->getLocale(), 'ar') ? $branch->name_ar : $branch->name_en }}</option>
                         @endforeach
-                    </flux:select>
-                    <flux:select wire:model.live="storeId" :label="__('Store')">
-                        <option value="">{{ __('All visible stores') }}</option>
+                    </flux:select>@endif
+                    <flux:select wire:model.live="storeId" :label="str_starts_with(app()->getLocale(), 'ar') ? 'موقع التشغيل' : 'Operating location'">
+                        <option value="">{{ str_starts_with(app()->getLocale(), 'ar') ? 'كل مواقع التشغيل' : 'All operating locations' }}</option>
                         @foreach ($stores as $store)
                             <option value="{{ $store->id }}">{{ $store->code }} - {{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : $store->name_en }}</option>
                         @endforeach

@@ -1,4 +1,5 @@
 <x-layouts::app :title="__('Gift Cards')">
+    @php($issuingStores = $stores->where('type', 'selling')->values())
     <x-app.page :title="__('Gift Cards')" :description="__('Issue, redeem, and close cards through an append-only balance ledger.')" max-width="7xl">
         @if(session('success'))
             <flux:callout variant="success">{{ session('success') }}</flux:callout>
@@ -15,7 +16,7 @@
                     @csrf
                     <input type="hidden" name="idempotency_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
                     <flux:input name="amount" type="number" min="0.01" step="0.01" label="{{ __('Value') }}" required />
-                    <flux:select name="store_id" label="{{ __('Issuing store') }}" required>@foreach($stores as $store)<option value="{{ $store->id }}">{{ $store->name_en ?: $store->code }}</option>@endforeach</flux:select>
+                    @if($issuingStores->count() === 1)<input type="hidden" name="store_id" value="{{ $issuingStores->first()->id }}">@else<flux:select name="store_id" label="{{ __('Issuing store') }}" required>@foreach($issuingStores as $store)<option value="{{ $store->id }}">{{ str_starts_with(app()->getLocale(), 'ar') ? $store->name_ar : ($store->name_en ?: $store->code) }}</option>@endforeach</flux:select>@endif
                     <flux:input name="valid_until" type="date" label="{{ __('Expires on (optional)') }}" />
                     <div class="sm:col-span-3"><flux:button type="submit" variant="primary">{{ __('Issue card') }}</flux:button></div>
                 </form>
