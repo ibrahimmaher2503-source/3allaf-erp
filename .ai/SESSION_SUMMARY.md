@@ -1583,3 +1583,9 @@
 - Reviewed the current branch, all local branches/worktrees and remote heads, checked changed files for private-key and credential patterns, and confirmed local `.env`, `node_modules`, generated assets and database runtime files are ignored.
 - Committed the 33 pending project files as `5d63f62919cbcb4c69f5e8d7347f0b9333217ed4`, then pushed all 12 committed local branches. Remote branch hashes matched local hashes. The separate uncommitted test edits in `main` and `codex/p0-9-feed-pricing` were preserved and not included.
 - Git diff hygiene passed. No new code test, browser check, build, database write, production deployment, release, or tag occurred for this upload.
+
+## 2026-09-19 — Consolidate project branch history
+
+- The owner requested merging the multiple GitHub branches. Five old P0 branch commits were found outside the default branch ancestry, but each had the same stable patch ID as an already integrated commit on `codex/r1-sales-reports`.
+- Connected those five branch histories in one `ours` merge commit `4ed32eaba14fc979cb39e60503b21496287ec6f7`, preserving the current project tree exactly. All 12 local branches now count as merged into the default branch; no branch was deleted.
+- `git diff --exit-code HEAD^ HEAD` confirmed zero file changes from the merge, and `git branch --no-merged HEAD` returned no branches. No automated tests, browser checks, database writes, production deployment, release, or tag occurred. The separate uncommitted test edits in `main` and `codex/p0-9-feed-pricing` remain untouched.
