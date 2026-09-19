@@ -1,5 +1,9 @@
 # Pending Change Batch
 
+## 2026-09-19 — GitHub source sync
+
+- The local changes recorded below were included in source commit `5d63f62919cbcb4c69f5e8d7347f0b9333217ed4` and pushed to `origin/codex/r1-sales-reports`. They remain undeployed; earlier `uncommitted` labels record their status when each entry was written.
+
 ## 2026-09-19 — Make selling-price change discoverable (V0 / undeployed)
 
 - **Source commit:** `e663d786fc96101173e1630cbc187ccb56e0cfcf`; uncommitted.

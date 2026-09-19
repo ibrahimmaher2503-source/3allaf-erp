@@ -1576,3 +1576,10 @@
 - Clarified the `/pricing/versions` price-change and approval purpose and made the `/pricing/workspace` change-price entry point explicit. No price, approval, or data behavior changed.
 - Basic Data now expands on entering/opening Administration & settings, even if a prior sidebar preference had it closed; manual collapsing remains available. No route or permission changed.
 - `git diff --check`, JavaScript syntax, Blade cache compilation, and Vite build passed after installing matching local npm dependencies. The first build attempt lacked local `node_modules`; its retry passed. No automated tests or browser control were run because the active task does not authorize them. No business data, commit, push, deployment, release, or production action occurred.
+
+## 2026-09-19 — GitHub project source upload
+
+- The owner requested a full GitHub upload. The existing private `ibrahimmaher2503-source/3allaf-erp` repository uses `codex/r1-sales-reports` as its default branch.
+- Reviewed the current branch, all local branches/worktrees and remote heads, checked changed files for private-key and credential patterns, and confirmed local `.env`, `node_modules`, generated assets and database runtime files are ignored.
+- Committed the 33 pending project files as `5d63f62919cbcb4c69f5e8d7347f0b9333217ed4`, then pushed all 12 committed local branches. Remote branch hashes matched local hashes. The separate uncommitted test edits in `main` and `codex/p0-9-feed-pricing` were preserved and not included.
+- Git diff hygiene passed. No new code test, browser check, build, database write, production deployment, release, or tag occurred for this upload.
